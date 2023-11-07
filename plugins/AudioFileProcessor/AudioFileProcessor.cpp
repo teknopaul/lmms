@@ -92,9 +92,9 @@ AudioFileProcessor::AudioFileProcessor( InstrumentTrack * _instrument_track ) :
 	m_loopModel( 0, 0, 2, this, tr( "Loop mode" ) ),
 	m_stutterModel( false, this, tr( "Stutter" ) ),
 	m_interpolationModel( this, tr( "Interpolation mode" ) ),
-    m_dirScroller(),
+	m_dirScroller(),
 	m_nextPlayStartPoint( 0 ),
-    m_nextPlayBackwards( false )
+	m_nextPlayBackwards( false )
 {
 	connect( &m_reverseModel, SIGNAL( dataChanged() ),
 				this, SLOT( reverseModelChanged() ), Qt::DirectConnection );
@@ -231,7 +231,7 @@ void AudioFileProcessor::saveSettings(QDomDocument& doc, QDomElement& elem)
 
 void AudioFileProcessor::loadSettings(const QDomElement& elem)
 {
-    m_dirScroller.disable();
+	m_dirScroller.disable();
 	if (!elem.attribute("src").isEmpty())
 	{
 		setAudioFile(elem.attribute("src"), false);
@@ -241,7 +241,7 @@ void AudioFileProcessor::loadSettings(const QDomElement& elem)
 		{
 			QString message = tr("Sample not found: %1").arg(m_sampleBuffer.audioFile());
 			Engine::getSong()->collectError(message);
-        }
+		}
 	}
 	else if (!elem.attribute("sampledata").isEmpty())
 	{
@@ -327,56 +327,57 @@ gui::PluginView* AudioFileProcessor::instantiateView( QWidget * _parent )
 
 
 
+void AudioFileProcessor::nextFile( const QString & _audio_file, bool _rename )
+{
+	// is current channel-name equal to previous-filename??
+	if( _rename &&
+			( instrumentTrack()->name() ==
+			  QFileInfo( m_sampleBuffer.audioFile() ).fileName() ||
+			  m_sampleBuffer.audioFile().isEmpty() ) )
+	{
+		// then set it to new one
+		instrumentTrack()->setName( PathUtil::cleanName( _audio_file ) );
+	}
+	// else we don't touch the track-name, because the user named it self
+
+	m_sampleBuffer.setAudioFile( _audio_file );
+	loopPointChanged();
+}
+
+
+
 void AudioFileProcessor::setAudioFile( const QString & _audio_file,
 													bool _rename )
 {
-    nextAudioFile( _audio_file, _rename );
-    m_dirScroller.setFile( _audio_file );
+	nextFile( _audio_file, _rename );
+	m_dirScroller.setFile( _audio_file );
 }
 
-void AudioFileProcessor::nextAudioFile( const QString & _audio_file,
-                                                     bool _rename )
-{
-    // is current channel-name equal to previous-filename??
-    if( _rename &&
-        ( instrumentTrack()->name() ==
-            QFileInfo( m_sampleBuffer.audioFile() ).fileName() ||
-                m_sampleBuffer.audioFile().isEmpty() ) )
-    {
-        // then set it to new one
-        instrumentTrack()->setName( PathUtil::cleanName( _audio_file ) );
-    }
-    // else we don't touch the track-name, because the user named it self
 
-    m_sampleBuffer.setAudioFile( _audio_file );
-    loopPointChanged();
-}
 
 void AudioFileProcessor::setAudioFileNext()
 {
-    QString newFile = m_dirScroller.next();
-    if ( !newFile.isEmpty() )
-    {
-        QFileInfo fInfo(m_sampleBuffer.audioFile());
-        if (fInfo.fileName() != newFile )
-        {
-            nextAudioFile( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile), true );
-        }
-    }
+	QString newFile = m_dirScroller.next();
+	if ( ! newFile.isEmpty() )
+	{
+		QFileInfo fInfo(PathUtil::toAbsolute(m_sampleBuffer.audioFile()));
+		nextFile( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile), true );
+	}
 }
+
+
 
 void AudioFileProcessor::setAudioFilePrev()
 {
-    QString newFile = m_dirScroller.prev();
-    if ( !newFile.isEmpty() )
-    {
-        QFileInfo fInfo(m_sampleBuffer.audioFile());
-        if (fInfo.fileName() != newFile )
-        {
-            nextAudioFile( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile), true );
-        }
-    }
+	QString newFile = m_dirScroller.prev();
+	if ( ! newFile.isEmpty() )
+	{
+		QFileInfo fInfo(PathUtil::toAbsolute(m_sampleBuffer.audioFile()));
+		nextFile( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile), true );
+	}
 }
+
+
 
 
 void AudioFileProcessor::reverseModelChanged()

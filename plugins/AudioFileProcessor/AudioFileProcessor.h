@@ -66,6 +66,7 @@ public:
 	void loadSettings(const QDomElement& elem) override;
 
 	void loadFile( const QString & _file ) override;
+	void nextFile( const QString & _audio_file, bool _rename = true );
 
 	QString nodeName() const override;
 
@@ -163,7 +164,7 @@ private:
 	automatableButtonGroup * m_loopGroup;
 	PixmapButton * m_stutterButton;
 	ComboBox * m_interpBox;
-    LeftRightNav * m_fileSwitcher;
+	LeftRightNav * m_fileSwitcher;
 
 } ;
 
