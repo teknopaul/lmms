@@ -62,6 +62,7 @@ private:
 						const fpp_t _frames,
 						const float _master_gain ) override;
 
+    bool addComment(vorbis_comment *vc, const char* tag, QString comment);
 	bool startEncoding();
 	void finishEncoding();
 	inline int writePage();
@@ -95,7 +96,7 @@ private:
 
 	uint32_t m_serialNo;
 
-	vorbis_comment * m_comments;
+    vorbis_comment m_comments;
 
 	// encoding setup - init by init_ogg_encoding
 	ogg_stream_state	m_os;

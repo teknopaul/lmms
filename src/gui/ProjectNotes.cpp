@@ -28,20 +28,26 @@
 #include <QAction>
 #include <QApplication>
 #include <QCloseEvent>
+#include <QShowEvent>
 #include <QColorDialog>
 #include <QComboBox>
 #include <QFontDatabase>
 #include <QLineEdit>
+#include <QFormLayout>
 #include <QMdiArea>
-#include <QTextEdit>
 #include <QToolBar>
+#include <QTextEdit>
+#include <QPushButton>
 #include <QDomCDATASection>
 
 #include "embed.h"
+#include "base64.h"
 #include "Engine.h"
 #include "GuiApplication.h"
 #include "MainWindow.h"
 #include "Song.h"
+#include "PathUtil.h"
+#include "FileDialog.h"
 
 
 namespace lmms::gui
@@ -51,8 +57,34 @@ namespace lmms::gui
 ProjectNotes::ProjectNotes() :
 	QMainWindow( getGUI()->mainWindow()->workspace() )
 {
-	m_edit = new QTextEdit( this );
-	m_edit->setAutoFillBackground( true );
+    m_form = new QWidget(this);
+    m_title = new QLineEdit(m_form);
+    m_artist = new QLineEdit(m_form);
+    m_album = new QLineEdit(m_form);
+    m_year = new QLineEdit(m_form);
+    m_genre = new QLineEdit(m_form);
+    m_comment = new QLineEdit(m_form);
+    m_image = new QLabel(m_form);
+    m_image->setFixedSize(128, 128);
+    m_changeImageButton = new QPushButton(embed::getIconPixmap("project_open", 16, 16), "", m_form);
+    m_changeImageButton->setFixedSize(24, 24);
+    m_edit = new QTextEdit(m_form);
+
+    QFormLayout * form = new QFormLayout(m_form);
+    form->addRow("title", m_title);
+    form->addRow("artist", m_artist);
+    form->addRow("album", m_album);
+    form->addRow("year", m_year);
+    form->addRow("genre", m_genre);
+    form->addRow("comment", m_comment);
+    form->addRow("image", m_image);
+    form->addRow("", m_changeImageButton);
+    form->addRow("notes", m_edit);
+
+    setCentralWidget(m_form);
+    m_form->show();
+
+    m_edit->setAutoFillBackground( true );
 	QPalette pal;
 	pal.setColor( m_edit->backgroundRole(), QColor( 64, 64, 64 ) );
 	m_edit->setPalette( pal );
@@ -68,9 +100,17 @@ ProjectNotes::ProjectNotes() :
 	connect( m_edit, SIGNAL(textChanged()),
 			Engine::getSong(), SLOT(setModified()));
 
-	setupActions();
+    connect( m_title, SIGNAL(textEdited(const QString &)), this, SLOT(metaTextModified()));
+    connect( m_artist, SIGNAL(textEdited(const QString &)), this, SLOT(metaTextModified()));
+    connect( m_album, SIGNAL(textEdited(const QString &)), this, SLOT(metaTextModified()));
+    connect( m_year, SIGNAL(textEdited(const QString &)), this, SLOT(metaTextModified()));
+    connect( m_genre, SIGNAL(textEdited(const QString &)), this, SLOT(metaTextModified()));
+    connect( m_comment, SIGNAL(textEdited(const QString &)), this, SLOT(metaTextModified()));
+    connect( m_changeImageButton, SIGNAL(clicked()), this, SLOT(selectSongImage()));
 
-	setCentralWidget( m_edit );
+	setupActions();
+    setupMetaData();
+
 	setWindowTitle( tr( "Project Notes" ) );
 	setWindowIcon( embed::getIconPixmap( "project_notes" ) );
 
@@ -91,10 +131,21 @@ void ProjectNotes::clear()
 	m_edit->setTextColor( QColor( 224, 224, 224 ) );
 	QTextCursor cursor = m_edit->textCursor();
 	cursor.clearSelection();
-	m_edit->setTextCursor( cursor );
+    m_edit->setTextCursor( cursor );
+    clearMetaData();
 }
 
-
+void ProjectNotes::clearMetaData()
+{
+    m_title->setText("");
+    m_artist->setText("");
+    m_album->setText("");
+    m_year->setText("");
+    m_genre->setText("");
+    m_comment->setText("");
+    m_image->clear();
+    m_image->setFixedSize(16, 16);
+}
 
 
 void ProjectNotes::setText( const QString & _text )
@@ -102,8 +153,83 @@ void ProjectNotes::setText( const QString & _text )
 	m_edit->setHtml( _text );
 }
 
+void ProjectNotes::setupMetaData()
+{
+    Song * song = Engine::getSong();
+    if (song)
+    {
+        m_title->setText(song->getTitle());
+        m_artist->setText(song->getArtist());
+        m_album->setText(song->getAlbum());
+        m_year->setText(song->getYear());
+        m_genre->setText(song->getGenre());
+        m_comment->setText(song->getComment());
+        renderImage();
+    }
+    else
+    {
+        clearMetaData();
+    }
+}
 
+void ProjectNotes::metaTextModified()
+{
+    Song * song = Engine::getSong();
+    if (song)
+    {
+        song->setTitle(m_title->text());
+        song->setArtist(m_artist->text());
+        song->setAlbum(m_album->text());
+        song->setYear(m_year->text());
+        song->setGenre(m_genre->text());
+        song->setComment(m_comment->text());
+    }
+}
 
+void ProjectNotes::selectSongImage()
+{
+    Song * song = Engine::getSong();
+    if (song)
+    {
+        FileDialog fileDialog(this, tr("Embed image"), "", tr("image files (*.jpeg)"));
+
+        fileDialog.setAcceptMode(FileDialog::AcceptOpen);
+        fileDialog.setFileMode(FileDialog::ExistingFile);
+        fileDialog.setNameFilter("Images (*.png *.jpg *.jpeg)");
+
+        if( fileDialog.exec() == QDialog::Accepted &&
+            !fileDialog.selectedFiles().isEmpty() &&
+            !fileDialog.selectedFiles().first().isEmpty() )
+        {
+            QFile file(fileDialog.selectedFiles()[0]);
+            if (file.open(QFile::ReadOnly))
+            {
+                QByteArray bytes = file.readAll();
+                QString base64;
+                base64::encode(bytes, bytes.size(), base64);
+                song->setImage(base64);
+                renderImage();
+                return;
+            }
+        }
+    }
+}
+
+void ProjectNotes::renderImage() {
+    Song * song = Engine::getSong();
+    if (! song->getImage().isNull() && song->getImage().size() > 0)
+    {
+        QPixmap image;
+        if (image.loadFromData(QByteArray::fromBase64(song->getImage().toStdString().c_str())))
+        {
+            m_image->setFixedSize(128, 128);
+            m_image->setPixmap(image.scaled(128, 128, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+            return;
+        }
+    }
+    m_image->setFixedSize(16, 16);
+    m_image->clear();
+}
 
 void ProjectNotes::setupActions()
 {
@@ -387,10 +513,14 @@ void ProjectNotes::loadSettings( const QDomElement & _this )
 {
 	MainWindow::restoreWidgetState( this, _this );
 	m_edit->setHtml( _this.text() );
+    setupMetaData();
 }
 
 
-
+void ProjectNotes::showEvent( QShowEvent* event ) {
+    setupMetaData();
+    QWidget::showEvent( event );
+}
 
 void ProjectNotes::closeEvent( QCloseEvent * _ce )
 {

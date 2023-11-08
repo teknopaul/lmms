@@ -23,10 +23,12 @@
  *
  */
 
+
+#include <QFileInfo>
 #include "AudioFileWave.h"
 #include "endian_handling.h"
 #include "AudioEngine.h"
-
+#include "Song.h"
 
 namespace lmms
 {
@@ -49,8 +51,13 @@ AudioFileWave::~AudioFileWave()
 	finishEncoding();
 }
 
-
-
+void AudioFileWave::addComment(int tag, QString comment)
+{
+    if (!comment.isNull() && comment.trimmed().size() > 0)
+    {
+        sf_set_string(m_sf, tag, comment.toStdString().c_str());
+    }
+}
 
 bool AudioFileWave::startEncoding()
 {
@@ -88,7 +95,22 @@ bool AudioFileWave::startEncoding()
 	// Prevent fold overs when encountering clipped data
 	sf_command(m_sf, SFC_SET_CLIPPING, nullptr, SF_TRUE);
 
-	sf_set_string ( m_sf, SF_STR_SOFTWARE, "LMMS" );
+    sf_set_string( m_sf, SF_STR_SOFTWARE, "LMMS" );
+
+    const Song* song = Engine::getSong();
+    if (!song->getTitle().isNull() && song->getTitle().trimmed().size() > 0)
+    {
+        addComment(SF_STR_TITLE, song->getTitle());
+    } else {
+        addComment(SF_STR_TITLE, QFileInfo(song->projectFileName())
+                         .completeBaseName()
+                         .replace("[_-]", " "));
+    }
+    addComment(SF_STR_ARTIST, song->getArtist());
+    addComment(SF_STR_ALBUM, song->getAlbum());
+    addComment(SF_STR_DATE, song->getYear());
+    addComment(SF_STR_GENRE, song->getGenre());
+    addComment(SF_STR_COMMENT, song->getComment());
 
 	return true;
 }
