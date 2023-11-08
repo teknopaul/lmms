@@ -92,6 +92,7 @@ AudioFileProcessor::AudioFileProcessor( InstrumentTrack * _instrument_track ) :
 	m_loopModel( 0, 0, 2, this, tr( "Loop mode" ) ),
 	m_stutterModel( false, this, tr( "Stutter" ) ),
 	m_interpolationModel( this, tr( "Interpolation mode" ) ),
+	m_dirScroller(),
 	m_nextPlayStartPoint( 0 ),
 	m_nextPlayBackwards( false )
 {
@@ -230,6 +231,7 @@ void AudioFileProcessor::saveSettings(QDomDocument& doc, QDomElement& elem)
 
 void AudioFileProcessor::loadSettings(const QDomElement& elem)
 {
+	m_dirScroller.disable();
 	if (!elem.attribute("src").isEmpty())
 	{
 		setAudioFile(elem.attribute("src"), false);
@@ -325,14 +327,13 @@ gui::PluginView* AudioFileProcessor::instantiateView( QWidget * _parent )
 
 
 
-void AudioFileProcessor::setAudioFile( const QString & _audio_file,
-													bool _rename )
+void AudioFileProcessor::nextFile( const QString & _audio_file, bool _rename )
 {
 	// is current channel-name equal to previous-filename??
 	if( _rename &&
-		( instrumentTrack()->name() ==
-			QFileInfo( m_sampleBuffer.audioFile() ).fileName() ||
-				m_sampleBuffer.audioFile().isEmpty() ) )
+			( instrumentTrack()->name() ==
+			  QFileInfo( m_sampleBuffer.audioFile() ).fileName() ||
+			  m_sampleBuffer.audioFile().isEmpty() ) )
 	{
 		// then set it to new one
 		instrumentTrack()->setName( PathUtil::cleanName( _audio_file ) );
@@ -341,6 +342,39 @@ void AudioFileProcessor::setAudioFile( const QString & _audio_file,
 
 	m_sampleBuffer.setAudioFile( _audio_file );
 	loopPointChanged();
+}
+
+
+
+void AudioFileProcessor::setAudioFile( const QString & _audio_file,
+													bool _rename )
+{
+	nextFile( _audio_file, _rename );
+	m_dirScroller.setFile( _audio_file );
+}
+
+
+
+void AudioFileProcessor::setAudioFileNext()
+{
+	QString newFile = m_dirScroller.next();
+	if ( ! newFile.isEmpty() )
+	{
+		QFileInfo fInfo(PathUtil::toAbsolute(m_sampleBuffer.audioFile()));
+		nextFile( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile), true );
+	}
+}
+
+
+
+void AudioFileProcessor::setAudioFilePrev()
+{
+	QString newFile = m_dirScroller.prev();
+	if ( ! newFile.isEmpty() )
+	{
+		QFileInfo fInfo(PathUtil::toAbsolute(m_sampleBuffer.audioFile()));
+		nextFile( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile), true );
+	}
 }
 
 
@@ -463,6 +497,12 @@ AudioFileProcessorView::AudioFileProcessorView( Instrument * _instrument,
 		s_artwork = new QPixmap( PLUGIN_NAME::getIconPixmap(
 								"artwork" ) );
 	}
+
+	m_fileSwitcher = new LeftRightNav( this );
+	m_fileSwitcher->setCursor( QCursor( Qt::PointingHandCursor ) );
+	m_fileSwitcher->move( 2, 70 );
+	connect( m_fileSwitcher, SIGNAL( onNavLeft() ), _instrument , SLOT( setAudioFilePrev() ));
+	connect( m_fileSwitcher, SIGNAL( onNavRight() ), _instrument , SLOT( setAudioFileNext() ));
 
 	m_openAudioFileButton = new PixmapButton( this );
 	m_openAudioFileButton->setCursor( QCursor( Qt::PointingHandCursor ) );
