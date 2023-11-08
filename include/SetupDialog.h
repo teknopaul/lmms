@@ -83,6 +83,7 @@ private slots:
 	void toggleSoloLegacyBehavior(bool enabled);
 	void toggleTrackDeletionWarning(bool enabled);
 	void toggleMixerChannelDeletionWarning(bool enabled);
+	void toggleLegacyLoopSelect(bool enabled);
 	void toggleMMPZ(bool enabled);
 	void toggleDisableBackup(bool enabled);
 	void toggleOpenLastProject(bool enabled);
@@ -148,6 +149,7 @@ private:
 	bool m_soloLegacyBehavior;
 	bool m_trackDeletionWarning;
 	bool m_mixerChannelDeletionWarning;
+	bool m_legacyLoopSelect;
 	bool m_MMPZ;
 	bool m_disableBackup;
 	bool m_openLastProject;
