@@ -37,7 +37,9 @@
 
 #include "AboutDialog.h"
 #include "AutomationEditor.h"
+#include "BounceManager.h"
 #include "ControllerRackView.h"
+#include "ClipView.h"
 #include "embed.h"
 #include "Engine.h"
 #include "ExportProjectDialog.h"
@@ -50,6 +52,7 @@
 #include "InstrumentTrackWindow.h"
 #include "MicrotunerConfig.h"
 #include "PatternEditor.h"
+#include "PatternStore.h"
 #include "PianoRoll.h"
 #include "PianoView.h"
 #include "PluginBrowser.h"
@@ -314,21 +317,27 @@ void MainWindow::finalize()
 					this,
 					SLOT(onExportProject()),
 					Qt::CTRL + Qt::Key_E );
-    project_menu->addAction( embed::getIconPixmap( "project_export" ),
+	project_menu->addAction( embed::getIconPixmap( "project_export" ),
 					tr( "E&xport Tracks..." ),
 					this,
 					SLOT(onExportProjectTracks()),
 					Qt::CTRL + Qt::SHIFT + Qt::Key_E );
+
+	project_menu->addAction( embed::getIconPixmap( "project_export" ),
+					tr( "Bounce selected clip" ),
+					this,
+					SLOT(onBounceSelectedClip()),
+					Qt::CTRL + Qt::Key_B );
 	project_menu->addAction( embed::getIconPixmap( "midi_file" ),
 					tr( "Export &MIDI..." ),
 					this,
 					SLOT(onExportProjectMidi()),
 					Qt::CTRL + Qt::Key_M );
-    project_menu->addAction( embed::getIconPixmap( "project_export" ),
-                    tr( "E&xport" ),
-                    this,
-                    SLOT(autoExportProject()),
-                    Qt::CTRL + Qt::ALT + Qt::Key_E );
+	project_menu->addAction( embed::getIconPixmap( "project_export" ),
+					tr( "E&xport" ),
+					this,
+					SLOT(autoExportProject()),
+					Qt::CTRL + Qt::ALT + Qt::Key_E );
 
 // Prevent dangling separator at end of menu per https://bugreports.qt.io/browse/QTBUG-40071
 #if !(defined(LMMS_BUILD_APPLE) && (QT_VERSION < 0x050600))
@@ -1576,6 +1585,7 @@ void MainWindow::exportProject(bool multiExport)
 	}
 }
 
+
 /**
  * no questions asked export based entirly on configured defaults
  */
@@ -1614,7 +1624,19 @@ void MainWindow::autoExportProject()
 	ExportProjectDialog epd( exportFileName, getGUI()->mainWindow(), false );
 	epd.autoExec(true);
 	epd.exec();
+
 }
+
+
+void MainWindow::bounceSelectedClip()
+{
+	BounceManager bm = BounceManager();
+	if ( bm.setExportPoints() )
+	{
+		bm.render();
+	}
+}
+
 
 void MainWindow::handleSaveResult(QString const & filename, bool songSavedSuccessfully)
 {
@@ -1658,6 +1680,11 @@ void MainWindow::onExportProject()
 void MainWindow::onExportProjectTracks()
 {
 	this->exportProject(true);
+}
+
+void MainWindow::onBounceSelectedClip()
+{
+	this->bounceSelectedClip();
 }
 
 void MainWindow::onImportProject()
