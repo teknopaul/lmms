@@ -322,17 +322,21 @@ void MainWindow::finalize()
 					this,
 					SLOT(onExportProject()),
 					Qt::CTRL + Qt::Key_E );
-	project_menu->addAction( embed::getIconPixmap( "project_export" ),
+    project_menu->addAction( embed::getIconPixmap( "project_export" ),
 					tr( "E&xport Tracks..." ),
 					this,
 					SLOT(onExportProjectTracks()),
 					Qt::CTRL + Qt::SHIFT + Qt::Key_E );
-
 	project_menu->addAction( embed::getIconPixmap( "midi_file" ),
 					tr( "Export &MIDI..." ),
 					this,
 					SLOT(onExportProjectMidi()),
 					Qt::CTRL + Qt::Key_M );
+    project_menu->addAction( embed::getIconPixmap( "project_export" ),
+                    tr( "E&xport" ),
+                    this,
+                    SLOT(autoExportProject()),
+                    Qt::CTRL + Qt::ALT + Qt::Key_E );
 
 // Prevent dangling separator at end of menu per https://bugreports.qt.io/browse/QTBUG-40071
 #if !(defined(LMMS_BUILD_APPLE) && (QT_VERSION < 0x050600))
@@ -1456,8 +1460,8 @@ void MainWindow::onExportProjectMidi()
 void MainWindow::exportProject(bool multiExport)
 {
 	QString const & projectFileName = Engine::getSong()->projectFileName();
-
 	FileDialog efd( getGUI()->mainWindow() );
+    QString suffix = "wav";
 
 	if ( multiExport )
 	{
@@ -1481,7 +1485,7 @@ void MainWindow::exportProject(bool multiExport)
 			++idx;
 		}
 		efd.setNameFilters( types );
-		QString baseFilename;
+        QString baseFilename;
 		if( !projectFileName.isEmpty() )
 		{
 			efd.setDirectory( QFileInfo( projectFileName ).absolutePath() );
@@ -1492,12 +1496,47 @@ void MainWindow::exportProject(bool multiExport)
 			efd.setDirectory( ConfigManager::inst()->userProjectsDir() );
 			baseFilename = tr( "untitled" );
 		}
+
+        // export preference if its not empty
+        QString prefExportDir = ConfigManager::inst()->prefExportDir();
+        if ( ! prefExportDir.isNull() && !prefExportDir.isEmpty() )
+        {
+            efd.setDirectory( prefExportDir );
+        }
 		efd.selectFile( baseFilename + ProjectRenderer::fileEncodeDevices[0].m_extension );
 		efd.setWindowTitle( tr( "Select file for project-export..." ) );
+
+        // format preference if not empty
+        QString prefFormat = ConfigManager::inst()->value("outputprefs", "format");
+        if ( !prefFormat.isNull() && ! prefFormat.isEmpty() )
+        {
+            suffix = prefFormat;
+            if (suffix.contains("mp3"))
+            {
+                efd.selectNameFilter( "MP3 (*.mp3)" );
+                efd.selectFile( baseFilename + ".mp3" );
+            }
+            if (suffix.contains("wav"))
+            {
+                efd.selectNameFilter( "WAV (*.mp3)" );
+                efd.selectFile( baseFilename + ".wav" );
+            }
+            if (suffix.contains("ogg"))
+            {
+                efd.selectNameFilter( "OGG (*.ogg)" );
+                efd.selectFile( baseFilename + ".ogg" );
+            }
+            if (suffix.contains("flac"))
+            {
+                efd.selectNameFilter( "FLAC (*.flac)" );
+                efd.selectFile( baseFilename + ".flac" );
+            }
+        }
 	}
 
-	QString suffix = "wav";
-	efd.setDefaultSuffix( suffix );
+
+    efd.setDefaultSuffix( suffix );
+
 	efd.setAcceptMode( FileDialog::AcceptSave );
 
 	if( efd.exec() == QDialog::Accepted && !efd.selectedFiles().isEmpty() &&
@@ -1535,6 +1574,46 @@ void MainWindow::exportProject(bool multiExport)
 		ExportProjectDialog epd( exportFileName, getGUI()->mainWindow(), multiExport );
 		epd.exec();
 	}
+}
+
+/**
+ * no questions asked export based entirly on configured defaults
+ */
+void MainWindow::autoExportProject()
+{
+
+    QString const & projectFileName = Engine::getSong()->projectFileName();
+    if ( projectFileName.isEmpty() )
+    {
+        return;
+    }
+
+    QFileInfo fileInfo( projectFileName );
+    QString baseDir;
+    QString baseFilename = fileInfo.completeBaseName();
+
+    // respect any preferred output directory or uyse the same dir as the project file
+    QString prefExportDir = ConfigManager::inst()->prefExportDir();
+    if ( ! prefExportDir.isNull() && !prefExportDir.isEmpty() && prefExportDir != ".")
+    {
+        baseDir = prefExportDir;
+    }
+    else
+    {
+        baseDir = fileInfo.absoluteDir().absolutePath();
+    }
+
+    QString prefFormat = ConfigManager::inst()->value("outputprefs", "format");
+    if ( prefFormat.isNull() && prefFormat.isEmpty() )
+    {
+        prefFormat = "mp3";
+    }
+
+    QString exportFileName = baseDir + QDir::separator() + baseFilename + "." + prefFormat;
+
+    ExportProjectDialog epd( exportFileName, getGUI()->mainWindow(), false );
+    epd.autoExec(true);
+    epd.exec();
 }
 
 void MainWindow::handleSaveResult(QString const & filename, bool songSavedSuccessfully)
