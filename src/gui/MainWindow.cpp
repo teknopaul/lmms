@@ -324,9 +324,9 @@ void MainWindow::finalize()
 					Qt::CTRL + Qt::SHIFT + Qt::Key_E );
 
 	project_menu->addAction( embed::getIconPixmap( "project_export" ),
-					tr( "Bounce selected clip" ),
+					tr( "Bounce selected clips" ),
 					this,
-					SLOT(onBounceSelectedClip()),
+					SLOT(onBounceSelectedClips()),
 					Qt::CTRL + Qt::Key_B );
 	project_menu->addAction( embed::getIconPixmap( "midi_file" ),
 					tr( "Export &MIDI..." ),
@@ -1585,6 +1585,7 @@ void MainWindow::exportProject(bool multiExport)
 	}
 }
 
+<<<<<<< HEAD
 
 /**
  * no questions asked export based entirly on configured defaults
@@ -1628,13 +1629,10 @@ void MainWindow::autoExportProject()
 }
 
 
-void MainWindow::bounceSelectedClip()
+void MainWindow::bounceSelectedClips()
 {
-	BounceManager bm = BounceManager();
-	if ( bm.setExportPoints() )
-	{
-		bm.render();
-	}
+	BounceManager * bm = new BounceManager();
+	bm->render();
 }
 
 
@@ -1682,9 +1680,9 @@ void MainWindow::onExportProjectTracks()
 	this->exportProject(true);
 }
 
-void MainWindow::onBounceSelectedClip()
+void MainWindow::onBounceSelectedClips()
 {
-	this->bounceSelectedClip();
+	this->bounceSelectedClips();
 }
 
 void MainWindow::onImportProject()
