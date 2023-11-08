@@ -36,6 +36,7 @@
 #include "GuiApplication.h"
 #include "NStateButton.h"
 #include "TextFloat.h"
+#include "ConfigManager.h"
 
 namespace lmms::gui
 {
@@ -342,15 +343,34 @@ void TimeLineWidget::mousePressEvent( QMouseEvent* event )
 		m_action = Action::SelectSongClip;
 		m_initalXSelect = event->x();
 	}
-	else if( event->button() == Qt::RightButton )
-	{
-		m_moveXOff = s_posMarkerPixmap->width() / 2;
-		const TimePos t = m_begin + static_cast<int>( qMax( event->x() - m_xOffset - m_moveXOff, 0 ) * TimePos::ticksPerBar() / m_ppb );
-		const TimePos loopMid = ( m_loopPos[0] + m_loopPos[1] ) / 2;
+	else if ( event->button() == Qt::MiddleButton || event->button() == Qt::RightButton ) {
+		// legacy loop select uses middle and right buttons
+		if (ConfigManager::inst()->value("ui", "legacyloopselect") == "1") {
+			m_moveXOff = s_posMarkerPixmap->width() / 2;
+			const TimePos t = m_begin + static_cast<int>( qMax( event->x() - m_xOffset - m_moveXOff, 0 ) * TimePos::ticksPerBar() / m_ppb );
+			if( event->button() == Qt::MiddleButton )
+			{
+				m_action = Action::MoveLoopBegin;
+				m_loopPos[0] = t;
+				}
+			if( event->button() == Qt::RightButton )
+			{
+				m_action = Action::MoveLoopEnd;
+				m_moveXOff = s_posMarkerPixmap->width() / 2;
+				const TimePos t = m_begin + static_cast<int>( qMax( event->x() - m_xOffset - m_moveXOff, 0 ) * TimePos::ticksPerBar() / m_ppb );
+				m_loopPos[1] = t;
+			}
+		}
+		else if( event->button() == Qt::RightButton )
+		{
+			m_moveXOff = s_posMarkerPixmap->width() / 2;
+			const TimePos t = m_begin + static_cast<int>( qMax( event->x() - m_xOffset - m_moveXOff, 0 ) * TimePos::ticksPerBar() / m_ppb );
+			const TimePos loopMid = ( m_loopPos[0] + m_loopPos[1] ) / 2;
 
-		m_action = t < loopMid ? Action::MoveLoopBegin : Action::MoveLoopEnd;
-		std::sort(std::begin(m_loopPos), std::end(m_loopPos));
-		m_loopPos[( m_action == Action::MoveLoopBegin ) ? 0 : 1] = t;
+			m_action = t < loopMid ? Action::MoveLoopBegin : Action::MoveLoopEnd;
+			std::sort(std::begin(m_loopPos), std::end(m_loopPos));
+			m_loopPos[( m_action == Action::MoveLoopBegin ) ? 0 : 1] = t;
+		}
 	}
 
 	if( m_action == Action::MoveLoopBegin || m_action == Action::MoveLoopEnd )
