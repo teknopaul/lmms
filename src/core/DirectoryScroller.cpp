@@ -58,6 +58,18 @@ QString DirectoryScroller::prev()
 	return findNext(false);
 }
 
+QString DirectoryScroller::dir()
+{
+	if (m_index == -1) {
+		return QString();
+	}
+	else
+	{
+		return m_dir.absolutePath();
+	}
+}
+
+
 void DirectoryScroller::disable()
 {
 	m_index = -1;

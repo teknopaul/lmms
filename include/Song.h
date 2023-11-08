@@ -304,74 +304,74 @@ public:
 		return m_fileName;
 	}
 
-    const QString & getTitle() const
-    {
-        return m_title;
-    }
+	const QString & getTitle() const
+	{
+		return m_title;
+	}
 
-    void setTitle(const QString & title) {
-        m_title = title;
-    }
+	void setTitle(const QString & title) {
+		m_title = title;
+	}
 
 
-    const QString & getArtist() const
-    {
-        return m_artist;
-    }
+	const QString & getArtist() const
+	{
+		return m_artist;
+	}
 
-    void setArtist(const QString & artist) {
-        m_artist = artist;
-    }
+	void setArtist(const QString & artist) {
+		m_artist = artist;
+	}
 
-    const QString & getAlbum() const
-    {
-        return m_album;
-    }
+	const QString & getAlbum() const
+	{
+		return m_album;
+	}
 
-    void setAlbum(const QString &album)
-    {
-        m_album = album;
-    }
+	void setAlbum(const QString &album)
+	{
+		m_album = album;
+	}
 
-    const QString & getYear() const
-    {
-        return m_year;
-    }
+	const QString & getYear() const
+	{
+		return m_year;
+	}
 
-    void setYear(const QString &year)
-    {
-        m_year = year;
-    }
+	void setYear(const QString &year)
+	{
+		m_year = year;
+	}
 
-    const QString & getGenre() const
-    {
-        return m_genre;
-    }
+	const QString & getGenre() const
+	{
+		return m_genre;
+	}
 
-    void setGenre(const QString &genre)
-    {
-        m_genre = genre;
-    }
+	void setGenre(const QString &genre)
+	{
+		m_genre = genre;
+	}
 
-    const QString & getComment() const
-    {
-        return m_comment;
-    }
+	const QString & getComment() const
+	{
+		return m_comment;
+	}
 
-    void setComment(const QString &comment)
-    {
-        m_comment = comment;
-    }
+	void setComment(const QString &comment)
+	{
+		m_comment = comment;
+	}
 
-    const QString & getImage() const
-    {
-        return m_image;
-    }
+	const QString & getImage() const
+	{
+		return m_image;
+	}
 
-    void setImage(const QString &image)
-    {
-        m_image = image;
-    }
+	void setImage(const QString &image)
+	{
+		m_image = image;
+	}
 
 	bool isLoadingProject() const
 	{
@@ -535,14 +535,14 @@ private:
 	bool m_modified;
 	bool m_loadOnLaunch;
 
-    // song meta data
-    QString m_title;
-    QString m_artist;
-    QString m_album;
-    QString m_year;
-    QString m_genre;
-    QString m_comment;
-    QString m_image;
+	// song meta data
+	QString m_title;
+	QString m_artist;
+	QString m_album;
+	QString m_year;
+	QString m_genre;
+	QString m_comment;
+	QString m_image;
 
 	volatile bool m_recording;
 	volatile bool m_exporting;

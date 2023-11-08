@@ -184,15 +184,15 @@ public:
 		return workingDir() + GIG_PATH;
 	}
 
-    QString prefExportDir() const
-    {
-        return m_prefExportDir;
-    }
+	QString prefExportDir() const
+	{
+		return m_prefExportDir;
+	}
 
-    QString bounceDir() const
-    {
-        return m_bounceDir;
-    }
+	QString bounceDir() const
+	{
+		return m_bounceDir;
+	}
 
 	QString defaultThemeDir() const
 	{
@@ -264,10 +264,10 @@ public:
 	void setLADSPADir(const QString & ladspaDir);
 	void setSF2Dir(const QString & sf2Dir);
 	void setSF2File(const QString & sf2File);
-    void setSTKDir(const QString & stkDir);
-    void setGIGDir(const QString & gigDir);
-    void setPrefExportDir(const QString & prefExportDir);
-    void setBounceDir(const QString & bounceDir);
+	void setSTKDir(const QString & stkDir);
+	void setGIGDir(const QString & gigDir);
+	void setPrefExportDir(const QString & prefExportDir);
+	void setBounceDir(const QString & bounceDir);
 	void setThemeDir(const QString & themeDir);
 	void setBackgroundPicFile(const QString & backgroundPicFile);
 
@@ -303,9 +303,9 @@ private:
 #ifdef LMMS_HAVE_STK
 	QString m_stkDir;
 #endif
-    QString m_gigDir;
-    QString m_prefExportDir;
-    QString m_bounceDir;
+	QString m_gigDir;
+	QString m_prefExportDir;
+	QString m_bounceDir;
 	QString m_themeDir;
 	QString m_backgroundPicFile;
 	QString m_lmmsRcFile;
