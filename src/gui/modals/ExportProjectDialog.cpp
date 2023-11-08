@@ -41,11 +41,11 @@ ExportProjectDialog::ExportProjectDialog( const QString & _file_name,
 	m_fileName( _file_name ),
 	m_fileExtension(),
 	m_multiExport( multi_export ),
-    m_autoExec( false ),
-    m_renderManager( nullptr )
+	m_autoExec( false ),
+	m_renderManager( nullptr )
 {
 	setupUi( this );
-    selectDefaults();
+	selectDefaults();
 	setWindowTitle( tr( "Export project to %1" ).arg(
 					QFileInfo( _file_name ).fileName() ) );
 
@@ -128,13 +128,13 @@ void ExportProjectDialog::accept()
 
 void ExportProjectDialog::showEvent( QShowEvent * _ce )
 {
-    QDialog::showEvent( _ce );
-    if (m_autoExec)
-    {
-        m_autoExec = false;
-        startButton->animateClick(100);
-        //QTimer::singleShot(0.5, startButton, [this]{ startButton->animateClick(100); });
-    }
+	QDialog::showEvent( _ce );
+	if (m_autoExec)
+	{
+		m_autoExec = false;
+		startButton->animateClick(100);
+		//QTimer::singleShot(0.5, startButton, [this]{ startButton->animateClick(100); });
+	}
 }
 
 void ExportProjectDialog::closeEvent( QCloseEvent * _ce )
@@ -165,7 +165,7 @@ OutputSettings::StereoMode mapToStereoMode(int index)
 
 void ExportProjectDialog::autoExec(bool autoExec)
 {
-    m_autoExec = autoExec;
+	m_autoExec = autoExec;
 }
 
 
@@ -265,76 +265,76 @@ void ExportProjectDialog::onFileFormatChanged(int index)
 
 	depthWidget->setVisible(bitDepthControlEnabled);
 
-    selectDefaults();
+	selectDefaults();
 }
 
 void ExportProjectDialog::selectDefaults()
 {
-    QString prefStereomode = ConfigManager::inst()->value("outputprefs", "stereomode");
-    if ( ! prefStereomode.isEmpty() )
-    {
-        stereoModeComboBox->setCurrentText(prefStereomode);
-    }
+	QString prefStereomode = ConfigManager::inst()->value("outputprefs", "stereomode");
+	if ( ! prefStereomode.isEmpty() )
+	{
+		stereoModeComboBox->setCurrentText(prefStereomode);
+	}
 
-    const auto bitrates = std::array{64, 128, 160, 192, 256, 320};
-    QString prefBirate = ConfigManager::inst()->value("outputprefs", "bitrate");
-    if ( ! prefBirate.isEmpty() )
-    {
-        for (int i = 0 ; i < 6 ; i++) {
-            if (bitrates[i] == prefBirate.toInt()) {
-                bitrateCB->setCurrentIndex(i);
-            }
-        }
-    }
+	const auto bitrates = std::array{64, 128, 160, 192, 256, 320};
+	QString prefBirate = ConfigManager::inst()->value("outputprefs", "bitrate");
+	if ( ! prefBirate.isEmpty() )
+	{
+		for (int i = 0 ; i < 6 ; i++) {
+			if (bitrates[i] == prefBirate.toInt()) {
+				bitrateCB->setCurrentIndex(i);
+			}
+		}
+	}
 
-    const auto bitdepths = std::array{16, 24, 32};
-    QString prefBitdepth = ConfigManager::inst()->value("outputprefs", "bitdepth");
-    if ( ! prefBitdepth.isEmpty() )
-    {
-        for (int i = 0 ; i < 3 ; i++) {
-            if (bitdepths[i] == prefBitdepth.toInt()) {
-                depthCB->setCurrentIndex(i);
-            }
-        }
-    }
+	const auto bitdepths = std::array{16, 24, 32};
+	QString prefBitdepth = ConfigManager::inst()->value("outputprefs", "bitdepth");
+	if ( ! prefBitdepth.isEmpty() )
+	{
+		for (int i = 0 ; i < 3 ; i++) {
+			if (bitdepths[i] == prefBitdepth.toInt()) {
+				depthCB->setCurrentIndex(i);
+			}
+		}
+	}
 
-    QString prefInterpolation = ConfigManager::inst()->value("outputprefs", "interpolation");
-    if ( ! prefInterpolation.isEmpty() )
-    {
-        if ( prefInterpolation.toLower().contains("zero") )
-        {
-            interpolationCB->setCurrentIndex(0);
-        }
-        else if ( prefInterpolation.toLower().contains("worst") )
-        {
-            interpolationCB->setCurrentIndex(1);
-        }
-        else if ( prefInterpolation.toLower().contains("medium") )
-        {
-            interpolationCB->setCurrentIndex(2);
-        }
-        else if ( prefInterpolation.toLower().contains("best") )
-        {
-            interpolationCB->setCurrentIndex(3);
-        }
-    }
+	QString prefInterpolation = ConfigManager::inst()->value("outputprefs", "interpolation");
+	if ( ! prefInterpolation.isEmpty() )
+	{
+		if ( prefInterpolation.toLower().contains("zero") )
+		{
+			interpolationCB->setCurrentIndex(0);
+		}
+		else if ( prefInterpolation.toLower().contains("worst") )
+		{
+			interpolationCB->setCurrentIndex(1);
+		}
+		else if ( prefInterpolation.toLower().contains("medium") )
+		{
+			interpolationCB->setCurrentIndex(2);
+		}
+		else if ( prefInterpolation.toLower().contains("best") )
+		{
+			interpolationCB->setCurrentIndex(3);
+		}
+	}
 
-    const auto samplerates = std::array{44100, 48000, 88200, 96000, 192000};
-    QString prefSamplerate = ConfigManager::inst()->value("outputprefs", "samplerate");
-    if ( ! prefSamplerate.isEmpty() )
-    {
-        for (int i = 0 ; i < 5 ; i++) {
-            if (samplerates[i] == prefSamplerate.toInt()) {
-                samplerateCB->setCurrentIndex(i);
-            }
-        }
-    }
+	const auto samplerates = std::array{44100, 48000, 88200, 96000, 192000};
+	QString prefSamplerate = ConfigManager::inst()->value("outputprefs", "samplerate");
+	if ( ! prefSamplerate.isEmpty() )
+	{
+		for (int i = 0 ; i < 5 ; i++) {
+			if (samplerates[i] == prefSamplerate.toInt()) {
+				samplerateCB->setCurrentIndex(i);
+			}
+		}
+	}
 
-    QString prefOversampling = ConfigManager::inst()->value("outputprefs", "oversampling");
-    if ( ! prefOversampling.isEmpty() )
-    {
-        oversamplingCB->setCurrentIndex(prefOversampling.left(1).toInt() - 1);
-    }
+	QString prefOversampling = ConfigManager::inst()->value("outputprefs", "oversampling");
+	if ( ! prefOversampling.isEmpty() )
+	{
+		oversamplingCB->setCurrentIndex(prefOversampling.left(1).toInt() - 1);
+	}
 }
 
 void ExportProjectDialog::startBtnClicked()

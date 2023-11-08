@@ -36,23 +36,24 @@ class DirectoryScroller
 
 public:
 
-    DirectoryScroller(  );
-    DirectoryScroller( const QString& path );
+	DirectoryScroller(  );
+	DirectoryScroller( const QString& path );
 
-    virtual ~DirectoryScroller() = default;
+	virtual ~DirectoryScroller() = default;
 
-    void setFile( const QString& path );
-    void disable();
+	void setFile( const QString& path );
+	void disable();
 	QString next( );
 	QString prev( );
+	QString dir();
 
 private:
-    int m_index; // -1 = disabled
-    QString m_suffix;
-    QDir m_dir;
+	int m_index; // -1 = disabled
+	QString m_suffix;
+	QDir m_dir;
 
-    void findIndex(const QString& fileName);
-    QString findNext(bool upDown);
+	void findIndex(const QString& fileName);
+	QString findNext(bool upDown);
 } ;
 
 
