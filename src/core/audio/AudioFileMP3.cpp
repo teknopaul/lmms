@@ -23,12 +23,14 @@
  *
  */
 
+#include "AudioFileMP3.h"
+
 #include <QFileInfo>
 #include <QTextCodec>
 #include <QTextStream>
-#include "AudioFileMP3.h"
-#include "Song.h"
+
 #include "base64.h"
+#include "Song.h"
 
 #ifdef LMMS_HAVE_MP3LAME
 

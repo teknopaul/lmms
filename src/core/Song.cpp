@@ -1096,26 +1096,26 @@ void Song::loadProject( const QString & fileName )
 	m_masterVolumeModel.loadSettings( dataFile.head(), "mastervol" );
 	m_masterPitchModel.loadSettings( dataFile.head(), "masterpitch" );
 
-    // get song meta data
-    QDomElement metaElement = dataFile.content().firstChildElement( "meta" );
-    if( !metaElement.isNull() )
-    {
-        m_title = metaElement.attribute("title");
-        m_artist = metaElement.attribute("artist");
-        m_album = metaElement.attribute("album");
-        m_year = metaElement.attribute("year");
-        m_genre = metaElement.attribute("genre");
-        m_comment = metaElement.attribute("comment");
-        m_image = metaElement.attribute("image");
-    } else {
-        m_title.clear();
-        m_artist.clear();
-        m_album.clear();
-        m_year.clear();
-        m_genre.clear();
-        m_comment.clear();
-        m_image.clear();
-    }
+	// get song meta data
+	QDomElement metaElement = dataFile.content().firstChildElement( "meta" );
+	if( !metaElement.isNull() )
+	{
+		m_title = metaElement.attribute("title");
+		m_artist = metaElement.attribute("artist");
+		m_album = metaElement.attribute("album");
+		m_year = metaElement.attribute("year");
+		m_genre = metaElement.attribute("genre");
+		m_comment = metaElement.attribute("comment");
+		m_image = metaElement.attribute("image");
+	} else {
+		m_title.clear();
+		m_artist.clear();
+		m_album.clear();
+		m_year.clear();
+		m_genre.clear();
+		m_comment.clear();
+		m_image.clear();
+	}
 
 	if( getPlayPos(PlayMode::Song).m_timeLine )
 	{
@@ -1280,15 +1280,15 @@ bool Song::saveProjectFile(const QString & filename, bool withResources)
 	m_masterVolumeModel.saveSettings( dataFile, dataFile.head(), "mastervol" );
 	m_masterPitchModel.saveSettings( dataFile, dataFile.head(), "masterpitch" );
 
-    QDomElement meta = dataFile.createElement(QString("meta"));
-    meta.setAttribute( "title", m_title );
-    meta.setAttribute( "artist", m_artist );
-    meta.setAttribute( "album", m_album );
-    meta.setAttribute( "year", m_year );
-    meta.setAttribute( "genre", m_genre );
-    meta.setAttribute( "comment", m_comment );
-    meta.setAttribute( "image", m_image );
-    dataFile.content().appendChild(meta);
+	QDomElement meta = dataFile.createElement(QString("meta"));
+	meta.setAttribute( "title", m_title );
+	meta.setAttribute( "artist", m_artist );
+	meta.setAttribute( "album", m_album );
+	meta.setAttribute( "year", m_year );
+	meta.setAttribute( "genre", m_genre );
+	meta.setAttribute( "comment", m_comment );
+	meta.setAttribute( "image", m_image );
+	dataFile.content().appendChild(meta);
 
 	saveState( dataFile, dataFile.content() );
 
@@ -1485,7 +1485,7 @@ void Song::setProjectFileName(QString const & projectFileName)
 	{
 		m_fileName = projectFileName;
 		emit projectFileNameChanged();
-    }
+	}
 }
 
 

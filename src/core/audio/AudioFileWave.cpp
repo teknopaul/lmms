@@ -53,7 +53,7 @@ AudioFileWave::~AudioFileWave()
 
 void AudioFileWave::addComment(int tag, QString comment)
 {
-	if (!comment.isNull() && comment.trimmed().size() > 0)
+	if ( !comment.isEmpty() )
 	{
 		sf_set_string(m_sf, tag, comment.toStdString().c_str());
 	}
