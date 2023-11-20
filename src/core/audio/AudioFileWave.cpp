@@ -103,8 +103,8 @@ bool AudioFileWave::startEncoding()
 		addComment(SF_STR_TITLE, song->getTitle());
 	} else {
 		addComment(SF_STR_TITLE, QFileInfo(song->projectFileName())
-				   .completeBaseName()
-				   .replace("[_-]", " "));
+												.completeBaseName()
+												.replace("[_-]", " "));
 	}
 	addComment(SF_STR_ARTIST, song->getArtist());
 	addComment(SF_STR_ALBUM, song->getAlbum());
