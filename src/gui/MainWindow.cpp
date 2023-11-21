@@ -333,21 +333,11 @@ void MainWindow::finalize()
 					SLOT(onBounceSelectedClips()),
 					Qt::CTRL + Qt::Key_B );
 
-	project_menu->addAction( embed::getIconPixmap( "project_export" ),
-					tr( "Bounce selected clips" ),
-					this,
-					SLOT(onBounceSelectedClips()),
-					Qt::CTRL + Qt::Key_B );
 	project_menu->addAction( embed::getIconPixmap( "midi_file" ),
 					tr( "Export &MIDI..." ),
 					this,
 					SLOT(onExportProjectMidi()),
 					Qt::CTRL + Qt::Key_M );
-	project_menu->addAction( embed::getIconPixmap( "project_export" ),
-					tr( "E&xport" ),
-					this,
-					SLOT(autoExportProject()),
-					Qt::CTRL + Qt::ALT + Qt::Key_E );
 
 // Prevent dangling separator at end of menu per https://bugreports.qt.io/browse/QTBUG-40071
 #if !(defined(LMMS_BUILD_APPLE) && (QT_VERSION < 0x050600))
