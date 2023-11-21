@@ -53,7 +53,7 @@ AudioFileWave::~AudioFileWave()
 
 void AudioFileWave::addComment(int tag, QString comment)
 {
-	if (!comment.isNull() && comment.trimmed().size() > 0)
+	if ( !comment.isEmpty() )
 	{
 		sf_set_string(m_sf, tag, comment.toStdString().c_str());
 	}
@@ -69,7 +69,7 @@ bool AudioFileWave::startEncoding()
 
 	m_si.format = SF_FORMAT_WAV;
 
-	switch( getOutputSettings().getBitDepth() )
+	switch ( getOutputSettings().getBitDepth() )
 	{
 	case OutputSettings::BitDepth::Depth32Bit:
 		m_si.format |= SF_FORMAT_FLOAT;
@@ -98,13 +98,15 @@ bool AudioFileWave::startEncoding()
 	sf_set_string( m_sf, SF_STR_SOFTWARE, "LMMS" );
 
 	const Song* song = Engine::getSong();
+
 	if (!song->getTitle().isNull() && song->getTitle().trimmed().size() > 0)
+
 	{
 		addComment(SF_STR_TITLE, song->getTitle());
 	} else {
 		addComment(SF_STR_TITLE, QFileInfo(song->projectFileName())
-				   .completeBaseName()
-				   .replace("[_-]", " "));
+												.completeBaseName()
+												.replace("[_-]", " "));
 	}
 	addComment(SF_STR_ARTIST, song->getArtist());
 	addComment(SF_STR_ALBUM, song->getAlbum());
@@ -124,12 +126,12 @@ void AudioFileWave::writeBuffer( const surroundSampleFrame * _ab,
 {
 	OutputSettings::BitDepth bitDepth = getOutputSettings().getBitDepth();
 
-	if( bitDepth == OutputSettings::BitDepth::Depth32Bit || bitDepth == OutputSettings::BitDepth::Depth24Bit )
+	if ( bitDepth == OutputSettings::BitDepth::Depth32Bit || bitDepth == OutputSettings::BitDepth::Depth24Bit )
 	{
 		auto buf = new float[_frames * channels()];
-		for( fpp_t frame = 0; frame < _frames; ++frame )
+		for ( fpp_t frame = 0; frame < _frames; ++frame )
 		{
-			for( ch_cnt_t chnl = 0; chnl < channels(); ++chnl )
+			for ( ch_cnt_t chnl = 0; chnl < channels(); ++chnl )
 			{
 				buf[frame*channels()+chnl] = _ab[frame][chnl] *
 								_master_gain;
@@ -154,7 +156,7 @@ void AudioFileWave::writeBuffer( const surroundSampleFrame * _ab,
 
 void AudioFileWave::finishEncoding()
 {
-	if( m_sf )
+	if ( m_sf )
 	{
 		sf_close( m_sf );
 	}

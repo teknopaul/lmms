@@ -23,12 +23,14 @@
  *
  */
 
+#include "AudioFileMP3.h"
+
 #include <QFileInfo>
 #include <QTextCodec>
 #include <QTextStream>
-#include "AudioFileMP3.h"
-#include "Song.h"
+
 #include "base64.h"
+#include "Song.h"
 
 #ifdef LMMS_HAVE_MP3LAME
 
@@ -131,7 +133,8 @@ bool AudioFileMP3::initEncoder()
 
 	// add optional Song meta data
 	const Song* song = Engine::getSong();
-	if (!song->getTitle().isEmpty())
+	if ( !song->getTitle().isEmpty() )
+
 	{
 		id3tag_set_title(m_lame, song->getTitle().toStdString().c_str());
 	} else {
@@ -162,6 +165,7 @@ bool AudioFileMP3::initEncoder()
 	{
 		id3tag_set_comment(m_lame, song->getComment().toStdString().c_str());
 	}
+
 	if (!song->getImage().isEmpty())
 	{
 		int imageSize = 0;
