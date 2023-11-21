@@ -322,6 +322,16 @@ void MainWindow::finalize()
 					this,
 					SLOT(onExportProjectTracks()),
 					Qt::CTRL + Qt::SHIFT + Qt::Key_E );
+	project_menu->addAction( embed::getIconPixmap( "project_export" ),
+					tr( "E&xport" ),
+					this,
+					SLOT(autoExportProject()),
+					Qt::CTRL + Qt::ALT + Qt::Key_E );
+	project_menu->addAction( embed::getIconPixmap( "project_export" ),
+					tr( "Bounce selected clips" ),
+					this,
+					SLOT(onBounceSelectedClips()),
+					Qt::CTRL + Qt::Key_B );
 
 	project_menu->addAction( embed::getIconPixmap( "project_export" ),
 					tr( "Bounce selected clips" ),
@@ -1470,7 +1480,8 @@ void MainWindow::exportProject(bool multiExport)
 {
 	QString const & projectFileName = Engine::getSong()->projectFileName();
 	FileDialog efd( getGUI()->mainWindow() );
-    QString suffix = "wav";
+	QString suffix = "wav";
+
 
 	if ( multiExport )
 	{
@@ -1584,8 +1595,6 @@ void MainWindow::exportProject(bool multiExport)
 		epd.exec();
 	}
 }
-
-<<<<<<< HEAD
 
 /**
  * no questions asked export based entirly on configured defaults

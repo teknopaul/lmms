@@ -164,6 +164,7 @@ bool AudioFileMP3::initEncoder()
 	{
 		id3tag_set_comment(m_lame, song->getComment().toStdString().c_str());
 	}
+
 	if ( !song->getImage().isEmpty() )
 	{
 		int imageSize = 0;
