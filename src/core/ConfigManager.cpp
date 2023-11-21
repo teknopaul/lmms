@@ -284,7 +284,7 @@ void ConfigManager::setGIGDir(const QString & gigDir)
 
 void ConfigManager::setPrefExportDir(const QString & prefExportDir)
 {
-    m_prefExportDir = prefExportDir;
+	m_prefExportDir = prefExportDir;
 }
 
 
@@ -292,7 +292,7 @@ void ConfigManager::setPrefExportDir(const QString & prefExportDir)
 
 void ConfigManager::setBounceDir(const QString & bounceDir)
 {
-    m_bounceDir = bounceDir;
+	m_bounceDir = bounceDir;
 }
 
 

@@ -69,8 +69,12 @@ BounceManager::~BounceManager()
 // set the file to output and the file format settings based on defaults
 bool BounceManager::setOutputDefaults()
 {
-	// TODO defaults from settings
 	QString defaultDir = QFileInfo( Engine::getSong()->projectFileName() ).absolutePath();
+	QString bounceDir = ConfigManager::inst()->bounceDir();
+	if ( ! bounceDir.isEmpty() && QFileInfo(bounceDir).exists() )
+	{
+		defaultDir = bounceDir;
+	}
 	QString suffix = "wav";
 
 	FileDialog bfd( getGUI()->mainWindow() );
@@ -78,7 +82,7 @@ bool BounceManager::setOutputDefaults()
 	bfd.setDirectory( defaultDir );
 	bfd.setDefaultSuffix( suffix );
 	bfd.setAcceptMode( FileDialog::AcceptSave );
-	if( bfd.exec() == QDialog::Accepted && !bfd.selectedFiles().isEmpty() &&
+	if ( bfd.exec() == QDialog::Accepted && !bfd.selectedFiles().isEmpty() &&
 					 !bfd.selectedFiles()[0].isEmpty() )
 	{
 		m_outputPath = bfd.selectedFiles()[0];
