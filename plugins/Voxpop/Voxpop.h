@@ -92,6 +92,7 @@ public:
 	void saveSettings(QDomDocument& doc, QDomElement& elem) override;
 	void loadSettings(const QDomElement& elem) override;
 
+	void loadFile( const QString & _file ) override;
 	void loadAudioFile( const QString & _file );
 	void loadCuesheetFile( const QString & _file );
 

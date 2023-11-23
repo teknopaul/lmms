@@ -310,10 +310,19 @@ void Voxpop::loadSettings(const QDomElement& elem)
 
 
 
+void Voxpop::loadFile( const QString & _file )
+{
+	setAudioFile( _file );
+}
+
+
+
+
 void Voxpop::loadAudioFile( const QString & _file )
 {
 	setAudioFile( _file );
 }
+
 
 
 void Voxpop::loadCuesheetFile( const QString & _file )

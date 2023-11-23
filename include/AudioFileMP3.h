@@ -68,6 +68,7 @@ private:
 	void tearDownEncoder();
 
 private:
+	int m_imageSize = 0;
 	lame_t m_lame;
 };
 
