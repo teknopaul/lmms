@@ -45,7 +45,7 @@ namespace lmms
 {
 
 const int VOXPOP_MAX_CUES = 99;
-const QString VOXPOP_DEFAULT_TEXT = "...";
+const QString VOXPOP_DEFAULT_TEXT = "";
 
 namespace gui
 {
@@ -160,6 +160,7 @@ private:
 	BoolModel m_respectEndpointModel;
 	FloatModel m_ampModel;
 	IntModel m_cueIndexModel;
+	mutable QReadWriteLock m_idxLock;
 	BoolModel m_stutterModel;
 	ComboBoxModel m_interpolationModel;
 	ComboBoxModel m_modeModel;
