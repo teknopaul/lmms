@@ -664,15 +664,21 @@ QList<QAction*> FileBrowserTreeWidget::getContextActions(FileItem* file, bool so
 
 		if (songEditor)
 		{
-			toInstrument = new QAction("Send to new SlicerT instance", nullptr);
-			connect(toInstrument, &QAction::triggered,
-				[=]{ openInNewInstrumentTrackWith(file, songEditor, "slicert"); });
-			result.append(toInstrument);
+			if ( ! getPluginFactory()->pluginInfo("slicert").isNull() )
+			{
+				toInstrument = new QAction("Send to new SlicerT instance", nullptr);
+				connect(toInstrument, &QAction::triggered,
+					[=]{ openInNewInstrumentTrackWith(file, songEditor, "slicert"); });
+				result.append(toInstrument);
+			}
 
-			toInstrument = new QAction("Send to new Voxpop instance", nullptr);
-			connect(toInstrument, &QAction::triggered,
-				[=]{ openInNewInstrumentTrackWith(file, songEditor, "voxpop"); });
-			result.append(toInstrument);
+			if ( ! getPluginFactory()->pluginInfo("voxpop").isNull() )
+			{
+				toInstrument = new QAction("Send to new Voxpop instance", nullptr);
+				connect(toInstrument, &QAction::triggered,
+					[=]{ openInNewInstrumentTrackWith(file, songEditor, "voxpop"); });
+				result.append(toInstrument);
+			}
 		}
 	}
 
