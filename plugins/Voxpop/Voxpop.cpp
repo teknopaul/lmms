@@ -81,7 +81,6 @@ Plugin::Descriptor PLUGIN_EXPORT voxpop_plugin_descriptor =
 
 Voxpop::Voxpop( InstrumentTrack * _instrument_track ) :
 	Instrument( _instrument_track, &voxpop_plugin_descriptor ),
-
 	m_mode( CueSelectionMode::Automation ),
 	m_respectEndpointModel( true ),
 	m_ampModel( 100, 0, 500, 1, this, tr( "Amplify" ) ),
@@ -89,7 +88,7 @@ Voxpop::Voxpop( InstrumentTrack * _instrument_track ) :
 	m_stutterModel( false, this, tr( "Stutter" ) ),
 	m_interpolationModel( this, tr( "Interpolation mode" ) ),
 	m_modeModel( this, tr( "Mode" )),
-
+	m_freqModel( DefaultBaseFreq, DefaultBaseFreq  - VOXPOP_FREQ_RANGE, DefaultBaseFreq + VOXPOP_FREQ_RANGE, 1, this, tr( "Frequency" ) ),
 	m_audioFile(""),
 	m_cuesheetFile(""),
 	m_cueCount( 0 ),
@@ -99,6 +98,7 @@ Voxpop::Voxpop( InstrumentTrack * _instrument_track ) :
 	m_cueOffsets( 0 ),
 	m_nextPlayStartPoint( 0 )
 {
+
 	connect( &m_ampModel, SIGNAL( dataChanged() ),
 				this, SLOT( ampModelChanged() ), Qt::DirectConnection );
 	connect( &m_stutterModel, SIGNAL( dataChanged() ),
@@ -198,10 +198,14 @@ void Voxpop::playNote( NotePlayHandle * _n,
 
 	if ( ! _n->isFinished() )
 	{
-		float freq = 440.f;
+		float freq = 440.0f;
 		if ( m_mode == CueSelectionMode::Automation)
 		{
 			freq = _n->frequency();
+		}
+		else
+		{
+			freq = m_freqModel.value();
 		}
 
 		if ( m_sampleBuffers[cue]->play( _working_buffer + offset,
@@ -243,6 +247,7 @@ void Voxpop::saveSettings(QDomDocument& doc, QDomElement& elem)
 {
 	m_cueIndexModel.saveSettings(doc, elem, "cueindex");
 	m_ampModel.saveSettings(doc, elem, "amp");
+	m_freqModel.saveSettings(doc, elem, "freq");
 	m_stutterModel.saveSettings(doc, elem, "stutter");
 	m_interpolationModel.saveSettings(doc, elem, "interp");
 	m_modeModel.saveSettings(doc, elem, "mode");
@@ -291,6 +296,7 @@ void Voxpop::loadSettings(const QDomElement& elem)
 	}
 
 	m_ampModel.loadSettings(elem, "amp");
+	m_freqModel.loadSettings(elem, "freq");
 	m_stutterModel.loadSettings(elem, "stutter");
 	if (elem.hasAttribute("interp") || !elem.firstChildElement("interp").isNull())
 	{
@@ -535,6 +541,11 @@ VoxpopView::VoxpopView( Instrument * _instrument, QWidget * _parent ) :
 	}
 	m_cuelabel = (QString *) &VOXPOP_DEFAULT_TEXT;
 
+	int topline = 67;
+	m_freqKnob = new Knob( KnobType::Bright26, this );
+	m_freqKnob->move( 220, topline );
+	m_freqKnob->setHintText( tr( "Freq:" ), "Hz" );
+
 	m_respectEnpointsCheckBox = new LedCheckBox(this);
 	m_respectEnpointsCheckBox->setToolTip( tr("Respect cue endpoints") );
 	m_respectEnpointsCheckBox->move(3, 86);
@@ -717,6 +728,7 @@ void VoxpopView::modelChanged()
 	auto voxpop = castModel<Voxpop>();
 	connect( &voxpop->m_sampleBuffer, SIGNAL( sampleUpdated() ), this, SLOT( sampleUpdated() ) );
 	m_ampKnob->setModel( &voxpop->m_ampModel );
+	m_freqKnob->setModel( &voxpop->m_freqModel );
 	m_stutterButton->setModel( &voxpop->m_stutterModel );
 	m_interpBox->setModel( &voxpop->m_interpolationModel );
 	m_modeBox->setModel( &voxpop->m_modeModel );

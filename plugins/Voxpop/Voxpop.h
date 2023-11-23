@@ -38,6 +38,7 @@
 #include "InstrumentView.h"
 #include "SampleBuffer.h"
 #include "Knob.h"
+#include "Note.h"
 #include "Controls.h"
 
 
@@ -46,6 +47,7 @@ namespace lmms
 
 const int VOXPOP_MAX_CUES = 99;
 const QString VOXPOP_DEFAULT_TEXT = "";
+const float VOXPOP_FREQ_RANGE = DefaultBaseFreq / 4;
 
 namespace gui
 {
@@ -145,6 +147,7 @@ public slots:
 
 private slots:
 	void ampModelChanged();
+	void freqModelChanged();
 	void stutterModelChanged();
 	void cueIndexChanged();
 	void modeChanged();
@@ -159,6 +162,7 @@ private:
 
 	BoolModel m_respectEndpointModel;
 	FloatModel m_ampModel;
+	FloatModel m_freqModel;
 	IntModel m_cueIndexModel;
 	mutable QReadWriteLock m_idxLock;
 	BoolModel m_stutterModel;
@@ -216,6 +220,7 @@ private:
 	static QPixmap * s_artwork;
 
 	LedCheckBox * m_respectEnpointsCheckBox;
+	Knob * m_freqKnob;
 	QString * m_cuelabel;
 	Knob * m_ampKnob;
 	LcdSpinBox * m_cueIndexControl;
