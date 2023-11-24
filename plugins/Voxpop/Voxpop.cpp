@@ -26,11 +26,15 @@
 
 #include <cmath>
 
+#include <math.h>
+
 #include <QPainter>
 #include <QFileInfo>
 #include <QDropEvent>
 #include <QLabel>
 #include <QTextStream>
+
+#include <rubberband/RubberBandStretcher.h>
 
 #include <samplerate.h>
 
@@ -79,16 +83,20 @@ Plugin::Descriptor PLUGIN_EXPORT voxpop_plugin_descriptor =
 
 }
 
+
+using RubberBand::RubberBandStretcher;
+
 Voxpop::Voxpop( InstrumentTrack * _instrument_track ) :
 	Instrument( _instrument_track, &voxpop_plugin_descriptor ),
 	m_mode( CueSelectionMode::Automation ),
 	m_respectEndpointModel( true ),
 	m_ampModel( 100, 0, 500, 1, this, tr( "Amplify" ) ),
+	m_freqModel( DefaultBaseFreq, DefaultBaseFreq  - VOXPOP_FREQ_RANGE, DefaultBaseFreq + VOXPOP_FREQ_RANGE, 1, this, tr( "Frequency" ) ),
+	m_timestretchModel( false, this, tr("Time stretch") ),
 	m_cueIndexModel( 0, 0, 99 , this, tr("Cue index") ),
 	m_stutterModel( false, this, tr( "Stutter" ) ),
 	m_interpolationModel( this, tr( "Interpolation mode" ) ),
 	m_modeModel( this, tr( "Mode" )),
-	m_freqModel( DefaultBaseFreq, DefaultBaseFreq  - VOXPOP_FREQ_RANGE, DefaultBaseFreq + VOXPOP_FREQ_RANGE, 1, this, tr( "Frequency" ) ),
 	m_audioFile(""),
 	m_cuesheetFile(""),
 	m_cueCount( 0 ),
@@ -101,6 +109,8 @@ Voxpop::Voxpop( InstrumentTrack * _instrument_track ) :
 
 	connect( &m_ampModel, SIGNAL( dataChanged() ),
 				this, SLOT( ampModelChanged() ), Qt::DirectConnection );
+	connect( &m_timestretchModel, SIGNAL( dataChanged() ),
+				this, SLOT( timestretchChanged() ), Qt::DirectConnection );
 	connect( &m_stutterModel, SIGNAL( dataChanged() ),
 				this, SLOT( stutterModelChanged() ), Qt::DirectConnection );
 	connect( &m_cueIndexModel, SIGNAL( dataChanged() ),
@@ -108,7 +118,6 @@ Voxpop::Voxpop( InstrumentTrack * _instrument_track ) :
 	connect( &m_modeModel, SIGNAL( dataChanged() ),
 				this, SLOT( modeChanged() ), Qt::DirectConnection );
 
-//interpolation modes
 	m_interpolationModel.addItem( tr( "None" ) );
 	m_interpolationModel.addItem( tr( "Linear" ) );
 	m_interpolationModel.addItem( tr( "Sinc" ) );
@@ -247,7 +256,6 @@ void Voxpop::saveSettings(QDomDocument& doc, QDomElement& elem)
 {
 	m_cueIndexModel.saveSettings(doc, elem, "cueindex");
 	m_ampModel.saveSettings(doc, elem, "amp");
-	m_freqModel.saveSettings(doc, elem, "freq");
 	m_stutterModel.saveSettings(doc, elem, "stutter");
 	m_interpolationModel.saveSettings(doc, elem, "interp");
 	m_modeModel.saveSettings(doc, elem, "mode");
@@ -258,6 +266,9 @@ void Voxpop::saveSettings(QDomDocument& doc, QDomElement& elem)
 		elem.setAttribute("cuesheet", m_cuesheetFile);
 	}
 	m_respectEndpointModel.saveSettings(doc, elem, "respectendpoint");
+
+	m_freqModel.saveSettings(doc, elem, "freq");
+	m_timestretchModel.saveSettings(doc, elem, "timestretch");
 }
 
 
@@ -276,7 +287,7 @@ void Voxpop::loadSettings(const QDomElement& elem)
 		}
 		else
 		{
-			setCuesheetFile(src, false);
+			m_cuesheetFile = src;
 		}
 	}
 
@@ -291,12 +302,23 @@ void Voxpop::loadSettings(const QDomElement& elem)
 		}
 		else
 		{
-			setAudioFile(src, false);
+			m_sampleBuffer.setAudioFile(src);
+			m_sampleBuffer.setAllPointFrames( 0, m_sampleBuffer.frames(), 0, m_sampleBuffer.frames() );
+			m_audioFile = src;
 		}
 	}
 
 	m_ampModel.loadSettings(elem, "amp");
 	m_freqModel.loadSettings(elem, "freq");
+	m_timestretchModel.loadSettings(elem, "timestretch");
+	if ( m_timestretchModel.value() )
+	{
+		timestretchChanged();
+	}
+	else {
+		reloadCuesheet();
+	}
+
 	m_stutterModel.loadSettings(elem, "stutter");
 	if (elem.hasAttribute("interp") || !elem.firstChildElement("interp").isNull())
 	{
@@ -401,6 +423,99 @@ void Voxpop::ampModelChanged()
 	}
 }
 
+void Voxpop::timestretchChanged()
+{
+	if (true)
+	{
+		timestretchChangedFft();
+	}
+	else
+	{
+		timestretchChangedRubberBand();
+	}
+}
+
+void Voxpop::timestretchChangedRubberBand()
+{
+	if ( m_cueCount > 0 )
+	{
+		setAudioFile( m_audioFile, false );
+		if ( m_timestretchModel.value() )
+		{
+			if ( DefaultBaseFreq != m_freqModel.value() )
+			{
+				const float magicFactor = 4;
+				const double scale = 1.0 - ((m_freqModel.value() - DefaultBaseFreq) / DefaultBaseFreq / magicFactor);
+				qDebug("rubberband pitching by %f", scale);
+
+				RubberBandStretcher::Options options = RubberBandStretcher::DefaultOptions;
+				options |= RubberBandStretcher::OptionPitchHighQuality;
+				RubberBandStretcher * rubberBand =
+						new RubberBandStretcher(m_sampleBuffer.sampleRate(),
+															1,
+															options,
+															1.0,
+															scale);
+				rubberBand->setExpectedInputDuration(m_sampleBuffer.frames());
+				rubberBand->setMaxProcessSize(m_sampleBuffer.frames());
+
+				sampleFrame * sFrame = (sampleFrame *) m_sampleBuffer.data();
+				for ( int c = 0 ; c < DEFAULT_CHANNELS ; c++)
+				{
+					float * samples = &sFrame->at(c);
+					qDebug("rubberBand before %f %f", samples[0], samples[m_sampleBuffer.frames() - 1]);
+
+					rubberBand->study(&samples, m_sampleBuffer.frames(), true);
+					rubberBand->process(&samples, m_sampleBuffer.frames(), true);
+					if ( rubberBand->available() == m_sampleBuffer.frames() )
+					{
+						rubberBand->retrieve(&samples, m_sampleBuffer.frames());
+						qDebug("rubberBand updated data %d", m_sampleBuffer.frames());
+					} else {
+						qWarning("sample size changed %d != %d", m_sampleBuffer.frames(), rubberBand->available());
+					}
+					qDebug("rubberBand after %f %f", samples[0], samples[m_sampleBuffer.frames() - 1]);
+					rubberBand->reset();
+				}
+				delete rubberBand;
+			}
+		}
+		reloadCuesheet();
+	}
+}
+
+//ODO does not seem to w ork not sure why?
+void Voxpop::timestretchChangedFft()
+{
+	if ( m_cueCount > 0 )
+	{
+		setAudioFile( m_audioFile, false );
+		if ( m_timestretchModel.value() )
+		{
+			if ( DefaultBaseFreq != m_freqModel.value() )
+			{
+				const float magicFactor = 4;
+				const double scale = 1.0 - ((m_freqModel.value() - DefaultBaseFreq) / DefaultBaseFreq / magicFactor);
+				qDebug("ttf pitching by %f.3", scale);
+
+				sampleFrame * sFrame = (sampleFrame *) m_sampleBuffer.data();
+				for ( int c = 0 ; c < DEFAULT_CHANNELS ; c++)
+				{
+					float * samples = &sFrame->at(c);
+					qDebug("pitchscale before %f %f", samples[0], samples[m_sampleBuffer.frames() - 1]);
+					pitchScale(scale, m_sampleBuffer.sampleRate(),
+							   samples,
+							   samples,
+							   m_sampleBuffer.frames()
+							   );
+					qDebug("pitchscale after %f %f", samples[0], samples[m_sampleBuffer.frames() - 1]);
+				}
+			}
+		}
+		reloadCuesheet();
+	}
+}
+
 void Voxpop::stutterModelChanged()
 {
 	for (int i = 0 ; i < m_cueCount ; i++ )
@@ -485,17 +600,22 @@ bool Voxpop::reloadCuesheet()
 			f_cnt_t veryEndFrame = 0;
 			for ( int i = 0 ; i < newCueCount ; i++ )
 			{
+				f_cnt_t frames = m_sampleBuffer.frames();
+
 				QStringList fields = quePoints[i].split( "\t" );
 				m_cueTexts.push_back( new QString( fields[2].trimmed() ) );
 				f_cnt_t startFrame = cuePointToFrames( fields[0] );
-				f_cnt_t endFrame = respectEndpoint ? cuePointToFrames( fields[1] ) : m_sampleBuffer.frames();
+				f_cnt_t endFrame = respectEndpoint ? cuePointToFrames( fields[1] ) : frames;
 				m_cueOffsets.push_back( startFrame );
 				m_nextPlayStartPoint.push_back( startFrame );
-				m_sampleBuffers.push_back(  new SampleBuffer() );
-				m_sampleBuffers.at(i)->setAudioFile( audioPath ) ;
-				m_sampleBuffers.at(i)->setAmplification( m_ampModel.value() / 100.0f );
-				m_sampleBuffers.at(i)->setAllPointFrames( startFrame, endFrame, startFrame, endFrame );
+
+				SampleBuffer * sampleBuffer = new SampleBuffer(m_sampleBuffer.data(), m_sampleBuffer.frames());
+				m_sampleBuffers.push_back( sampleBuffer );
+				sampleBuffer->setAmplification( m_ampModel.value() / 100.0f );
+				sampleBuffer->setAllPointFrames( startFrame, endFrame, startFrame, endFrame );
 				veryEndFrame = endFrame > veryEndFrame ? endFrame : veryEndFrame;
+
+				qDebug("copied sample: %i", i);
 			}
 			m_sampleBuffer.setAllPointFrames( 0, veryEndFrame, 0, 0 );
 
@@ -518,11 +638,251 @@ void Voxpop::deleteSamples(int count)
 	{
 		delete m_cueTexts.at(i);
 		m_cueTexts.pop_back();
-		delete m_sampleBuffers.at(i); // TODO memory leak
+		delete m_sampleBuffers.at(i);
 		m_sampleBuffers.pop_back();
 	}
 	m_cueOffsets.clear();
 	m_nextPlayStartPoint.clear();
+}
+
+/**
+ * TODO this does something but not noticible pitch shifting
+ * @brief Voxpop::pitchScale use FFTs to pitch adjust without changing the sample length
+ *
+ * @param pitchShift  1.0 no pitch changes
+ * @param sampleRate  signal in unit Hz, ie. 44100.0
+ * @param indata      input data mono signed floats
+ * @param outdata     output data can be the same buffer
+ * @param datalen     length in samples
+ */
+void Voxpop::pitchScale(const double pitchShift,
+						const double sampleRate,
+						float *indata, float *outdata, const long datalen)
+{
+
+	/*
+		Routine smbPitchShift(). See top of file for explanation
+		Purpose: doing pitch shifting while maintaining duration using the Short
+		Time Fourier Transform.
+		Author: (c)1999-2015 Stephan M. Bernsee <s.bernsee [AT] zynaptiq [DOT] com>
+	*/
+	long osamp = VOXPOP_OVERSAMPLING;
+
+	static float gInFIFO[VOXPOP_MAX_FFT_LENGTH];
+	static float gOutFIFO[VOXPOP_MAX_FFT_LENGTH];
+	static float gFFTworksp[2 * VOXPOP_MAX_FFT_LENGTH];
+	static float gLastPhase[VOXPOP_MAX_FFT_LENGTH / 2 + 1];
+	static float gSumPhase[VOXPOP_MAX_FFT_LENGTH / 2 + 1];
+	static float gOutputAccum[2 * VOXPOP_MAX_FFT_LENGTH];
+	static float gAnaFreq[VOXPOP_MAX_FFT_LENGTH];
+	static float gAnaMagn[VOXPOP_MAX_FFT_LENGTH];
+	static float gSynFreq[VOXPOP_MAX_FFT_LENGTH];
+	static float gSynMagn[VOXPOP_MAX_FFT_LENGTH];
+	static long gRover = false, gInit = false;
+	double magn, phase, tmp, window, real, imag;
+	double freqPerBin, expct;
+	long i,k, qpd, index, inFifoLatency, stepSize, fftFrameSize2;
+
+	/* set up some handy variables */
+	fftFrameSize2 = fftFrameSize / 2;
+	stepSize = fftFrameSize / osamp;
+	freqPerBin = sampleRate / (double)fftFrameSize;
+	expct = 2. * M_PI * (double) stepSize / (double) fftFrameSize;
+	inFifoLatency = fftFrameSize - stepSize;
+	if (gRover == false) gRover = inFifoLatency;
+
+	/* initialize our static arrays */
+	if (gInit == false) {
+		memset(gInFIFO, 0, VOXPOP_MAX_FFT_LENGTH * sizeof(float));
+		memset(gOutFIFO, 0, VOXPOP_MAX_FFT_LENGTH * sizeof(float));
+		memset(gFFTworksp, 0, 2 * VOXPOP_MAX_FFT_LENGTH * sizeof(float));
+		memset(gLastPhase, 0, (VOXPOP_MAX_FFT_LENGTH / 2 + 1) * sizeof(float));
+		memset(gSumPhase, 0, (VOXPOP_MAX_FFT_LENGTH / 2 + 1) * sizeof(float));
+		memset(gOutputAccum, 0, 2 * VOXPOP_MAX_FFT_LENGTH * sizeof(float));
+		memset(gAnaFreq, 0, VOXPOP_MAX_FFT_LENGTH * sizeof(float));
+		memset(gAnaMagn, 0, VOXPOP_MAX_FFT_LENGTH * sizeof(float));
+		gInit = true;
+	}
+
+	/* main processing loop */
+	for (i = 0; i < datalen; i++){
+
+		/* As long as we have not yet collected enough data just read in */
+		gInFIFO[gRover] = indata[i];
+		outdata[i] = gOutFIFO[gRover-inFifoLatency];
+		gRover++;
+
+		/* now we have enough data for processing */
+		if (gRover >= fftFrameSize) {
+			gRover = inFifoLatency;
+
+			/* do windowing and re,im interleave */
+			for (k = 0; k < fftFrameSize; k++) {
+				window = -.5 * cos(2. * M_PI * (double) k / (double) fftFrameSize) + .5;
+				gFFTworksp[2 * k] = gInFIFO[k] * window;
+				gFFTworksp[2 * k + 1] = 0.;
+			}
+
+
+			/* ***************** ANALYSIS ******************* */
+			/* do transform */
+			smbFft(gFFTworksp, fftFrameSize, -1);
+
+			/* this is the analysis step */
+			for (k = 0; k <= fftFrameSize2; k++) {
+
+				/* de-interlace FFT buffer */
+				real = gFFTworksp[2 * k];
+				imag = gFFTworksp[2 * k + 1];
+
+				/* compute magnitude and phase */
+				magn = 2. * sqrt(real * real + imag * imag);
+				phase = atan2(imag, real);
+
+				/* compute phase difference */
+				tmp = phase - gLastPhase[k];
+				gLastPhase[k] = phase;
+
+				/* subtract expected phase difference */
+				tmp -= (double) k * expct;
+
+				/* map delta phase into +/- Pi interval */
+				qpd = tmp / M_PI;
+				if (qpd >= 0) qpd += qpd&1;
+				else qpd -= qpd & 1;
+				tmp -= M_PI * (double) qpd;
+
+				/* get deviation from bin frequency from the +/- Pi interval */
+				tmp = osamp * tmp / (2. * M_PI);
+
+				/* compute the k-th partials' true frequency */
+				tmp = (double) k * freqPerBin + tmp * freqPerBin;
+
+				/* store magnitude and true frequency in analysis arrays */
+				gAnaMagn[k] = magn;
+				gAnaFreq[k] = tmp;
+
+			}
+
+			/* this does the actual pitch shifting */
+			memset(gSynMagn, 0, fftFrameSize * sizeof(float));
+			memset(gSynFreq, 0, fftFrameSize * sizeof(float));
+			for (k = 0; k <= fftFrameSize2; k++) {
+				index = k * pitchShift;
+				if (index <= fftFrameSize2) {
+					gSynMagn[index] += gAnaMagn[k];
+					gSynFreq[index] = gAnaFreq[k] * pitchShift;
+				}
+			}
+
+			/* this is the synthesis step */
+			for (k = 0; k <= fftFrameSize2; k++) {
+
+				/* get magnitude and true frequency from synthesis arrays */
+				magn = gSynMagn[k];
+				tmp = gSynFreq[k];
+
+				/* subtract bin mid frequency */
+				tmp -= (double) k * freqPerBin;
+
+				/* get bin deviation from freq deviation */
+				tmp /= freqPerBin;
+
+				/* take osamp into account */
+				tmp = 2. * M_PI * tmp / osamp;
+
+				/* add the overlap phase advance back in */
+				tmp += (double) k * expct;
+
+				/* accumulate delta phase to get bin phase */
+				gSumPhase[k] += tmp;
+				phase = gSumPhase[k];
+
+				/* get real and imag part and re-interleave */
+				gFFTworksp[2*k] = magn*cos(phase);
+				gFFTworksp[2*k+1] = magn*sin(phase);
+			}
+
+			/* zero negative frequencies */
+			for (k = fftFrameSize+2; k < 2*fftFrameSize; k++) gFFTworksp[k] = 0.;
+
+			/* do inverse transform */
+			smbFft(gFFTworksp, fftFrameSize, 1);
+
+			/* do windowing and add to output accumulator */
+			for ( k = 0; k < fftFrameSize; k++ ) {
+				window = -.5 * cos(2. * M_PI * (double) k / (double) fftFrameSize) + .5;
+				gOutputAccum[k] += 2. * window * gFFTworksp[2 * k] / (fftFrameSize2 * osamp);
+			}
+			for (k = 0; k < stepSize; k++) gOutFIFO[k] = gOutputAccum[k];
+
+			/* shift accumulator */
+			memmove(gOutputAccum, gOutputAccum + stepSize, fftFrameSize*sizeof(float));
+
+			/* move input FIFO */
+			for (k = 0; k < inFifoLatency; k++)
+			{
+				gInFIFO[k] = gInFIFO[k + stepSize];
+			}
+		}
+	}
+}
+
+
+
+void Voxpop::smbFft(float *fftBuffer, long fftFrameSize, long sign)
+/*
+	FFT routine, (C)1996 S.M.Bernsee. Sign = -1 is FFT, 1 is iFFT (inverse)
+	Fills fftBuffer[0...2*fftFrameSize-1] with the Fourier transform of the
+	time domain data in fftBuffer[0...2*fftFrameSize-1]. The FFT array takes
+	and returns the cosine and sine parts in an interleaved manner, ie.
+	fftBuffer[0] = cosPart[0], fftBuffer[1] = sinPart[0], asf. fftFrameSize
+	must be a power of 2. It expects a complex input signal (see footnote 2),
+	ie. when working with 'common' audio signals our input signal has to be
+	passed as {in[0],0.,in[1],0.,in[2],0.,...} asf. In that case, the transform
+	of the frequencies of interest is in fftBuffer[0...fftFrameSize].
+*/
+{
+	float wr, wi, arg, *p1, *p2, temp;
+	float tr, ti, ur, ui, *p1r, *p1i, *p2r, *p2i;
+	long i, bitm, j, le, le2, k;
+
+	for (i = 2; i < 2*fftFrameSize-2; i += 2) {
+		for (bitm = 2, j = 0; bitm < 2*fftFrameSize; bitm <<= 1) {
+			if (i & bitm) j++;
+			j <<= 1;
+		}
+		if (i < j) {
+			p1 = fftBuffer+i; p2 = fftBuffer+j;
+			temp = *p1; *(p1++) = *p2;
+			*(p2++) = temp; temp = *p1;
+			*p1 = *p2; *p2 = temp;
+		}
+	}
+	for (k = 0, le = 2; k < (long)(log(fftFrameSize)/log(2.)+.5); k++) {
+		le <<= 1;
+		le2 = le>>1;
+		ur = 1.0;
+		ui = 0.0;
+		arg = M_PI / (le2>>1);
+		wr = cos(arg);
+		wi = sign*sin(arg);
+		for (j = 0; j < le2; j += 2) {
+			p1r = fftBuffer+j; p1i = p1r+1;
+			p2r = p1r+le2; p2i = p2r+1;
+			for (i = j; i < 2*fftFrameSize; i += le) {
+				tr = *p2r * ur - *p2i * ui;
+				ti = *p2r * ui + *p2i * ur;
+				*p2r = *p1r - tr; *p2i = *p1i - ti;
+				*p1r += tr; *p1i += ti;
+				p1r += le; p1i += le;
+				p2r += le; p2i += le;
+			}
+			tr = ur*wr - ui*wi;
+			ui = ur*wi + ui*wr;
+			ur = tr;
+		}
+	}
 }
 
 namespace gui
@@ -545,6 +905,10 @@ VoxpopView::VoxpopView( Instrument * _instrument, QWidget * _parent ) :
 	m_freqKnob = new Knob( KnobType::Bright26, this );
 	m_freqKnob->move( 220, topline );
 	m_freqKnob->setHintText( tr( "Freq:" ), "Hz" );
+
+	m_timestretchCheckBox = new LedCheckBox(this);
+	m_timestretchCheckBox->setToolTip( tr("Time strech") );
+	m_timestretchCheckBox->setGeometry(200, topline + 15, 23, 23);
 
 	m_respectEnpointsCheckBox = new LedCheckBox(this);
 	m_respectEnpointsCheckBox->setToolTip( tr("Respect cue endpoints") );
@@ -729,6 +1093,7 @@ void VoxpopView::modelChanged()
 	connect( &voxpop->m_sampleBuffer, SIGNAL( sampleUpdated() ), this, SLOT( sampleUpdated() ) );
 	m_ampKnob->setModel( &voxpop->m_ampModel );
 	m_freqKnob->setModel( &voxpop->m_freqModel );
+	m_timestretchCheckBox->setModel( &voxpop->m_timestretchModel );
 	m_stutterButton->setModel( &voxpop->m_stutterModel );
 	m_interpBox->setModel( &voxpop->m_interpolationModel );
 	m_modeBox->setModel( &voxpop->m_modeModel );

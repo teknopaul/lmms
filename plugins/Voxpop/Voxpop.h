@@ -41,6 +41,12 @@
 #include "Note.h"
 #include "Controls.h"
 
+#include <math.h>
+
+const int VOXPOP_MAX_FFT_LENGTH =  8192;
+const long fftFrameSize = VOXPOP_MAX_FFT_LENGTH / 2;
+const long VOXPOP_OVERSAMPLING = 8;
+
 
 namespace lmms
 {
@@ -147,7 +153,9 @@ public slots:
 
 private slots:
 	void ampModelChanged();
-	void freqModelChanged();
+	void timestretchChanged();
+	void timestretchChangedFft();
+	void timestretchChangedRubberBand();
 	void stutterModelChanged();
 	void cueIndexChanged();
 	void modeChanged();
@@ -163,6 +171,7 @@ private:
 	BoolModel m_respectEndpointModel;
 	FloatModel m_ampModel;
 	FloatModel m_freqModel;
+	BoolModel m_timestretchModel;
 	IntModel m_cueIndexModel;
 	mutable QReadWriteLock m_idxLock;
 	BoolModel m_stutterModel;
@@ -172,7 +181,7 @@ private:
 	QString m_audioFile;
 	QString m_cuesheetFile;
 	int m_cueCount;
-	SampleBuffer m_sampleBuffer;                 // used for view
+	SampleBuffer m_sampleBuffer;                  // used for view
 	std::vector<SampleBuffer *> m_sampleBuffers;  // used to play
 	std::vector<QString *> m_cueTexts;
 	std::vector<f_cnt_t> m_cueOffsets;
@@ -183,8 +192,11 @@ private:
 	bool reloadCuesheet();
 	void deleteSamples(int count);
 	f_cnt_t cuePointToFrames(QString field);
-
-} ;
+	void pitchScale(const double pitchScale,
+					const double sampleRate,
+					float *indata, float *outdata, const long datalen);
+	void smbFft(float *fftBuffer, long fftFrameSize, long sign);
+};
 
 
 namespace gui
@@ -209,7 +221,6 @@ protected slots:
 	void cueSheetChanged();
 	void cueChanged(int cue, QString * text);
 
-
 protected:
 	virtual void paintEvent( QPaintEvent * );
 	void updateCuePoints();
@@ -221,6 +232,7 @@ private:
 
 	LedCheckBox * m_respectEnpointsCheckBox;
 	Knob * m_freqKnob;
+	LedCheckBox * m_timestretchCheckBox;
 	QString * m_cuelabel;
 	Knob * m_ampKnob;
 	LcdSpinBox * m_cueIndexControl;
