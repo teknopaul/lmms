@@ -85,6 +85,7 @@ OPTION(WANT_PULSEAUDIO	"Include PulseAudio support" ON)
 OPTION(WANT_PORTAUDIO	"Include PortAudio support" ON)
 OPTION(WANT_SNDIO	"Include sndio support" ON)
 OPTION(WANT_SOUNDIO	"Include libsoundio support" ON)
+OPTION(WANT_RUBBERBAND	"Include librubberband support" ON)
 OPTION(WANT_SDL		"Include SDL (Simple DirectMedia Layer) support" ON)
 OPTION(WANT_SF2		"Include SoundFont2 player plugin" ON)
 OPTION(WANT_GIG		"Include GIG player plugin" ON)
@@ -451,6 +452,21 @@ ELSE(WANT_MP3LAME)
 	SET(STATUS_MP3LAME "Disabled for build")
 ENDIF(WANT_MP3LAME)
 
+
+# check for rubberband
+IF(WANT_RUBBERBAND)
+   FIND_PACKAGE(RubberBand REQUIRED)
+	IF(RUBBERBAND_FOUND)
+		SET(LMMS_HAVE_RUBBERBAND TRUE)
+		SET(STATUS_RUBBERBAND "OK")
+	ELSE(RUBBERBAND_FOUND)
+		SET(STATUS_RUBBERBAND "not found, please install librubberband-dev (or similar)")
+	ENDIF(RUBBERBAND_FOUND)
+ELSE(WANT_RUBBERBAND)
+	SET(STATUS_RUBBERBAND "Disabled for build")
+ENDIF(WANT_RUBBERBAND)
+
+
 # check for OGG/Vorbis-libraries
 IF(WANT_OGGVORBIS)
 	FIND_PACKAGE(OggVorbis)
@@ -575,9 +591,9 @@ IF(WANT_SNDIO)
 	FIND_PACKAGE(Sndio)
 	IF(SNDIO_FOUND)
 		SET(LMMS_HAVE_SNDIO TRUE)
-        	SET(STATUS_SNDIO "OK")
-    	ELSE()
-        	SET(STATUS_SNDIO "<not found or not supported on this platform>")
+		SET(STATUS_SNDIO "OK")
+	ELSE()
+		SET(STATUS_SNDIO "<not found or not supported on this platform>")
 	ENDIF(SNDIO_FOUND)
 ENDIF(WANT_SNDIO)
 
@@ -855,6 +871,7 @@ MESSAGE(
 "* TAP LADSPA plugins          : ${STATUS_TAP}\n"
 "* SWH LADSPA plugins          : ${STATUS_SWH}\n"
 "* GIG player                  : ${STATUS_GIG}\n"
+"* RubberBand timestretcher    : ${STATUS_RUBBERBAND}\n"
 )
 
 MESSAGE(
