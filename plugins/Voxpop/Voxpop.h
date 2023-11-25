@@ -154,8 +154,6 @@ public slots:
 private slots:
 	void ampModelChanged();
 	void timestretchChanged();
-	void timestretchChangedFft();
-	void timestretchChangedRubberBand();
 	void stutterModelChanged();
 	void cueIndexChanged();
 	void modeChanged();
@@ -192,10 +190,7 @@ private:
 	bool reloadCuesheet();
 	void deleteSamples(int count);
 	f_cnt_t cuePointToFrames(QString field);
-	void pitchScale(const double pitchScale,
-					const double sampleRate,
-					float *indata, float *outdata, const long datalen);
-	void smbFft(float *fftBuffer, long fftFrameSize, long sign);
+	const double getDepitchScale();
 };
 
 
