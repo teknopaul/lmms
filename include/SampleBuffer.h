@@ -281,7 +281,7 @@ public:
 
 
 public slots:
-	void setAudioFile(const QString & audioFile);
+	bool setAudioFile(const QString & audioFile);
 	void loadFromBase64(const QString & data);
 	void setStartFrame(const lmms::f_cnt_t s);
 	void setEndFrame(const lmms::f_cnt_t e);
@@ -292,7 +292,7 @@ public slots:
 private:
 	static sample_rate_t audioEngineSampleRate();
 
-	void update(bool keepSettings = false);
+	bool update(bool keepSettings = false);
 
 	void convertIntToFloat(int_sample_t * & ibuf, f_cnt_t frames, int channels);
 	void directFloatWrite(sample_t * & fbuf, f_cnt_t frames, int channels);

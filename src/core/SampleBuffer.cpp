@@ -233,7 +233,7 @@ sample_rate_t SampleBuffer::audioEngineSampleRate()
 }
 
 
-void SampleBuffer::update(bool keepSettings)
+bool SampleBuffer::update(bool keepSettings)
 {
 	const bool lock = (m_data != nullptr);
 	if (lock)
@@ -415,7 +415,9 @@ void SampleBuffer::update(bool keepSettings)
 		{
 			fprintf(stderr, "%s\n", message.toUtf8().constData());
 		}
+		return false;
 	}
+	return true;
 }
 
 
@@ -1404,11 +1406,10 @@ SampleBuffer * SampleBuffer::resample(const sample_rate_t srcSR, const sample_ra
 
 
 
-
-void SampleBuffer::setAudioFile(const QString & audioFile)
+bool SampleBuffer::setAudioFile(const QString & audioFile)
 {
 	m_audioFile = PathUtil::toShortestRelative(audioFile);
-	update();
+	return update();
 }
 
 

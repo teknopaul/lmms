@@ -121,8 +121,8 @@ public:
 	gui::PluginView* instantiateView( QWidget * _parent ) override;
 
 public slots:
-	void setAudioFile( const QString & _audio_file, bool _rename = true );
-	void setCuesheetFile( const QString & _cuesheet_file, bool _rename = true );
+	bool setAudioFile( const QString & _audio_file, bool _rename = true );
+	bool setCuesheetFile( const QString & _cuesheet_file, bool _rename = true );
 	void resetStutter()
 	{
 		for (int i = 0 ; i < m_cueCount ; i++)
@@ -188,6 +188,7 @@ private:
 	friend class gui::VoxpopView;
 	
 	bool reloadCuesheet();
+	void findCuesheet( const QString & _file );
 	void deleteSamples(int count);
 	f_cnt_t cuePointToFrames(QString field);
 	const double getDepitchScale();

@@ -355,10 +355,15 @@ void Voxpop::loadSettings(const QDomElement& elem)
 
 
 
-
+/**
+ * Called when loading a sample from file browser
+ */
 void Voxpop::loadFile( const QString & _file )
 {
-	setAudioFile( _file );
+	if ( ! setAudioFile( _file ) )
+	{
+		findCuesheet( _file );
+	}
 }
 
 
@@ -369,6 +374,27 @@ void Voxpop::loadAudioFile( const QString & _file )
 	setAudioFile( _file );
 }
 
+/**
+ * Try to find a matching .txt fiel for a loaded .wav
+ */
+void Voxpop::findCuesheet( const QString & _file )
+{
+	QFileInfo fileInfo(_file);
+	QString baseDir = fileInfo.absoluteDir().absolutePath();
+	QString baseFilename = fileInfo.completeBaseName();
+
+	QString cuesheetFileName = baseDir + QDir::separator() + baseFilename + ".txt";
+	if ( QFileInfo(cuesheetFileName).exists() )
+	{
+		if ( ! setCuesheetFile( cuesheetFileName ) )
+		{
+			m_cuesheetFile = "";
+		}
+	}
+	else {
+		qDebug("could not find %s", cuesheetFileName.toStdString().c_str());
+	}
+}
 
 
 void Voxpop::loadCuesheetFile( const QString & _file )
@@ -398,24 +424,29 @@ gui::PluginView* Voxpop::instantiateView( QWidget * _parent )
 }
 
 
-
-void Voxpop::setAudioFile( const QString & _audioFile, bool _rename )
+/**
+ * @return true if fully setup
+ */
+bool Voxpop::setAudioFile( const QString & _audioFile, bool _rename )
 {
 	if ( _rename )
 	{
 		instrumentTrack()->setName( PathUtil::cleanName( _audioFile ) );
 	}
-	m_sampleBuffer.setAudioFile(_audioFile);
-	m_sampleBuffer.setAllPointFrames( 0, m_sampleBuffer.frames(), 0, m_sampleBuffer.frames() );
-	m_audioFile = _audioFile;
-	reloadCuesheet();
+	if ( m_sampleBuffer.setAudioFile(_audioFile) )
+	{
+		m_sampleBuffer.setAllPointFrames( 0, m_sampleBuffer.frames(), 0, m_sampleBuffer.frames() );
+		m_audioFile = _audioFile;
+		return reloadCuesheet();
+	}
+	return false;
 }
 
 
-void Voxpop::setCuesheetFile( const QString & _cuesheetFile, bool _rename )
+bool Voxpop::setCuesheetFile( const QString & _cuesheetFile, bool _rename )
 {
 	m_cuesheetFile = _cuesheetFile;
-	reloadCuesheet();
+	return reloadCuesheet();
 }
 
 
@@ -498,7 +529,10 @@ void Voxpop::cueIndexChanged()
 	if (m_cueCount > 0 && m_cueTexts.size() == m_cueCount)
 	{
 		int cue = m_cueIndexModel.value();
-		emit cueChanged(cue, m_cueTexts[cue]);
+		if ( cue < m_cueTexts.size() )
+		{
+			emit cueChanged(cue, m_cueTexts[cue]);
+		}
 	}
 }
 
@@ -531,13 +565,13 @@ bool Voxpop::reloadCuesheet()
 		}
 
 		// TODO how to check if a sample really loaded properly??
-		QFile cueFile(cuesheetPath);
-		if ( !cueFile.open(QFile::ReadOnly | QFile::Text)) 
+		QFile cuesheetFile(cuesheetPath);
+		if ( !cuesheetFile.open(QFile::ReadOnly | QFile::Text))
 		{
 			return false;
 		}
 		QStringList quePoints;
-		QTextStream in(&cueFile);
+		QTextStream in(&cuesheetFile);
 		QString line;
 		while ( in.readLineInto(&line) )
 		{
@@ -602,10 +636,16 @@ void Voxpop::deleteSamples(int count)
 	m_cueCount = 0; // TODO race conditions?
 	for ( int i = count - 1 ; i >= 0 ; i-- )
 	{
-		delete m_cueTexts.at(i);
-		m_cueTexts.pop_back();
-		delete m_sampleBuffers.at(i);
-		m_sampleBuffers.pop_back();
+		if (m_cueTexts.size() > i)
+		{
+			delete m_cueTexts.at(i);
+			m_cueTexts.pop_back();
+		}
+		if (m_sampleBuffers.size() > i)
+		{
+			delete m_sampleBuffers.at(i);
+			m_sampleBuffers.pop_back();
+		}
 	}
 	m_cueOffsets.clear();
 	m_nextPlayStartPoint.clear();
@@ -719,7 +759,7 @@ void VoxpopView::paintEvent( QPaintEvent * )
 
 	// simple algorithm for creating a text from the filename that
 	// matches in the white rectangle
-	while( idx > 0 && fm.size( Qt::TextSingleLine, file_name + "..." ).width() < 210 )
+	while ( idx > 0 && fm.size( Qt::TextSingleLine, file_name + "..." ).width() < 210 )
 	{
 		file_name = a->m_audioFile[--idx] + file_name;
 	}
@@ -727,17 +767,23 @@ void VoxpopView::paintEvent( QPaintEvent * )
 	{
 		file_name = "..." + file_name;
 	}
+	if ( idx == 0 ) {
+		file_name = "[select sample]";
+	}
 	p.drawText( 8, 113, file_name );
 	
 	file_name = "";
 	idx = a->m_cuesheetFile.length();
-	while( idx > 0 && fm.size( Qt::TextSingleLine, file_name + "..." ).width() < 210 )
+	while ( idx > 0 && fm.size( Qt::TextSingleLine, file_name + "..." ).width() < 210 )
 	{
 		file_name = a->m_cuesheetFile[--idx] + file_name;
 	}
 	if ( idx > 0 )
 	{
 		file_name = "..." + file_name;
+	}
+	if ( idx == 0 ) {
+		file_name = "[select cue sheet]";
 	}
 	p.drawText( 8, 133, file_name );
 
