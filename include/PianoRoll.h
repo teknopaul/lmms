@@ -163,7 +163,10 @@ protected:
 	{
 		Both,
 		Pos,
-		Length
+		Length,
+		Groove,
+		HumanizeVelocity,
+		HumanizeTiming
 	};
 
 	enum class SemiToneMarkerAction
@@ -233,6 +236,9 @@ protected slots:
 	void noteLengthChanged();
 	void keyChanged();
 	void quantizeNotes(QuantizeAction mode = QuantizeAction::Both);
+	void humanizeTiming(Note * n);
+	void humanizeVelocity(Note * n);
+	void quantizeGroove(Note * n);
 
 	void updateSemiToneMarkerMenu();
 

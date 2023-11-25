@@ -40,6 +40,8 @@
 #include "EnvelopeAndLfoParameters.h"
 #include "Mixer.h"
 #include "MixerView.h"
+#include "GrooveFactory.h"
+#include "GrooveView.h"
 #include "GuiApplication.h"
 #include "ExportFilter.h"
 #include "InstrumentTrack.h"
@@ -70,6 +72,7 @@ Song::Song() :
 	m_globalAutomationTrack( dynamic_cast<AutomationTrack *>(
 				Track::create( Track::Type::HiddenAutomation,
 								this ) ) ),
+	m_globalGroove(GrooveFactory::create("none")),
 	m_tempoModel( DefaultTempo, MinTempo, MaxTempo, this, tr( "Tempo" ) ),
 	m_timeSigModel( this ),
 	m_oldTicksPerBar( DefaultTicksPerBar ),
@@ -138,6 +141,7 @@ Song::~Song()
 {
 	m_playing = false;
 	delete m_globalAutomationTrack;
+	delete m_globalGroove;
 }
 
 
@@ -1311,6 +1315,11 @@ bool Song::saveProjectFile(const QString & filename, bool withResources)
 	m_savingProject = false;
 
 	return dataFile.writeFile(filename, withResources);
+}
+
+void Song::setGlobalGroove(Groove * groove)
+{
+	m_globalGroove = groove;
 }
 
 

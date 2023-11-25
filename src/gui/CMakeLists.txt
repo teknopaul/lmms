@@ -104,6 +104,7 @@ SET(LMMS_SRCS
 	gui/widgets/FloatModelEditorBase.cpp
 	gui/widgets/Graph.cpp
 	gui/widgets/GroupBox.cpp
+	gui/widgets/GrooveView.cpp
 	gui/widgets/Knob.cpp
 	gui/widgets/LcdFloatSpinBox.cpp
 	gui/widgets/LcdSpinBox.cpp

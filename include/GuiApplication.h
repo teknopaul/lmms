@@ -37,6 +37,7 @@ namespace lmms::gui
 
 class AutomationEditorWindow;
 class ControllerRackView;
+class GrooveView;
 class MixerView;
 class MainWindow;
 class MicrotunerConfig;
@@ -59,6 +60,7 @@ public:
 
 	MainWindow* mainWindow() { return m_mainWindow; }
 	MixerView* mixerView() { return m_mixerView; }
+	GrooveView* grooveView() { return m_grooveView; }
 	SongEditorWindow* songEditor() { return m_songEditor; }
 	PatternEditorWindow* patternEditor() { return m_patternEditor; }
 	PianoRollWindow* pianoRoll() { return m_pianoRoll; }
@@ -78,6 +80,7 @@ private:
 
 	MainWindow* m_mainWindow;
 	MixerView* m_mixerView;
+	GrooveView* m_grooveView;
 	SongEditorWindow* m_songEditor;
 	AutomationEditorWindow* m_automationEditor;
 	PatternEditorWindow* m_patternEditor;

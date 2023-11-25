@@ -4620,11 +4620,29 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 			continue;
 		}
 
+		if (mode == QuantizeAction::HumanizeTiming)
+		{
+			humanizeTiming(n);
+			continue;
+		}
+		if (mode == QuantizeAction::HumanizeVelocity)
+		{
+			humanizeVelocity(n);
+			continue;
+		}
+		if (mode == QuantizeAction::Groove)
+		{
+			quantizeGroove(n);
+			continue;
+		}
+
+		// N.B. copy looses offset, which is what we want here
 		Note copy(*n);
 		m_midiClip->removeNote( n );
 		if (mode == QuantizeAction::Both || mode == QuantizeAction::Pos)
 		{
 			copy.quantizePos(quantization());
+			copy.setNoteOffset(0);
 		}
 		if (mode == QuantizeAction::Both || mode == QuantizeAction::Length)
 		{
@@ -4638,6 +4656,27 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 	Engine::getSong()->setModified();
 }
 
+void PianoRoll::humanizeTiming(Note * n)
+{
+	f_cnt_t offset =  (double)std::rand() / RAND_MAX * Engine::framesPerTick();
+	n->setNoteOffset(getNoteOffset() + offset);
+}
+
+
+void PianoRoll::humanizeVelocity(Note * n)
+{
+	volume_t newVol = n->getVolume() - (std::rand() % 5);
+	if (newVol < n->getVolume()) // volume_t is unsigned this is test for overflow
+	{
+		n->setVolume(newVol);
+	}
+}
+
+
+void PianoRoll::quantizeGroove(Note * n)
+{
+	Engine::getSong()->globalGroove()->apply(n);
+}
 
 
 
@@ -4758,16 +4797,28 @@ PianoRollWindow::PianoRollWindow() :
 	auto quantizeAction = new QAction(embed::getIconPixmap("quantize"), tr("Quantize"), this);
 	auto quantizePosAction = new QAction(tr("Quantize positions"), this);
 	auto quantizeLengthAction = new QAction(tr("Quantize lengths"), this);
+	auto quantizeGrooveAction = new QAction(tr("Quantize apply groove"), this);
+	auto humanizeVelocityAction = new QAction(tr("Humanize velocity"), this);
+	auto humanizeTimingAction = new QAction(tr("Humanize timing"), this);
 
 	connect(quantizeAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(); });
 	connect(quantizePosAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Pos); });
 	connect(quantizeLengthAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Length); });
+	connect(quantizeGrooveAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Groove); });
+	connect(humanizeVelocityAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::HumanizeVelocity); });
+	connect(humanizeTimingAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::HumanizeTiming); });
+
+	quantizeGrooveAction->setShortcut( Qt::CTRL | Qt::Key_G );
+	humanizeVelocityAction->setShortcut( Qt::CTRL | Qt::Key_H );
 
 	quantizeButton->setPopupMode(QToolButton::MenuButtonPopup);
 	quantizeButton->setDefaultAction(quantizeAction);
 	quantizeButton->setMenu(quantizeButtonMenu);
 	quantizeButtonMenu->addAction(quantizePosAction);
 	quantizeButtonMenu->addAction(quantizeLengthAction);
+	quantizeButtonMenu->addAction(quantizeGrooveAction);
+	quantizeButtonMenu->addAction(humanizeVelocityAction);
+	quantizeButtonMenu->addAction(humanizeTimingAction);
 
 	notesActionsToolBar->addAction( drawAction );
 	notesActionsToolBar->addAction( eraseAction );

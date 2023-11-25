@@ -33,6 +33,7 @@
 #include "TrackContainer.h"
 #include "AudioEngine.h"
 #include "Controller.h"
+#include "Groove.h"
 #include "lmms_constants.h"
 #include "MeterModel.h"
 #include "VstSyncController.h"
@@ -303,6 +304,11 @@ public:
 		return m_globalAutomationTrack;
 	}
 
+	Groove * globalGroove()
+	{
+		return m_globalGroove;
+	}
+
 	//TODO: Add Q_DECL_OVERRIDE when Qt4 is dropped
 	AutomatedValueMap automatedValuesAt(TimePos time, int clipNum = -1) const override;
 
@@ -313,6 +319,7 @@ public:
 	bool guiSaveProject();
 	bool guiSaveProjectAs(const QString & filename);
 	bool saveProjectFile(const QString & filename, bool withResources = false);
+	void setGlobalGroove(Groove * groove);
 
 	const QString & projectFileName() const
 	{
@@ -534,6 +541,7 @@ private:
 	void setProjectFileName(QString const & projectFileName);
 
 	AutomationTrack * m_globalAutomationTrack;
+	Groove * m_globalGroove;
 
 	IntModel m_tempoModel;
 	MeterModel m_timeSigModel;
@@ -587,7 +595,7 @@ private:
 	bar_t m_elapsedBars;
 
 	VstSyncController m_vstSyncController;
-    
+
 	int m_loopRenderCount;
 	int m_loopRenderRemaining;
 	TimePos m_exportSongBegin;

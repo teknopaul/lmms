@@ -24,6 +24,12 @@ set(LMMS_SRCS
 	core/Engine.cpp
 	core/EnvelopeAndLfoParameters.cpp
 	core/fft_helpers.cpp
+	core/Groove.cpp
+	core/GrooveExperiments.cpp
+	core/GrooveFactory.cpp
+	core/HalfSwing.cpp
+	core/HydrogenSwing.cpp
+	core/MidiSwing.cpp
 	core/Mixer.cpp
 	core/ImportFilter.cpp
 	core/InlineAutomation.cpp

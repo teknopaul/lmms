@@ -46,6 +46,7 @@
 #include "FileBrowser.h"
 #include "FileDialog.h"
 #include "MixerView.h"
+#include "GrooveView.h"
 #include "GuiApplication.h"
 #include "ImportFilter.h"
 #include "InstrumentTrackView.h"
@@ -492,6 +493,13 @@ void MainWindow::finalize()
 		tr("Show/hide project notes") + " (Ctrl+7)", this, SLOT(toggleProjectNotesWin()), m_toolBar);
 	project_notes_window->setShortcut( Qt::CTRL + Qt::Key_7 );
 
+
+	// groove view
+	ToolButton * groove_view = new ToolButton( embed::getIconPixmap( "note_double_whole" ),
+					tr ( "Groove" ) + " (F12)",
+					this, SLOT( toggleGrooveView() ), m_toolBar);
+	groove_view->setShortcut( Qt::Key_F12 );
+
 	m_toolBarLayout->addWidget( song_editor_window, 1, 1 );
 	m_toolBarLayout->addWidget( pattern_editor_window, 1, 2 );
 	m_toolBarLayout->addWidget( piano_roll_window, 1, 3 );
@@ -499,6 +507,7 @@ void MainWindow::finalize()
 	m_toolBarLayout->addWidget( mixer_window, 1, 5 );
 	m_toolBarLayout->addWidget( controllers_window, 1, 6 );
 	m_toolBarLayout->addWidget( project_notes_window, 1, 7 );
+	m_toolBarLayout->addWidget( groove_view, 1, 8 );
 	m_toolBarLayout->setColumnStretch( 100, 1 );
 
 	// setup-dialog opened before?
@@ -1065,6 +1074,10 @@ void MainWindow::toggleMixerWin()
 	toggleWindow( getGUI()->mixerView() );
 }
 
+void MainWindow::toggleGrooveView( void )
+{
+	toggleWindow( getGUI()->grooveView() );
+}
 
 
 void MainWindow::toggleMicrotunerWin()

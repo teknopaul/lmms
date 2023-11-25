@@ -140,6 +140,17 @@ public:
 	void quantizeLength( const int qGrid );
 	void quantizePos( const int qGrid );
 
+	inline void quantizeNoteOffset() {
+		m_noteOffset = 0;
+	}
+	inline void setNoteOffset(f_cnt_t offset) {
+		m_noteOffset = offset;
+	}
+	inline f_cnt_t getNoteOffset() const
+	{
+		return m_noteOffset;
+	}
+
 	static inline bool lessThan( const Note * lhs, const Note * rhs )
 	{
 		// function to compare two notes - must be called explictly when
@@ -244,6 +255,7 @@ public:
 	void createDetuning();
 
 
+
 protected:
 	void saveSettings( QDomDocument & doc, QDomElement & parent ) override;
 	void loadSettings( const QDomElement & _this ) override;
@@ -262,6 +274,8 @@ private:
 	panning_t m_panning;
 	TimePos m_length;
 	TimePos m_pos;
+	// sub-tick note positioning
+	f_cnt_t m_noteOffset;
 	DetuningHelper * m_detuning;
 
 	Type m_type = Type::Regular;

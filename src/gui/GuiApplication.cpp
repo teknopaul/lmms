@@ -32,6 +32,7 @@
 #include "AutomationEditor.h"
 #include "ConfigManager.h"
 #include "ControllerRackView.h"
+#include "GrooveView.h"
 #include "MixerView.h"
 #include "MainWindow.h"
 #include "MicrotunerConfig.h"
@@ -150,6 +151,8 @@ GuiApplication::GuiApplication()
 	displayInitProgress(tr("Preparing mixer"));
 	m_mixerView = new MixerView;
 	connect(m_mixerView, SIGNAL(destroyed(QObject*)), this, SLOT(childDestroyed(QObject*)));
+	m_grooveView = new GrooveView;
+	connect(m_grooveView, SIGNAL(destroyed(QObject*)), this, SLOT(childDestroyed(QObject*)));
 
 	displayInitProgress(tr("Preparing controller rack"));
 	m_controllerRackView = new ControllerRackView;
@@ -208,6 +211,10 @@ void GuiApplication::childDestroyed(QObject *obj)
 	else if (obj == m_mixerView)
 	{
 		m_mixerView = nullptr;
+	}
+	else if (obj == m_grooveView)
+	{
+		m_grooveView = nullptr;
 	}
 	else if (obj == m_songEditor)
 	{
