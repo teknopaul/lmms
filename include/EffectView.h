@@ -74,7 +74,8 @@ public slots:
 	void moveDown();
 	void deletePlugin();
 	void closeEffects();
-
+	void saveFxPreset();
+	void loadFxPreset();
 
 signals:
 	void moveUp( lmms::gui::EffectView * _plugin );

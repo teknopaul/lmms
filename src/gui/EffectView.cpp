@@ -25,6 +25,7 @@
 
 #include <QGraphicsOpacityEffect>
 #include <QLayout>
+#include <QMetaEnum>
 #include <QMouseEvent>
 #include <QPushButton>
 #include <QPainter>
@@ -33,6 +34,7 @@
 #include "DummyEffect.h"
 #include "CaptionMenu.h"
 #include "embed.h"
+#include "FileDialog.h"
 #include "GuiApplication.h"
 #include "gui_templates.h"
 #include "Knob.h"
@@ -91,7 +93,7 @@ EffectView::EffectView( Effect * _model, QWidget * _parent ) :
 		auto ctls_btn = new QPushButton(tr("Controls"), this);
 		QFont f = ctls_btn->font();
 		ctls_btn->setFont( pointSize<8>( f ) );
-		ctls_btn->setGeometry( 150, 14, 50, 20 );
+		ctls_btn->setGeometry( 150, 5, 60, 20 );
 		connect( ctls_btn, SIGNAL(clicked()),
 					this, SLOT(editControls()));
 
@@ -118,6 +120,17 @@ EffectView::EffectView( Effect * _model, QWidget * _parent ) :
 
 			m_subWindow->hide();
 		}
+
+		auto saveBtn = new QPushButton(tr("🖫"), this);
+		f = saveBtn->font();
+		saveBtn->setFont( pointSize<10>( f ) );
+		saveBtn->setGeometry( 170, 34, 18, 18 );
+		connect( saveBtn, SIGNAL(clicked()), this, SLOT(saveFxPreset()));
+		auto loadBtn = new QPushButton(tr("..."), this);
+		f = loadBtn->font();
+		loadBtn->setFont( pointSize<9>( f ) );
+		loadBtn->setGeometry( 192, 34, 18, 18 );
+		connect( loadBtn, SIGNAL(clicked()), this, SLOT(loadFxPreset()));
 	}
 	
 	m_opacityEffect = new QGraphicsOpacityEffect(this);
@@ -194,6 +207,72 @@ void EffectView::closeEffects()
 
 
 
+void EffectView::saveFxPreset()
+{
+	FileDialog fileDialog(this, tr("Save preset"), "", tr("FX preset (*.lfxp)"));
+
+	fileDialog.setAcceptMode(FileDialog::AcceptSave);
+	fileDialog.setFileMode(FileDialog::AnyFile);
+	fileDialog.setNameFilter("FX presets (*.lfxp)");
+
+	if( fileDialog.exec() == QDialog::Accepted &&
+		!fileDialog.selectedFiles().isEmpty() &&
+		!fileDialog.selectedFiles().first().isEmpty() )
+	{
+		QFile file(fileDialog.selectedFiles()[0]);
+		if (file.open(QFile::WriteOnly))
+		{
+			Effect * efx = effect();
+			QDomDocument doc("lmms-lfxp-file");
+
+			QDomElement lfxp = doc.createElement("lfxp");
+			doc.appendChild(lfxp);
+			lfxp.setAttribute("version", efx->descriptor()->version);
+			lfxp.setAttribute("name", efx->descriptor()->name);
+			lfxp.setAttribute("type", QVariant::fromValue(efx->descriptor()->type).toString());
+			effect()->saveSettings(doc, lfxp);
+			QString data = doc.toString();
+			file.write(data.toUtf8());
+			file.flush();
+			file.close();
+			return;
+		}
+	}
+}
+
+void EffectView::loadFxPreset()
+{
+	FileDialog fileDialog(this, tr("Load preset"), "", tr("FX preset (*.lfxp)"));
+
+	fileDialog.setAcceptMode(FileDialog::AcceptOpen);
+	fileDialog.setFileMode(FileDialog::ExistingFile);
+	fileDialog.setNameFilter("FX presets (*.lfxp)");
+
+	if( fileDialog.exec() == QDialog::Accepted &&
+		!fileDialog.selectedFiles().isEmpty() &&
+		!fileDialog.selectedFiles().first().isEmpty() )
+	{
+		QFile file(fileDialog.selectedFiles()[0]);
+		if (file.open(QFile::ReadOnly))
+		{
+			Effect * efx = effect();
+			QDomDocument doc;
+			doc.setContent( file.readAll() );
+			QDomNodeList roots = doc.elementsByTagName("lfxp");
+			if ( roots.size() == 1 )
+			{
+				QDomElement lxfp = roots.at(0).toElement();
+				if ( lxfp.attribute("name") == efx->descriptor()->name &&
+					 lxfp.attribute("type") == QVariant::fromValue(efx->descriptor()->type).toString())
+				{
+					efx->loadSettings(lxfp);
+				}
+			}
+			file.close();
+			return;
+		}
+	}
+}
 void EffectView::contextMenuEvent( QContextMenuEvent * )
 {
 	QPointer<CaptionMenu> contextMenu = new CaptionMenu( model()->displayName(), this );

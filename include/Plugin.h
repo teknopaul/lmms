@@ -86,6 +86,7 @@ public:
 		Other,
 		Undefined = 255
 	} ;
+	Q_ENUM(Type)
 
 	//! Descriptor holds information about a plugin - every external plugin
 	//! has to instantiate such a Descriptor in an extern "C"-section so that
