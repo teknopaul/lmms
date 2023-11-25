@@ -214,6 +214,7 @@ void EffectView::saveFxPreset()
 	fd.setAcceptMode(FileDialog::AcceptSave);
 	fd.setFileMode(FileDialog::AnyFile);
 	fd.setNameFilter("FX presets (*.lfxp)");
+	fd.setDefaultSuffix("lfxp");
 	fd.setDirectory(ConfigManager::inst()->factoryPresetsDir());
 
 	if ( fd.exec() == QDialog::Accepted &&
