@@ -75,6 +75,7 @@ SET(LMMS_PLUGIN_LIST
 	Vectorscope
 	Vibed
 	Xpressive
+	Xone
 	ZynAddSubFx
 )
 
