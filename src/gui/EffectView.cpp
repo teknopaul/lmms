@@ -209,18 +209,19 @@ void EffectView::closeEffects()
 
 void EffectView::saveFxPreset()
 {
-	FileDialog fileDialog(this, tr("Save preset"), "", tr("FX preset (*.lfxp)"));
+	FileDialog fd(this, tr("Save preset"), "", tr("FX preset (*.lfxp)"));
 
-	fileDialog.setAcceptMode(FileDialog::AcceptSave);
-	fileDialog.setFileMode(FileDialog::AnyFile);
-	fileDialog.setNameFilter("FX presets (*.lfxp)");
+	fd.setAcceptMode(FileDialog::AcceptSave);
+	fd.setFileMode(FileDialog::AnyFile);
+	fd.setNameFilter("FX presets (*.lfxp)");
+	fd.setDirectory(ConfigManager::inst()->factoryPresetsDir());
 
-	if( fileDialog.exec() == QDialog::Accepted &&
-		!fileDialog.selectedFiles().isEmpty() &&
-		!fileDialog.selectedFiles().first().isEmpty() )
+	if ( fd.exec() == QDialog::Accepted &&
+		!fd.selectedFiles().isEmpty() &&
+		!fd.selectedFiles().first().isEmpty() )
 	{
-		QFile file(fileDialog.selectedFiles()[0]);
-		if (file.open(QFile::WriteOnly))
+		QFile fxFile(fd.selectedFiles()[0]);
+		if (fxFile.open(QFile::WriteOnly))
 		{
 			Effect * efx = effect();
 			QDomDocument doc("lmms-lfxp-file");
@@ -232,9 +233,9 @@ void EffectView::saveFxPreset()
 			lfxp.setAttribute("type", QVariant::fromValue(efx->descriptor()->type).toString());
 			effect()->saveSettings(doc, lfxp);
 			QString data = doc.toString();
-			file.write(data.toUtf8());
-			file.flush();
-			file.close();
+			fxFile.write(data.toUtf8());
+			fxFile.flush();
+			fxFile.close();
 			return;
 		}
 	}
@@ -242,22 +243,23 @@ void EffectView::saveFxPreset()
 
 void EffectView::loadFxPreset()
 {
-	FileDialog fileDialog(this, tr("Load preset"), "", tr("FX preset (*.lfxp)"));
+	FileDialog fd(this, tr("Load preset"), "", tr("FX preset (*.lfxp)"));
 
-	fileDialog.setAcceptMode(FileDialog::AcceptOpen);
-	fileDialog.setFileMode(FileDialog::ExistingFile);
-	fileDialog.setNameFilter("FX presets (*.lfxp)");
+	fd.setAcceptMode(FileDialog::AcceptOpen);
+	fd.setFileMode(FileDialog::ExistingFile);
+	fd.setNameFilter("FX presets (*.lfxp)");
+	fd.setDirectory(ConfigManager::inst()->factoryPresetsDir());
 
-	if( fileDialog.exec() == QDialog::Accepted &&
-		!fileDialog.selectedFiles().isEmpty() &&
-		!fileDialog.selectedFiles().first().isEmpty() )
+	if ( fd.exec() == QDialog::Accepted &&
+		!fd.selectedFiles().isEmpty() &&
+		!fd.selectedFiles().first().isEmpty() )
 	{
-		QFile file(fileDialog.selectedFiles()[0]);
-		if (file.open(QFile::ReadOnly))
+		QFile fxFile(fd.selectedFiles()[0]);
+		if (fxFile.open(QFile::ReadOnly))
 		{
 			Effect * efx = effect();
 			QDomDocument doc;
-			doc.setContent( file.readAll() );
+			doc.setContent( fxFile.readAll() );
 			QDomNodeList roots = doc.elementsByTagName("lfxp");
 			if ( roots.size() == 1 )
 			{
@@ -268,7 +270,7 @@ void EffectView::loadFxPreset()
 					efx->loadSettings(lxfp);
 				}
 			}
-			file.close();
+			fxFile.close();
 			return;
 		}
 	}
