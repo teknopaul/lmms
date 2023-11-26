@@ -19,9 +19,13 @@ class GrooveExperiments : public QObject, public Groove
 {
 	Q_OBJECT
 public:
-	GrooveExperiments(QObject *parent=0 );
+	GrooveExperiments( QObject * parent );
+	~GrooveExperiments() override;
 
-	virtual ~GrooveExperiments();
+	static QString name()
+	{
+		return "experiment";
+	}
 
 	void updateAmount();
 
@@ -31,7 +35,7 @@ public:
 	void saveSettings( QDomDocument & _doc, QDomElement & _element ) override;
 	inline virtual QString nodeName() const  override
 	{
-		return "experiment";
+		return name();
 	}
 
 	QWidget * instantiateView( QWidget * _parent )  override;

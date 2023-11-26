@@ -20,8 +20,12 @@ class HydrogenSwing : public Model, public Groove
 	Q_OBJECT
 public:
 	HydrogenSwing( QObject * parent );
+	~HydrogenSwing() override;
 
-	virtual ~HydrogenSwing();
+	static QString name()
+	{
+		return "hydrogen";
+	}
 
 	void apply( Note * _n ) override;
 

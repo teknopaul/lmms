@@ -161,6 +161,7 @@ private slots:
 
 signals:
 	void cueChanged(int cue, QString * text);
+	void isPlaying( lmms::f_cnt_t _current_frame );
 
 private:
 	using handleState = SampleBuffer::handleState;
@@ -209,7 +210,6 @@ public:
 	virtual ~VoxpopView() = default;
 
 	void newWaveView();
-
 protected slots:
 	void sampleUpdated();
 	void openCuesheetFile();

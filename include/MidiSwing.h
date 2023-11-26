@@ -17,8 +17,13 @@ class MidiSwing : public QObject, public Groove
 {
 	Q_OBJECT
 public:
-	MidiSwing(QObject * _parent=0 );
-	~MidiSwing();
+	MidiSwing( QObject * _parent );
+	~MidiSwing() override;
+
+	static QString name()
+	{
+		return "midi";
+	}
 
 	void apply( Note * _n ) override;
 	int applyMidiSwing(int _pos_in_eigth);
@@ -27,7 +32,7 @@ public:
 	void saveSettings( QDomDocument & _doc, QDomElement & _element ) override;
 	inline virtual QString nodeName() const override
 	{
-		return "midi";
+		return name();
 	}
 
 	QWidget * instantiateView( QWidget * _parent ) override;

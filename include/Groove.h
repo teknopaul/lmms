@@ -43,7 +43,14 @@ class Groove : public SerializingObject
 
 public:
 	Groove();
+	virtual ~Groove();
 
+	static QString name()
+	{
+		return "none";
+	}
+
+	static Groove * instantiateGroove(QString type, QObject * _parent);
 
 	virtual void apply( Note * _n ) ;
 
@@ -54,7 +61,7 @@ public:
 
 	virtual QString nodeName() const
 	{
-		return "none";
+		return name();
 	}
 
 };

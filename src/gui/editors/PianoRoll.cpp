@@ -4088,6 +4088,7 @@ void PianoRoll::startRecordNote(const Note & n )
 				{
 					quint64 bpm = song->getTempo();
 					quint64 offsetMillis = song->getMilliseconds() - n1.pos().getTimeInMillis64(bpm);
+					qDebug("offsetMillis=%llu", offsetMillis);
 					f_cnt_t offset = (Engine::audioEngine()->processingSampleRate() * offsetMillis) / 1000;
 					if (offset > 0)
 					{

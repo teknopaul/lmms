@@ -8,6 +8,10 @@
 #include "lmms_basics.h"
 #include "Note.h"
 #include "Song.h"
+#include "HydrogenSwing.h"
+#include "HalfSwing.h"
+#include "MidiSwing.h"
+#include "GrooveExperiments.h"
 
 namespace lmms
 {
@@ -15,7 +19,10 @@ namespace lmms
 
 Groove::Groove()
 {
+}
 
+Groove::~Groove()
+{
 }
 
 /**
@@ -40,6 +47,27 @@ void Groove::loadSettings( const QDomElement & _this )
 QWidget * Groove::instantiateView( QWidget * _parent )
 {
 	return new lmms::gui::GrooveText(this, "No groove", _parent);
+}
+
+Groove * Groove::instantiateGroove(QString type, QObject * _parent)
+{
+	if ( type == HydrogenSwing::name() )
+	{
+		 return new HydrogenSwing( _parent );
+	}
+	if ( type == MidiSwing::name() )
+	{
+		 return new MidiSwing( _parent );
+	}
+	if ( type == HalfSwing::name() )
+	{
+		 return new HalfSwing( _parent );
+	}
+	if ( type == GrooveExperiments::name() )
+	{
+		 return new GrooveExperiments( _parent );
+	}
+	return new Groove();
 }
 
 }

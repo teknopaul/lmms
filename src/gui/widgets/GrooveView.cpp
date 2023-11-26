@@ -83,23 +83,23 @@ GrooveView::~GrooveView()
 void GrooveView::update()
 {
 	Groove * groove = Engine::getSong()->globalGroove();
-	if (groove->nodeName() == "none")
+	if ( groove->nodeName() == Groove::name() )
 	{
 		m_dropDown->setCurrentIndex(0);
 	}
-	if (groove->nodeName() == "hydrogen")
+	if ( groove->nodeName() == HydrogenSwing::name() )
 	{
 		m_dropDown->setCurrentIndex(1);
 	}
-	if (groove->nodeName() == "midi")
+	if ( groove->nodeName() == MidiSwing::name() )
 	{
 		m_dropDown->setCurrentIndex(2);
 	}
-	if (groove->nodeName() == "experiment")
+	if ( groove->nodeName() == GrooveExperiments::name() )
 	{
 		m_dropDown->setCurrentIndex(3);
 	}
-	if (groove->nodeName() == "half")
+	if ( groove->nodeName() == HalfSwing::name() )
 	{
 		m_dropDown->setCurrentIndex(3);
 	}
@@ -154,12 +154,10 @@ void GrooveView::grooveChanged(int index)
 	Song * song = Engine::getSong();
 	song->setGlobalGroove(groove); // TODO this can fail
 	setView(groove);
-	
 }
 
 void GrooveView::setView(Groove * groove)
 {
-	
 	QWidget * view = groove->instantiateView(this);
 	QLayoutItem * li = m_layout->takeAt(1);
 	delete li->widget();

@@ -20,8 +20,12 @@ class HalfSwing : public QObject, public Groove
 	Q_OBJECT
 public:
 	HalfSwing(QObject * parent );
+	~HalfSwing() override;
 
-	virtual ~HalfSwing();
+	static QString name()
+	{
+		return "half";
+	}
 
 	void apply( Note * _n ) override;
 
@@ -29,7 +33,7 @@ public:
 	void saveSettings( QDomDocument & _doc, QDomElement & _element ) override;
 	inline virtual QString nodeName() const override
 	{
-		return "half";
+		return name();
 	}
 
 	QWidget * instantiateView( QWidget * _parent )  override;

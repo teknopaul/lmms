@@ -1044,7 +1044,7 @@ void Song::loadProject( const QString & fileName )
 	bool cantLoadProject = false;
 	// if file could not be opened, head-node is null and we create
 	// new project
-	if( dataFile.head().isNull() )
+	if ( dataFile.head().isNull() )
 	{
 		cantLoadProject = true;
 	}
@@ -1101,7 +1101,7 @@ void Song::loadProject( const QString & fileName )
 
 	// get song meta data
 	QDomElement metaElement = dataFile.content().firstChildElement( "meta" );
-	if( !metaElement.isNull() )
+	if ( !metaElement.isNull() )
 	{
 		m_title = metaElement.attribute("title");
 		m_artist = metaElement.attribute("artist");
@@ -1110,7 +1110,9 @@ void Song::loadProject( const QString & fileName )
 		m_genre = metaElement.attribute("genre");
 		m_comment = metaElement.attribute("comment");
 		m_image = metaElement.attribute("image");
-	} else {
+	}
+	else
+	{
 		m_title.clear();
 		m_artist.clear();
 		m_album.clear();
@@ -1126,7 +1128,7 @@ void Song::loadProject( const QString & fileName )
 		getPlayPos(PlayMode::Song).m_timeLine->toggleLoopPoints( 0 );
 	}
 
-	if( !dataFile.content().firstChildElement( "track" ).isNull() )
+	if ( !dataFile.content().firstChildElement( "track" ).isNull() )
 	{
 		m_globalAutomationTrack->restoreState( dataFile.content().
 						firstChildElement( "track" ) );
@@ -1137,26 +1139,43 @@ void Song::loadProject( const QString & fileName )
 
 	// Load mixer first to be able to set the correct range for mixer channels
 	node = dataFile.content().firstChildElement( Engine::mixer()->nodeName() );
-	if( !node.isNull() )
+	if ( !node.isNull() )
 	{
 		Engine::mixer()->restoreState( node.toElement() );
-		if( getGUI() != nullptr )
+		if ( getGUI() != nullptr )
 		{
 			// refresh MixerView
 			getGUI()->mixerView()->refreshDisplay();
 		}
 	}
 
+	lmms::gui::GrooveView * grooveView = nullptr;
+	if ( getGUI() != nullptr ) {
+		grooveView = getGUI()->grooveView();
+	}
+	node = dataFile.content().firstChildElement( "groove" );
+	if ( ! node.isNull() )
+	{
+		QDomElement ge = node.toElement();
+		m_globalGroove = Groove::instantiateGroove( ge.attribute("type"), grooveView );
+		m_globalGroove->restoreState( ge.firstChildElement(ge.attribute("type")) );
+	}
+	else
+	{
+		m_globalGroove = new Groove();
+	}
+
+
 	node = dataFile.content().firstChild();
 
-	QDomNodeList tclist=dataFile.content().elementsByTagName("trackcontainer");
-	m_nLoadingTrack=0;
-	for( int i=0,n=tclist.count(); i<n; ++i )
+	QDomNodeList tclist = dataFile.content().elementsByTagName("trackcontainer");
+	m_nLoadingTrack = 0;
+	for( int i = 0, n = tclist.count(); i < n; ++i )
 	{
-		QDomNode nd=tclist.at(i).firstChild();
-		while(!nd.isNull())
+		QDomNode nd = tclist.at(i).firstChild();
+		while ( !nd.isNull() )
 		{
-			if( nd.isElement() && nd.nodeName() == "track" )
+			if ( nd.isElement() && nd.nodeName() == "track" )
 			{
 				++m_nLoadingTrack;
 				if (static_cast<Track::Type>(nd.toElement().attribute("type").toInt()) == Track::Type::Pattern)
@@ -1296,6 +1315,12 @@ bool Song::saveProjectFile(const QString & filename, bool withResources)
 	saveState( dataFile, dataFile.content() );
 
 	m_globalAutomationTrack->saveState( dataFile, dataFile.content() );
+
+	QDomElement ge = dataFile.createElement( "groove" );
+	ge.setAttribute( "type", m_globalGroove->nodeName() );
+	dataFile.content().appendChild( ge );
+	m_globalGroove->saveState( dataFile, ge );
+
 	Engine::mixer()->saveState( dataFile, dataFile.content() );
 	if( getGUI() != nullptr )
 	{
