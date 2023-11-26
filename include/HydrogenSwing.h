@@ -8,21 +8,20 @@
 #include "lmms_basics.h"
 #include "Note.h"
 
-namespace lmms {
+namespace lmms
+{
+
 
 /**
  * A groove that mimics Hydrogen drum machine's swing feature
  */
-class HydrogenSwing : public QObject, public Groove
+class HydrogenSwing : public Model, public Groove
 {
 	Q_OBJECT
 public:
-	HydrogenSwing(QObject *parent=0 );
+	HydrogenSwing( QObject * parent );
 
 	virtual ~HydrogenSwing();
-
-	void init();
-	int amount();
 
 	void apply( Note * _n ) override;
 
@@ -35,41 +34,30 @@ public:
 
 	QWidget * instantiateView( QWidget * _parent )  override;
 
-signals:
-	void swingAmountChanged(int _newAmount);
-
+	FloatModel m_swingAmountModel;
 
 public slots:
-	// valid values are from 0 - 127
-	void setAmount(int _amount);
-	void update();
+	void updateAmount();
 
 private:
-	int m_frames_per_tick;
-	int m_swingAmount;
 	float m_swingFactor;// =  (m_swingAmount / 127.0)
 
-} ;
+	friend class HydrogenSwingView;
+};
 
 }
 
-namespace lmms::gui 
+namespace lmms::gui
 {
 
 class HydrogenSwingView : public QWidget
 {
 	Q_OBJECT
 public:
-	HydrogenSwingView(HydrogenSwing * _hy_swing, QWidget * parent=0 );
+	HydrogenSwingView(HydrogenSwing * swing, QWidget * parent );
 	~HydrogenSwingView();
 
-public slots:
-	void modelChanged();
-	void valueChanged(float);
-
 private:
-	HydrogenSwing * m_hy_swing;
-	FloatModel * m_nobModel;
 	Knob * m_nob;
 
 } ;

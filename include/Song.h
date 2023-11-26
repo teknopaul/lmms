@@ -234,9 +234,13 @@ public:
 	inline void setLoopRenderCount(int count)
 	{
 		if (count < 1)
+		{
 			m_loopRenderCount = 1;
+		}
 		else
+		{
 			m_loopRenderCount = count;
+		}
 		m_loopRenderRemaining = m_loopRenderCount;
 	}
 
@@ -296,15 +300,14 @@ public:
 		return m_length;
 	}
 
-
 	bpm_t getTempo();
 
-	AutomationTrack * globalAutomationTrack()
+	AutomationTrack * globalAutomationTrack() const
 	{
 		return m_globalAutomationTrack;
 	}
 
-	Groove * globalGroove()
+	Groove * globalGroove() const
 	{
 		return m_globalGroove;
 	}
@@ -441,7 +444,7 @@ public:
 		return m_timeSigModel;
 	}
 
-	IntModel& tempoModel()
+	IntModel & tempoModel()
 	{
 		return m_tempoModel;
 	}

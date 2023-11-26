@@ -1,6 +1,6 @@
 /*
  * MidiSwing.cpp - Swing algo using fixed integer step adjustments that 
- *                 could be represented as midi.
+ *                 could be represented as midi. N.B. midi note is not changed
  *
  * Copyright (c) 2004-2014 teknopaul <teknopaul/at/users.sourceforge.net>
  *
@@ -41,25 +41,23 @@ MidiSwing::~MidiSwing()
 {
 }
 
-static int applyMidiSwing(int pos_in_eight);
 
 void MidiSwing::apply( Note * _n )
 {
 
 	// Where are we in the beat
-	int pos_in_beat =  _n->pos().getTicks() % 48; // assumes 48 ticks per beat, todo verify this
+	int pos_in_beat =  _n->pos().getTicks() % (DefaultTicksPerBar / 4);
 
 	// the Midi Swing algorthym.
 
 	int pos_in_eigth = -1;
 	if ( pos_in_beat >= 12 && pos_in_beat < 18 ) 
-	{  
+	{
 		// 1st half of second quarter
-		//add a 0 - 24 tick shift
 		pos_in_eigth = pos_in_beat - 12;  // 0-5
 	}
-	else  if ( pos_in_beat >= 36 && pos_in_beat < 42 )
-	{ 
+	else if ( pos_in_beat >= 36 && pos_in_beat < 42 )
+	{
 		// 1st half of third quarter
 		pos_in_eigth = pos_in_beat - 36;  // 0-5
 	}
@@ -67,6 +65,19 @@ void MidiSwing::apply( Note * _n )
 	int swingTicks = applyMidiSwing(pos_in_eigth);
 
 	_n->setNoteOffset(swingTicks * Engine::framesPerTick());
+
+}
+
+int MidiSwing::applyMidiSwing(int _pos_in_eigth)
+{
+	if (_pos_in_eigth < 0) return 0;
+	if (_pos_in_eigth == 0) return 3;
+	if (_pos_in_eigth == 1) return 3;
+	if (_pos_in_eigth == 2) return 4;
+	if (_pos_in_eigth == 3) return 4;
+	if (_pos_in_eigth == 4) return 5;
+	if (_pos_in_eigth == 5) return 5;
+	return 0;
 
 }
 
@@ -82,21 +93,7 @@ void MidiSwing::loadSettings( const QDomElement & _this )
 
 QWidget * MidiSwing::instantiateView( QWidget * _parent )
 {
-	return new QLabel("Midi Swing");
-}
-
-static int applyMidiSwing(int _pos_in_eigth)
-{
-	// TODO case
-	if (_pos_in_eigth < 0) return 0;
-	if (_pos_in_eigth == 0) return 3;
-	if (_pos_in_eigth == 1) return 3;
-	if (_pos_in_eigth == 2) return 4;
-	if (_pos_in_eigth == 3) return 4;
-	if (_pos_in_eigth == 4) return 5;
-	if (_pos_in_eigth == 5) return 5;
-	return 0;
-
+	return new lmms::gui::GrooveText(this, "Swing with amount set\nat exact midi ticks", _parent);
 }
 
 }

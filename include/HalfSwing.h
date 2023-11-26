@@ -19,12 +19,9 @@ class HalfSwing : public QObject, public Groove
 {
 	Q_OBJECT
 public:
-	HalfSwing(QObject *parent=0 );
+	HalfSwing(QObject * parent );
 
 	virtual ~HalfSwing();
-
-	void init();
-	int amount();
 
 	void apply( Note * _n ) override;
 
@@ -35,20 +32,14 @@ public:
 		return "half";
 	}
 
-	QWidget * instantiateView( QWidget * _parent ) override;
+	QWidget * instantiateView( QWidget * _parent )  override;
 
-signals:
-	void swingAmountChanged(int _newAmount);
-
+	FloatModel m_swingAmountModel;
 
 public slots:
-	// valid values are from 0 - 127
-	void setAmount(int _amount);
-	void update();
+	void updateAmount();
 
 private:
-	int m_frames_per_tick;
-	int m_swingAmount;
 	float m_swingFactor;// =  (m_swingAmount / 127.0)
 
 } ;
@@ -65,13 +56,7 @@ public:
 	HalfSwingView(HalfSwing * _half_swing, QWidget * parent=0 );
 	~HalfSwingView();
 
-public slots:
-	void modelChanged();
-	void valueChanged(float);
-
 private:
-	HalfSwing * m_half_swing;
-	FloatModel * m_nobModel;
 	Knob * m_nob;
 
 } ;

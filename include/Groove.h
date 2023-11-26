@@ -26,7 +26,9 @@
 #ifndef GROOVE_H
 #define GROOVE_H
 
+#include <QLabel>
 #include <QWidget>
+#include <QVBoxLayout>
 
 #include "lmms_basics.h"
 #include "Note.h"
@@ -56,6 +58,23 @@ public:
 	}
 
 };
+
+}
+
+namespace lmms::gui
+{
+
+
+class GrooveText : public QLabel
+{
+	Q_OBJECT
+
+public:
+	GrooveText(Groove * _groove, const QString text, QWidget * _parent);
+	~GrooveText();
+
+};
+
 
 }
 

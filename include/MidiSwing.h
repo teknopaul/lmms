@@ -21,6 +21,7 @@ public:
 	~MidiSwing();
 
 	void apply( Note * _n ) override;
+	int applyMidiSwing(int _pos_in_eigth);
 
 	void loadSettings( const QDomElement & _this ) override;
 	void saveSettings( QDomDocument & _doc, QDomElement & _element ) override;
@@ -30,10 +31,6 @@ public:
 	}
 
 	QWidget * instantiateView( QWidget * _parent ) override;
-
-signals:
-
-public slots:
 
 };
 

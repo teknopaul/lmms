@@ -171,7 +171,12 @@ f_cnt_t TimePos::frames( const float framesPerTick ) const
 
 double TimePos::getTimeInMilliseconds( bpm_t beatsPerMinute ) const
 {
-	return ticksToMilliseconds( getTicks(), beatsPerMinute );
+	return ticksToMilliseconds(m_ticks, beatsPerMinute );
+}
+
+quint64 TimePos::getTimeInMillis64(quint64 beatsPerMinute) const
+{
+	return ticksToMillis64(m_ticks, beatsPerMinute);
 }
 
 TimePos TimePos::fromFrames( const f_cnt_t frames, const float framesPerTick )
@@ -221,5 +226,10 @@ double TimePos::ticksToMilliseconds(double ticks, bpm_t beatsPerMinute)
 	return ( ticks * 1250 ) / beatsPerMinute;
 }
 
+quint64 TimePos::ticksToMillis64(quint64 ticks, quint64 beatsPerMinute)
+{
+	// 60 * 1000 / 48 = 1250
+	return ( ticks * (quint64) 1250 ) / beatsPerMinute;
+}
 
 } // namespace lmms

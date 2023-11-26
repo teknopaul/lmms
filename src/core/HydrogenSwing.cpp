@@ -33,6 +33,7 @@
 #include "lmms_basics.h"
 #include "Note.h"
 #include "Song.h"
+#include "TimePos.h"
 
 #include "stdio.h"
 
@@ -41,13 +42,12 @@ namespace lmms
 {
 
 HydrogenSwing::HydrogenSwing(QObject * _parent) :
-	QObject( _parent ),
-	Groove()
+	Model( nullptr , "HydrogenSwing", false),
+	Groove(),
+	m_swingAmountModel(0, 0 , 127, 1.0, nullptr, "swing amount"),
+	m_swingFactor( 0.0 )
 {
-	m_swingAmount = 0;
-	m_swingFactor = 0;
-	init();
-	update();
+	connect(&m_swingAmountModel, SIGNAL( dataChanged() ), this, SLOT( updateAmount() ) );
 }
 
 HydrogenSwing::~HydrogenSwing()
@@ -55,47 +55,17 @@ HydrogenSwing::~HydrogenSwing()
 }
 
 
-void HydrogenSwing::init()
-{
-	Song * s = Engine::getSong();
-	connect( s, SIGNAL(projectLoaded()),        this, SLOT(update()) );
-	connect( s, SIGNAL(lengthChanged(int)),        this, SLOT(update()) );
-	connect( s, SIGNAL(tempoChanged(bpm_t)),         this, SLOT(update()) );
-	connect( s, SIGNAL(timeSignatureChanged(int, int)), this, SLOT(update()) );
-}
 
-int HydrogenSwing::amount()
+void HydrogenSwing::updateAmount()
 {
-	return m_swingAmount;
-}
-
-void HydrogenSwing::update()
-{
-	m_frames_per_tick =  Engine::framesPerTick();
-}
-
-void HydrogenSwing::setAmount(int _amount)
-{
-
-	if (_amount > 0 && _amount <= 127)
+	if (m_swingAmountModel.value() == 0)
 	{
-		m_swingAmount = _amount;
-		m_swingFactor =  (((float)m_swingAmount) / 127.0);
-		emit swingAmountChanged(m_swingAmount);
-	}
-	else if (_amount  == 0)
-	{
-		m_swingAmount = 0;
-		m_swingFactor =  0.0;
-		emit swingAmountChanged(m_swingAmount);
+		m_swingFactor = 0.0;
 	}
 	else
 	{
-		m_swingAmount = 127;
-		m_swingFactor =  1.0;
-		emit swingAmountChanged(m_swingAmount);
+		m_swingFactor =  m_swingAmountModel.value() / 127.0;
 	}
-
 }
 
 void HydrogenSwing::apply( Note * _n )
@@ -103,7 +73,7 @@ void HydrogenSwing::apply( Note * _n )
 
 	// Where are we in the beat
 	// 48 ticks to the beat, 192 ticks to the bar
-	int pos_in_beat =  _n->pos().getTicks() % 48;
+	int pos_in_beat =  _n->pos().getTicks() % (DefaultTicksPerBar / 4);
 
 
 	// The Hydrogen Swing algorthym.
@@ -127,33 +97,22 @@ void HydrogenSwing::apply( Note * _n )
 
 		float ticks_to_shift = ((pos_in_eigth - 6) * -m_swingFactor);
 
-		f_cnt_t frames_to_shift = (int)(ticks_to_shift * m_frames_per_tick);
+		f_cnt_t frames_to_shift = (int)(ticks_to_shift * Engine::framesPerTick());
 
 		_n->setNoteOffset(frames_to_shift);
-
 	}
-
 }
 
 
 
 void HydrogenSwing::saveSettings( QDomDocument & _doc, QDomElement & _element )
 {
-	_element.setAttribute("swingAmount", m_swingAmount);
+	m_swingAmountModel.saveSettings(_doc, _element, "swingAmount");
 }
 
-void HydrogenSwing::loadSettings( const QDomElement & _this )
+void HydrogenSwing::loadSettings( const QDomElement & _element )
 {
-	bool ok;
-	int amount =  _this.attribute("swingAmount").toInt(&ok);
-	if (ok)
-	{
-		setAmount(amount);
-	}
-	else
-	{
-		setAmount(0);
-	}
+	m_swingAmountModel.loadSettings(_element, "swingAmount");
 }
 
 QWidget * HydrogenSwing::instantiateView( QWidget * _parent )
@@ -163,41 +122,23 @@ QWidget * HydrogenSwing::instantiateView( QWidget * _parent )
 
 }
 
+
 namespace lmms::gui
 {
 
 // VIEW //
 
-HydrogenSwingView::HydrogenSwingView(HydrogenSwing * _hy_swing, QWidget * _parent) :
-	QWidget( _parent )
+HydrogenSwingView::HydrogenSwingView(HydrogenSwing * swing, QWidget * parent) :
+	QWidget( parent )
 {
-	m_nobModel = new FloatModel(0.0, 0.0, 127.0, 1.0); // Unused
-	m_nob = new Knob(KnobType::Bright26, this, "swingFactor");
-	m_nob->setModel( m_nobModel );
+	m_nob = new Knob(KnobType::Bright26, this, "swing amount");
+	m_nob->setModel( &swing->m_swingAmountModel );
 	m_nob->setLabel( tr( "Swinginess" ) );
 	m_nob->setEnabled(true);
-	m_nobModel->setValue(_hy_swing->amount());
-
-	m_hy_swing = _hy_swing;
-
-	connect(m_nob, SIGNAL(sliderMoved(float)), this, SLOT(valueChanged(float)));
-	connect(m_nobModel, SIGNAL( dataChanged() ), this, SLOT(modelChanged()) );
 }
 
 HydrogenSwingView::~HydrogenSwingView()
 {
-	delete m_nob;
-	delete m_nobModel;
-}
-
-void HydrogenSwingView::modelChanged()
-{
-	m_hy_swing->setAmount((int)m_nobModel->value());
-}
-
-void HydrogenSwingView::valueChanged(float _f) // this value passed is gibberish
-{
-	m_hy_swing->setAmount((int)m_nobModel->value());
 }
 
 

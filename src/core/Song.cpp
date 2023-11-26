@@ -40,7 +40,6 @@
 #include "EnvelopeAndLfoParameters.h"
 #include "Mixer.h"
 #include "MixerView.h"
-#include "GrooveFactory.h"
 #include "GrooveView.h"
 #include "GuiApplication.h"
 #include "ExportFilter.h"
@@ -72,7 +71,7 @@ Song::Song() :
 	m_globalAutomationTrack( dynamic_cast<AutomationTrack *>(
 				Track::create( Track::Type::HiddenAutomation,
 								this ) ) ),
-	m_globalGroove(GrooveFactory::create("none")),
+	m_globalGroove(new Groove()),
 	m_tempoModel( DefaultTempo, MinTempo, MaxTempo, this, tr( "Tempo" ) ),
 	m_timeSigModel( this ),
 	m_oldTicksPerBar( DefaultTicksPerBar ),

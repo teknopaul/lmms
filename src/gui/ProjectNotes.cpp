@@ -82,6 +82,7 @@ ProjectNotes::ProjectNotes() :
 	buttonsForm->setAlignment(Qt::AlignLeft);
 
 	QFormLayout * form = new QFormLayout(m_form);
+	form->addRow("notes", m_edit);
 	form->addRow("title", m_title);
 	form->addRow("artist", m_artist);
 	form->addRow("album", m_album);
@@ -90,7 +91,6 @@ ProjectNotes::ProjectNotes() :
 	form->addRow("comment", m_comment);
 	form->addRow("image", m_image);
 	form->addRow("", m_imagesWidget);
-	form->addRow("notes", m_edit);
 
 
 	setCentralWidget(m_form);

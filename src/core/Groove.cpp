@@ -1,6 +1,7 @@
 
-#include <QtCore/QObject> // needed for midi_tim.h to compile?!?!
 #include <QLabel>
+#include <QWidget>
+#include <QVBoxLayout>
 
 #include "Groove.h"
 
@@ -38,7 +39,26 @@ void Groove::loadSettings( const QDomElement & _this )
 
 QWidget * Groove::instantiateView( QWidget * _parent )
 {
-	return new QLabel("No groove");
+	return new lmms::gui::GrooveText(this, "No groove", _parent);
 }
 
 }
+
+
+namespace lmms::gui
+{
+
+/**
+ * Groove view that is just text
+ */
+GrooveText::GrooveText(Groove * _groove, const QString text, QWidget * _parent) : QLabel(text,  _parent )
+{
+	setAlignment(Qt::AlignTop | Qt::AlignLeft);
+}
+
+GrooveText::~GrooveText()
+{
+}
+
+}
+

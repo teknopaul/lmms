@@ -131,22 +131,22 @@ void GrooveView::grooveChanged(int index)
 		}
 		case 1 :
 		{
-			groove = new HydrogenSwing();
+			groove = new HydrogenSwing(this);
 			break;
 		}
 		case 2 :
 		{
-			groove = new MidiSwing();
+			groove = new MidiSwing(this);
 			break;
 		}
 		case 3 :
 		{
-			groove = new GrooveExperiments();
+			groove = new GrooveExperiments(this);
 			break;
 		}
 		case 4 :
 		{
-			groove = new HalfSwing();
+			groove = new HalfSwing(this);
 			break;
 		}
 	}

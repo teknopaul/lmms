@@ -165,8 +165,11 @@ protected:
 		Pos,
 		Length,
 		Groove,
+		RemoveGroove,
 		HumanizeVelocity,
-		HumanizeTiming
+		HumanizeTiming,
+		NudgeForward,
+		NudgeBack
 	};
 
 	enum class SemiToneMarkerAction
@@ -239,6 +242,9 @@ protected slots:
 	void humanizeTiming(Note * n);
 	void humanizeVelocity(Note * n);
 	void quantizeGroove(Note * n);
+	void removeGroove(Note * n);
+	void nudgeForward(Note * n);
+	void nudgeBack(Note * n);
 
 	void updateSemiToneMarkerMenu();
 
@@ -371,6 +377,11 @@ private:
 
 	MidiClip* m_midiClip;
 	NoteVector m_ghostNotes;
+
+	inline bool isQuanitzeOff() const
+	{
+		return m_quantizeModel.value() == m_quantizeModel.size() - 1;
+	}
 
 	inline const NoteVector & ghostNotes() const
 	{

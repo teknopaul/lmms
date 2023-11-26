@@ -28,6 +28,7 @@
 
 #include "lmms_export.h"
 #include "lmms_basics.h"
+#include "qglobal.h"
 
 namespace lmms
 {
@@ -96,6 +97,7 @@ public:
 	f_cnt_t frames( const float framesPerTick ) const;
 
 	double getTimeInMilliseconds( bpm_t beatsPerMinute ) const;
+	quint64 getTimeInMillis64(quint64 beatsPerMinute) const;
 
 	static TimePos fromFrames( const f_cnt_t frames, const float framesPerTick );
 	static tick_t ticksPerBar();
@@ -105,6 +107,7 @@ public:
 	static TimePos stepPosition( int step );
 	static double ticksToMilliseconds( tick_t ticks, bpm_t beatsPerMinute );
 	static double ticksToMilliseconds( double ticks, bpm_t beatsPerMinute );
+	static quint64 ticksToMillis64(quint64 ticks, quint64 beatsPerMinute);
 
 private:
 	tick_t m_ticks;

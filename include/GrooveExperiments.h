@@ -23,8 +23,7 @@ public:
 
 	virtual ~GrooveExperiments();
 
-	void init();
-	int amount();
+	void updateAmount();
 
 	void apply( Note * _n ) override;
 
@@ -35,23 +34,12 @@ public:
 		return "experiment";
 	}
 
-
-
 	QWidget * instantiateView( QWidget * _parent )  override;
 
-signals:
-	void shiftAmountChanged(int _newAmount);
-
-
-public slots:
-	// valid values are from 0 - 127
-	void setAmount(int _amount);
-	void update();
+	FloatModel m_swingAmountModel;
 
 private:
-	int m_frames_per_tick;
-	int m_shiftAmount;
-	float m_shiftFactor;// =  (m_shiftAmount / 127.0)
+	float m_swingFactor;// =  (m_shiftAmount / 127.0)
 
 };
 
@@ -64,16 +52,10 @@ class GrooveExperimentsView : public QWidget
 {
 	Q_OBJECT
 public:
-	GrooveExperimentsView(GrooveExperiments * _m_ge, QWidget * parent=0 );
+	GrooveExperimentsView(GrooveExperiments * swing, QWidget * parent );
 	~GrooveExperimentsView();
 
-public slots:
-	void modelChanged();
-	void valueChanged(float);
-
 private:
-	GrooveExperiments * m_ge;
-	FloatModel * m_nobModel;
 	Knob * m_nob;
 
 };
