@@ -81,6 +81,8 @@ public:
 	Knob( QWidget * _parent = nullptr, const QString & _name = QString() ); //!< default ctor
 	Knob( const Knob& other ) = delete;
 
+	// This class only accepts a FloatModel any other models cause it to crash
+	// void setModel(Model * model, bool isOldModelValid = true ) override
 	void setLabel( const QString & txt );
 	void setHtmlLabel( const QString &htmltxt );
 
