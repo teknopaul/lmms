@@ -4659,7 +4659,7 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 void PianoRoll::humanizeTiming(Note * n)
 {
 	f_cnt_t offset =  (double)std::rand() / RAND_MAX * Engine::framesPerTick();
-	n->setNoteOffset(getNoteOffset() + offset);
+	n->setNoteOffset(n->getNoteOffset() + offset);
 }
 
 
