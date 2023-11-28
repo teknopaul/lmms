@@ -168,6 +168,7 @@ protected:
 		RemoveGroove,
 		HumanizeVelocity,
 		HumanizeTiming,
+		HumanizeLength,
 		NudgeForward,
 		NudgeBack
 	};
@@ -241,6 +242,7 @@ protected slots:
 	void quantizeNotes(QuantizeAction mode = QuantizeAction::Both);
 	void humanizeTiming(Note * n);
 	void humanizeVelocity(Note * n);
+	void humanizeLength(Note * n);
 	void quantizeGroove(Note * n);
 	void removeGroove(Note * n);
 	void nudgeForward(Note * n);

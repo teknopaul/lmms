@@ -4088,16 +4088,10 @@ void PianoRoll::startRecordNote(const Note & n )
 				{
 					quint64 bpm = song->getTempo();
 					quint64 offsetMillis = song->getMilliseconds() - n1.pos().getTimeInMillis64(bpm);
-					qDebug("offsetMillis=%llu", offsetMillis);
 					f_cnt_t offset = (Engine::audioEngine()->processingSampleRate() * offsetMillis) / 1000;
 					if (offset > 0)
 					{
 						n1.setNoteOffset(offset);
-						qDebug("set noteOffset=%i", offset);
-					}
-					if (offset > Engine::framesPerTick())
-					{
-						qWarning("offset larger than a tick: %i", offset);
 					}
 				}
 				m_recordingNotes << n1;
@@ -4653,6 +4647,11 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 			humanizeVelocity(n);
 			continue;
 		}
+		if (mode == QuantizeAction::HumanizeLength)
+		{
+			humanizeLength(n);
+			continue;
+		}
 		if (mode == QuantizeAction::Groove)
 		{
 			quantizeGroove(n);
@@ -4706,6 +4705,18 @@ void PianoRoll::humanizeVelocity(Note * n)
 	if (newVol < n->getVolume()) // volume_t is unsigned this is test for overflow
 	{
 		n->setVolume(newVol);
+	}
+}
+
+
+void PianoRoll::humanizeLength(Note * n)
+{
+	TimePos length = n->length();
+	tick_t newlen = length.getTicks() + (std::rand() % 6) - 2;
+	qDebug("len = %i new len = %i", length.getTicks(), newlen);
+	if (newlen > 4) {
+		length.setTicks(newlen);
+		n->setLength(length);
 	}
 }
 
@@ -4853,6 +4864,7 @@ PianoRollWindow::PianoRollWindow() :
 	auto removeGrooveAction = new QAction(tr("Remove groove"), this);
 	auto humanizeVelocityAction = new QAction(tr("Humanize velocity"), this);
 	auto humanizeTimingAction = new QAction(tr("Humanize timing"), this);
+	auto humanizeLengthAction = new QAction(tr("Humanize length"), this);
 	auto nudgeForwardAction = new QAction(tr("Nudge forward"), this);
 	auto nudgeBackAction = new QAction(tr("Nudge back"), this);
 
@@ -4863,6 +4875,7 @@ PianoRollWindow::PianoRollWindow() :
 	connect(removeGrooveAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::RemoveGroove); });
 	connect(humanizeVelocityAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::HumanizeVelocity); });
 	connect(humanizeTimingAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::HumanizeTiming); });
+	connect(humanizeLengthAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::HumanizeLength); });
 	connect(nudgeForwardAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::NudgeForward); });
 	connect(nudgeBackAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::NudgeBack); });
 
@@ -4878,6 +4891,7 @@ PianoRollWindow::PianoRollWindow() :
 	quantizeButtonMenu->addAction(removeGrooveAction);
 	quantizeButtonMenu->addAction(humanizeVelocityAction);
 	quantizeButtonMenu->addAction(humanizeTimingAction);
+	quantizeButtonMenu->addAction(humanizeLengthAction);
 	quantizeButtonMenu->addAction(nudgeForwardAction);
 	quantizeButtonMenu->addAction(nudgeBackAction);
 
