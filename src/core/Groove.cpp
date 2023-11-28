@@ -1,7 +1,6 @@
 
 #include <QLabel>
 #include <QWidget>
-#include <QVBoxLayout>
 
 #include "Groove.h"
 
