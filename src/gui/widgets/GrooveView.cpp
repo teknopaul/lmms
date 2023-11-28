@@ -32,9 +32,9 @@ GrooveView::GrooveView( ) :
 	QWidget()
 {
 	setMinimumWidth( 250 );
-	setMinimumHeight( 210 );
+	setMinimumHeight( 100 );
 	setMaximumWidth( 250 );
-	resize( 250, 220 );
+	resize( 250, 100 );
 
 	setWindowIcon( embed::getIconPixmap( "note_double_whole" ) );
 	setWindowTitle( tr( "Groove" ) );
