@@ -41,6 +41,7 @@
 #include <QDropEvent>
 #include <QLabel>
 #include <QTextStream>
+#include <QProcess>
 
 #include <rubberband/RubberBandStretcher.h>
 
@@ -100,6 +101,7 @@ Voxpop::Voxpop( InstrumentTrack * _instrument_track ) :
 	m_respectEndpointModel( true ),
 	m_ampModel( 100, 0, 500, 1, this, tr( "Amplify" ) ),
 	m_freqModel( DefaultBaseFreq, DefaultBaseFreq  - VOXPOP_FREQ_RANGE, DefaultBaseFreq + VOXPOP_FREQ_RANGE, 1, this, tr( "Frequency" ) ),
+	m_resetModel( false, this, tr("Reset") ),
 	m_timestretchModel( false, this, tr("Time stretch") ),
 	m_cueIndexModel( 0, 0, 99 , this, tr("Cue index") ),
 	m_stutterModel( false, this, tr( "Stutter" ) ),
@@ -117,6 +119,8 @@ Voxpop::Voxpop( InstrumentTrack * _instrument_track ) :
 
 	connect( &m_ampModel, SIGNAL( dataChanged() ),
 				this, SLOT( ampModelChanged() ), Qt::DirectConnection );
+	connect( &m_resetModel, SIGNAL( dataChanged() ),
+				this, SLOT( resetChanged() ), Qt::DirectConnection );
 	connect( &m_timestretchModel, SIGNAL( dataChanged() ),
 				this, SLOT( timestretchChanged() ), Qt::DirectConnection );
 	connect( &m_stutterModel, SIGNAL( dataChanged() ),
@@ -480,6 +484,19 @@ const double Voxpop::getDepitchScale()
 }
 
 
+
+void Voxpop::resetChanged()
+{
+	if ( m_resetModel.value() )
+	{
+		resetStutter();
+		m_cueIndexModel.setValue(0);
+		cueIndexChanged();
+	}
+}
+
+
+
 void Voxpop::timestretchChanged()
 {
 	if ( m_cueCount > 0 )
@@ -680,13 +697,24 @@ VoxpopView::VoxpopView( Instrument * _instrument, QWidget * _parent ) :
 	m_freqKnob->move( 220, topline );
 	m_freqKnob->setHintText( tr( "Freq:" ), "Hz" );
 
+	m_resetCheckBox = new LedCheckBox(this);
+	m_resetCheckBox->setToolTip( tr("Automatable reset") );
+	m_resetCheckBox->setGeometry(180, topline + 15, 23, 23);
+
 	m_timestretchCheckBox = new LedCheckBox(this);
 	m_timestretchCheckBox->setToolTip( tr("Time strech") );
 	m_timestretchCheckBox->setGeometry(200, topline + 15, 23, 23);
 
 	m_respectEnpointsCheckBox = new LedCheckBox(this);
 	m_respectEnpointsCheckBox->setToolTip( tr("Respect cue endpoints") );
-	m_respectEnpointsCheckBox->move(3, 86);
+	m_respectEnpointsCheckBox->move(3, topline + 15);
+
+	m_editAudioFileButton = new QPushButton(tr("🖉"), this);
+	m_editAudioFileButton->setFont( pointSize<10>( m_editAudioFileButton->font() ) );
+	m_editAudioFileButton->setGeometry( 23, topline + 3, 22, 22 );
+	connect( m_editAudioFileButton, SIGNAL( clicked() ),
+					this, SLOT( editAudioFile() ) );
+	m_editAudioFileButton->setToolTip(tr("Edit sample"));
 
 	m_openAudioFileButton = new PixmapButton( this );
 	m_openAudioFileButton->setCursor( QCursor( Qt::PointingHandCursor ) );
@@ -867,6 +895,18 @@ void VoxpopView::openCuesheetFile()
 	}
 }
 
+void VoxpopView::editAudioFile()
+{
+	QString audioFile = castModel<Voxpop>()->m_sampleBuffer.audioFile();
+	QString program = ConfigManager::inst()->externalEditor();
+	if ( ! program.isEmpty() && ! audioFile.isEmpty() )
+	{
+		QStringList args(audioFile);
+		QProcess * proc = new QProcess(this);
+		proc->start(program, args);
+	}
+}
+
 void VoxpopView::modelChanged()
 {
 	auto voxpop = castModel<Voxpop>();
@@ -878,6 +918,7 @@ void VoxpopView::modelChanged()
 	m_interpBox->setModel( &voxpop->m_interpolationModel );
 	m_modeBox->setModel( &voxpop->m_modeModel );
 	m_cueIndexControl->setModel( &voxpop->m_cueIndexModel );
+	m_resetCheckBox->setModel(&voxpop->m_resetModel );
 	m_respectEnpointsCheckBox->setModel( &voxpop->m_respectEndpointModel );
 	connect( voxpop, SIGNAL( cueChanged(int, QString *) ), this, SLOT( cueChanged(int, QString *) ) );
 	sampleUpdated();
@@ -908,6 +949,14 @@ void VoxpopView::updateCuePoints()
 }
 
 
+
+void VoxpopView::isPlaying( f_cnt_t _current_frame )
+{
+	// updateCursor();
+}
+
+
+
 VoxpopWaveView::VoxpopWaveView( QWidget * _parent, int _w, int _h, SampleBuffer& buf ) :
 	QWidget( _parent ),
 	m_sampleBuffer( buf ),
@@ -924,14 +973,6 @@ VoxpopWaveView::VoxpopWaveView( QWidget * _parent, int _w, int _h, SampleBuffer&
 }
 
 
-
-
-void VoxpopWaveView::isPlaying( f_cnt_t _current_frame )
-{
-	update();
-}
-
-
 void VoxpopWaveView::paintEvent( QPaintEvent * _pe )
 {
 	QPainter p( this );
@@ -944,12 +985,12 @@ void VoxpopWaveView::paintEvent( QPaintEvent * _pe )
 void VoxpopWaveView::updateGraph()
 {
 
-	if( m_from > m_sampleBuffer.startFrame() )
+	if ( m_from > m_sampleBuffer.startFrame() )
 	{
 		m_from = m_sampleBuffer.startFrame();
 	}
 
-	if( m_to < m_sampleBuffer.endFrame() )
+	if ( m_to < m_sampleBuffer.endFrame() )
 	{
 		m_to = m_sampleBuffer.endFrame();
 	}

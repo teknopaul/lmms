@@ -32,6 +32,7 @@
 
 #include <QPixmap>
 #include <QCheckBox>
+#include <QPushButton>
 
 #include "ComboBoxModel.h"
 #include "Instrument.h"
@@ -157,6 +158,7 @@ private slots:
 	void stutterModelChanged();
 	void cueIndexChanged();
 	void modeChanged();
+	void resetChanged();
 
 
 signals:
@@ -170,6 +172,7 @@ private:
 	BoolModel m_respectEndpointModel;
 	FloatModel m_ampModel;
 	FloatModel m_freqModel;
+	BoolModel m_resetModel;
 	BoolModel m_timestretchModel;
 	IntModel m_cueIndexModel;
 	mutable QReadWriteLock m_idxLock;
@@ -214,8 +217,10 @@ protected slots:
 	void sampleUpdated();
 	void openCuesheetFile();
 	void openAudioFile();
+	void editAudioFile();
 	void cueSheetChanged();
-	void cueChanged(int cue, QString * text);
+	void cueChanged( int cue, QString * text );
+	void isPlaying( lmms::f_cnt_t _current_frame );
 
 protected:
 	virtual void paintEvent( QPaintEvent * );
@@ -227,7 +232,9 @@ private:
 	static QPixmap * s_artwork;
 
 	LedCheckBox * m_respectEnpointsCheckBox;
+	QPushButton * m_editAudioFileButton;
 	Knob * m_freqKnob;
+	LedCheckBox * m_resetCheckBox;
 	LedCheckBox * m_timestretchCheckBox;
 	QString * m_cuelabel;
 	Knob * m_ampKnob;
@@ -260,8 +267,6 @@ public slots:
 		updateGraph();
 		QWidget::update();
 	}
-
-	void isPlaying( lmms::f_cnt_t _current_frame );
 
 
 private:

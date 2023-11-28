@@ -29,6 +29,7 @@
 #include <QPainter>
 #include <QFileInfo>
 #include <QDropEvent>
+#include <QProcess>
 
 #include <samplerate.h>
 
@@ -515,6 +516,13 @@ AudioFileProcessorView::AudioFileProcessorView( Instrument * _instrument,
 					this, SLOT( openAudioFile() ) );
 	m_openAudioFileButton->setToolTip(tr("Open sample"));
 
+	m_editAudioFileButton = new QPushButton(tr("🖉"), this);
+	m_editAudioFileButton->setFont( pointSize<10>( m_editAudioFileButton->font() ) );
+	m_editAudioFileButton->setGeometry( 38, 64, 22, 22 );
+	connect( m_editAudioFileButton, SIGNAL( clicked() ),
+					this, SLOT( editAudioFile() ) );
+	m_editAudioFileButton->setToolTip(tr("Edit sample"));
+
 	m_reverseButton = new PixmapButton( this );
 	m_reverseButton->setCheckable( true );
 	m_reverseButton->move( 164, 105 );
@@ -742,7 +750,17 @@ void AudioFileProcessorView::openAudioFile()
 	m_waveView->updateSampleRange();
 }
 
-
+void AudioFileProcessorView::editAudioFile()
+{
+	QString audioFile = castModel<AudioFileProcessor>()->m_sampleBuffer.audioFile();
+	QString program = ConfigManager::inst()->externalEditor();
+	if ( ! program.isEmpty() && ! audioFile.isEmpty() )
+	{
+		QStringList args(audioFile);
+		QProcess * proc = new QProcess(this);
+		proc->start(program, args);
+	}
+}
 
 
 void AudioFileProcessorView::modelChanged()

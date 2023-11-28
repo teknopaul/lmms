@@ -1102,8 +1102,9 @@ void SetupDialog::accept()
 	ConfigManager::inst()->setSF2File(m_sf2File);
 #endif
 	ConfigManager::inst()->setGIGDir(QDir::fromNativeSeparators(m_gigDir));
-    ConfigManager::inst()->setPrefExportDir(QDir::fromNativeSeparators(m_prefExportDir));
-    ConfigManager::inst()->setBounceDir(QDir::fromNativeSeparators(m_bounceDir));
+	ConfigManager::inst()->setPrefExportDir(QDir::fromNativeSeparators(m_prefExportDir));
+	ConfigManager::inst()->setBounceDir(QDir::fromNativeSeparators(m_bounceDir));
+	ConfigManager::inst()->setExternalEditor(QDir::fromNativeSeparators(m_externalEditor));
 
 	ConfigManager::inst()->setThemeDir(QDir::fromNativeSeparators(m_themeDir));
 	ConfigManager::inst()->setBackgroundPicFile(m_backgroundPicFile);
@@ -1495,40 +1496,54 @@ void SetupDialog::openGIGDir()
 
 void SetupDialog::setPrefExportDir(const QString & exportDir)
 {
-    m_prefExportDir = exportDir;
+	m_prefExportDir = exportDir;
 }
 
 
 void SetupDialog::openPrefExportDir()
 {
-    QString new_dir = FileDialog::getExistingDirectory(this,
-        tr("Choose default export directory"), m_prefExportDir);
-    if(!new_dir.isEmpty())
-    {
-        m_prefExportDirLineEdit->setText(new_dir);
-    }
+	QString new_dir = FileDialog::getExistingDirectory(this,
+		tr("Choose default export directory"), m_prefExportDir);
+	if(!new_dir.isEmpty())
+	{
+		m_prefExportDirLineEdit->setText(new_dir);
+	}
 }
 
 
 void SetupDialog::setBounceDir(const QString & bounceDir)
 {
-    m_bounceDir = bounceDir;
+	m_bounceDir = bounceDir;
 }
 
 void SetupDialog::openBounceDir()
 {
-    QString new_dir = FileDialog::getExistingDirectory(this,
-        tr("Choose bounce directory"), m_bounceDir);
-    if(!new_dir.isEmpty())
-    {
-        m_bounceDirLineEdit->setText(new_dir);
-    }
+	QString new_dir = FileDialog::getExistingDirectory(this,
+		tr("Choose bounce directory"), m_bounceDir);
+	if (!new_dir.isEmpty())
+	{
+		m_bounceDirLineEdit->setText(new_dir);
+	}
 }
 
+void SetupDialog::setExternalEditor(const QString & externalEditor)
+{
+	m_externalEditor = externalEditor;
+}
+
+void SetupDialog::chooseExternalEditor()
+{
+	QString editor = FileDialog::getOpenFileName(this,
+		tr("Choose external editor"), "/usr/bin" , m_externalEditor);
+	if ( ! editor.isEmpty() )
+	{
+		m_externalEditorLineEdit->setText(editor);
+	}
+}
 
 void SetupDialog::setGIGDir(const QString & gigDir)
 {
-    m_gigDir = gigDir;
+	m_gigDir = gigDir;
 }
 
 void SetupDialog::openThemeDir()

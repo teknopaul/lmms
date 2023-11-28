@@ -141,6 +141,7 @@ public:
 protected slots:
 	void sampleUpdated();
 	void openAudioFile();
+	void editAudioFile();
 
 
 protected:
@@ -160,6 +161,7 @@ private:
 	Knob * m_loopKnob;
 
 	gui::PixmapButton * m_openAudioFileButton;
+	QPushButton * m_editAudioFileButton;
 	PixmapButton * m_reverseButton;
 	automatableButtonGroup * m_loopGroup;
 	PixmapButton * m_stutterButton;

@@ -77,6 +77,7 @@ ConfigManager::ConfigManager() :
 	m_sf2Dir = m_workingDir + SF2_PATH;
 	m_gigDir = m_workingDir + GIG_PATH;
 	m_themeDir = defaultThemeDir();
+	m_externalEditor = "audacity";
 	if (std::getenv("LMMS_DATA_DIR"))
 	{
 		QDir::addSearchPath("data", QString::fromLocal8Bit(std::getenv("LMMS_DATA_DIR")));
@@ -298,6 +299,12 @@ void ConfigManager::setBounceDir(const QString & bounceDir)
 
 
 
+void ConfigManager::setExternalEditor(const QString & externalEditor)
+{
+	m_externalEditor = externalEditor;
+}
+
+
 void ConfigManager::setThemeDir(const QString & themeDir)
 {
 	m_themeDir = ensureTrailingSlash(themeDir);
@@ -510,6 +517,7 @@ void ConfigManager::loadConfigFile(const QString & configFile)
 			setGIGDir(value("paths", "gigdir") == "" ? gigDir() : value("paths", "gigdir"));
 			setPrefExportDir(value("paths", "prefexportdir") == "" ? prefExportDir() : value("paths", "prefexportdir"));
 			setBounceDir(value("paths", "bouncedir") == "" ? bounceDir() : value("paths", "bouncedir"));
+			setExternalEditor(value("paths", "externaleditor") == "" ? externalEditor() : value("paths", "externaleditor"));
 			setSF2Dir(value("paths", "sf2dir") == "" ? sf2Dir() : value("paths", "sf2dir"));
 			setVSTDir(value("paths", "vstdir"));
 			setLADSPADir(value("paths", "ladspadir"));
@@ -599,6 +607,7 @@ void ConfigManager::saveConfigFile()
 	setValue("paths", "sf2dir", m_sf2Dir);
 	setValue("paths", "prefexportdir", m_prefExportDir);
 	setValue("paths", "bouncedir", m_bounceDir);
+	setValue("paths", "externaleditor", m_externalEditor);
 	setValue("paths", "ladspadir", m_ladspaDir);
 #ifdef LMMS_HAVE_STK
 	setValue("paths", "stkdir", m_stkDir);

@@ -194,6 +194,11 @@ public:
 		return m_bounceDir;
 	}
 
+	QString externalEditor() const
+	{
+		return m_externalEditor;
+	}
+
 	QString defaultThemeDir() const
 	{
 		return m_dataDir + DEFAULT_THEME_PATH;
@@ -268,6 +273,7 @@ public:
 	void setGIGDir(const QString & gigDir);
 	void setPrefExportDir(const QString & prefExportDir);
 	void setBounceDir(const QString & bounceDir);
+	void setExternalEditor(const QString & externalEditor);
 	void setThemeDir(const QString & themeDir);
 	void setBackgroundPicFile(const QString & backgroundPicFile);
 
@@ -306,6 +312,7 @@ private:
 	QString m_gigDir;
 	QString m_prefExportDir;
 	QString m_bounceDir;
+	QString m_externalEditor;
 	QString m_themeDir;
 	QString m_backgroundPicFile;
 	QString m_lmmsRcFile;
