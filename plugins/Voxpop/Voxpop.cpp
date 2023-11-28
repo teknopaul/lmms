@@ -385,7 +385,7 @@ void Voxpop::loadAudioFile( const QString & _file )
 }
 
 /**
- * Try to find a matching .txt fiel for a loaded .wav
+ * Try to find a matching .txt file for a loaded .wav
  */
 void Voxpop::findCuesheet( const QString & _file )
 {
