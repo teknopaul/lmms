@@ -606,7 +606,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	int currIdx = m_prefFormat->findText(ConfigManager::inst()->value("outputprefs", "format"));
 	if (currIdx >= 0)
 	{
-	m_prefFormat->setCurrentIndex(currIdx);
+		m_prefFormat->setCurrentIndex(currIdx);
 	}
 	outputPrefsLayout->addWidget(new QLabel("preferred output format"));
 	outputPrefsLayout->addWidget(m_prefFormat);
@@ -619,7 +619,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	currIdx = m_prefStereoMode->findText(ConfigManager::inst()->value("outputprefs", "stereomode"));
 	if (currIdx >= 0)
 	{
-	m_prefStereoMode->setCurrentIndex(currIdx);
+		m_prefStereoMode->setCurrentIndex(currIdx);
 	}
 	outputPrefsLayout->addWidget(new QLabel("preferred stereo mode"));
 	outputPrefsLayout->addWidget(m_prefStereoMode);
@@ -635,7 +635,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	currIdx = m_prefBitrate->findText(ConfigManager::inst()->value("outputprefs", "bitrate"));
 	if (currIdx >= 0)
 	{
-	m_prefBitrate->setCurrentIndex(currIdx);
+		m_prefBitrate->setCurrentIndex(currIdx);
 	}
 	outputPrefsLayout->addWidget(new QLabel("preferred bit rate"));
 	outputPrefsLayout->addWidget(m_prefBitrate);
@@ -648,7 +648,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	currIdx = m_prefBitdepth->findText(ConfigManager::inst()->value("outputprefs", "bitdepth"));
 	if (currIdx >= 0)
 	{
-	m_prefBitdepth->setCurrentIndex(currIdx);
+		m_prefBitdepth->setCurrentIndex(currIdx);
 	}
 	outputPrefsLayout->addWidget(new QLabel("preferred bit depth"));
 	outputPrefsLayout->addWidget(m_prefBitdepth);
@@ -663,7 +663,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	currIdx = m_prefSamplerate->findText(ConfigManager::inst()->value("outputprefs", "samplerate"));
 	if (currIdx >= 0)
 	{
-	m_prefSamplerate->setCurrentIndex(currIdx);
+		m_prefSamplerate->setCurrentIndex(currIdx);
 	}
 	outputPrefsLayout->addWidget(new QLabel("preferred sample rate"));
 	outputPrefsLayout->addWidget(m_prefSamplerate);
@@ -677,7 +677,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	currIdx = m_prefInterpolation->findText(ConfigManager::inst()->value("outputprefs", "interpolation"));
 	if (currIdx >= 0)
 	{
-	m_prefInterpolation->setCurrentIndex(currIdx);
+		m_prefInterpolation->setCurrentIndex(currIdx);
 	}
 	outputPrefsLayout->addWidget(new QLabel("preferred interpolation"));
 	outputPrefsLayout->addWidget(m_prefInterpolation);
