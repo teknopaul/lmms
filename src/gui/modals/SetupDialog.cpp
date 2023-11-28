@@ -148,6 +148,8 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 			"audioengine", "hqaudio").toInt()),
 	m_bufferSize(ConfigManager::inst()->value(
 			"audioengine", "framesperaudiobuffer").toInt()),
+	m_bounceDir(QDir::toNativeSeparators(ConfigManager::inst()->bounceDir())),
+	m_externalEditor(QDir::toNativeSeparators(ConfigManager::inst()->externalEditor())),
 	m_workingDir(QDir::toNativeSeparators(ConfigManager::inst()->workingDir())),
 	m_vstDir(QDir::toNativeSeparators(ConfigManager::inst()->vstDir())),
 	m_ladspaDir(QDir::toNativeSeparators(ConfigManager::inst()->ladspaDir())),
@@ -689,7 +691,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	currIdx = m_prefOversampling->findText(ConfigManager::inst()->value("outputprefs", "oversampling"));
 	if (currIdx >= 0)
 	{
-	m_prefOversampling->setCurrentIndex(currIdx);
+		m_prefOversampling->setCurrentIndex(currIdx);
 	}
 	outputPrefsLayout->addWidget(new QLabel("preferred oversampling"));
 	outputPrefsLayout->addWidget(m_prefOversampling);
@@ -701,7 +703,7 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 	currIdx = m_prefBounceFormat->findText(ConfigManager::inst()->value("outputprefs", "bounceformat"));
 	if (currIdx >= 0)
 	{
-	m_prefBounceFormat->setCurrentIndex(currIdx);
+		m_prefBounceFormat->setCurrentIndex(currIdx);
 	}
 	outputPrefsLayout->addWidget(new QLabel("preferred format when bouncing clips"));
 	outputPrefsLayout->addWidget(m_prefBounceFormat);
@@ -897,15 +899,19 @@ SetupDialog::SetupDialog(ConfigTab tab_to_open) :
 		m_sf2FileLineEdit);
 #endif
 
-    // Audio output preferences
-    addPathEntry(tr("Export directory"), m_prefExportDir,
-        SLOT(setPrefExportDir(const QString&)),
-        SLOT(openPrefExportDir()),
-        m_prefExportDirLineEdit);
-    addPathEntry(tr("Bounce directory"), m_bounceDir,
-        SLOT(setBounceDir(const QString&)),
-        SLOT(openBounceDir()),
-        m_bounceDirLineEdit);
+	// Audio output preferences
+	addPathEntry(tr("Export directory"), m_prefExportDir,
+		SLOT(setPrefExportDir(const QString&)),
+		SLOT(openPrefExportDir()),
+		m_prefExportDirLineEdit);
+	addPathEntry(tr("Bounce directory"), m_bounceDir,
+		SLOT(setBounceDir(const QString&)),
+		SLOT(openBounceDir()),
+		m_bounceDirLineEdit);
+	addPathEntry(tr("External editor"), m_externalEditor,
+		SLOT(setExternalEditor(const QString&)),
+		SLOT(chooseExternalEditor()),
+		m_externalEditorLineEdit);
 
 	addPathEntry(tr("GIG directory"), m_gigDir,
 		SLOT(setGIGDir(const QString&)),
@@ -1083,15 +1089,15 @@ void SetupDialog::accept()
 					m_midiIfaceNames[m_midiInterfaces->currentText()]);
 	ConfigManager::inst()->setValue("midi", "midiautoassign",
 					m_assignableMidiDevices->currentText());
-    // audio output prefs
-    ConfigManager::inst()->setValue("outputprefs", "format", m_prefFormat->currentText());
-    ConfigManager::inst()->setValue("outputprefs", "bitrate", m_prefBitrate->currentText());
-    ConfigManager::inst()->setValue("outputprefs", "bitdepth", m_prefBitdepth->currentText());
-    ConfigManager::inst()->setValue("outputprefs", "samplerate", m_prefSamplerate->currentText());
-    ConfigManager::inst()->setValue("outputprefs", "stereomode", m_prefStereoMode->currentText());
-    ConfigManager::inst()->setValue("outputprefs", "interpolation", m_prefInterpolation->currentText());
-    ConfigManager::inst()->setValue("outputprefs", "oversampling", m_prefOversampling->currentText());
-    ConfigManager::inst()->setValue("outputprefs", "bounceformat", m_prefBounceFormat->currentText());
+	// audio output prefs
+	ConfigManager::inst()->setValue("outputprefs", "format", m_prefFormat->currentText());
+	ConfigManager::inst()->setValue("outputprefs", "bitrate", m_prefBitrate->currentText());
+	ConfigManager::inst()->setValue("outputprefs", "bitdepth", m_prefBitdepth->currentText());
+	ConfigManager::inst()->setValue("outputprefs", "samplerate", m_prefSamplerate->currentText());
+	ConfigManager::inst()->setValue("outputprefs", "stereomode", m_prefStereoMode->currentText());
+	ConfigManager::inst()->setValue("outputprefs", "interpolation", m_prefInterpolation->currentText());
+	ConfigManager::inst()->setValue("outputprefs", "oversampling", m_prefOversampling->currentText());
+	ConfigManager::inst()->setValue("outputprefs", "bounceformat", m_prefBounceFormat->currentText());
 
 
 	ConfigManager::inst()->setWorkingDir(QDir::fromNativeSeparators(m_workingDir));
