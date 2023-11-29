@@ -73,6 +73,7 @@ public:
 	ComboBoxModel *snappingModel() const;
 	float getSnapSize() const;
 	QString getSnapSizeString() const;
+	void scrollToStart();
 
 public slots:
 	void scrolled( int new_pos );

@@ -649,6 +649,7 @@ void Song::stopAndGoBack()
 	{
 		tl->savePos(TimePos(0));
 		stop();
+		lmms::gui::getGUI()->songEditor()->m_editor->scrollToStart();
 	}
 }
 
