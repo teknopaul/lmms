@@ -4756,8 +4756,6 @@ void PianoRoll::alignTuplets()
 	{
 		float ticksPerNote = DefaultTicksPerBar / notes.size();
 
-		qDebug("ticksPerNote=%f", ticksPerNote );
-
 		for ( int i = 1 ; i < notes.size() ; i++ )
 		{
 			Note * n = notes.at(i);
@@ -4766,19 +4764,12 @@ void PianoRoll::alignTuplets()
 			tick_t ticks = (tick_t) ticksf;
 			f_cnt_t offset = (ticksf - ticks) * Engine::framesPerTick();
 
-			qDebug("ticksf=%f", ticksf );
-			qDebug("ticks=%i", ticks );
-			qDebug("diff=%f", (ticksf - ticks) );
-			qDebug("offset=%i", offset );
-
 			Note copy(*n);
 			m_midiClip->removeNote( n );
 			copy.setPos(TimePos(ticks));
 			copy.setNoteOffset(offset);
 			m_midiClip->addNote(copy, false);
 
-
-			qDebug("next \n");
 		}
 	}
 
