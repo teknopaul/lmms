@@ -170,7 +170,8 @@ protected:
 		HumanizeTiming,
 		HumanizeLength,
 		NudgeForward,
-		NudgeBack
+		NudgeBack,
+		Tuplets
 	};
 
 	enum class SemiToneMarkerAction
@@ -247,6 +248,7 @@ protected slots:
 	void removeGroove(Note * n);
 	void nudgeForward(Note * n);
 	void nudgeBack(Note * n);
+	void alignTuplets();
 
 	void updateSemiToneMarkerMenu();
 
