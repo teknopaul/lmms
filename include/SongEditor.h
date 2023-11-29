@@ -191,6 +191,7 @@ protected slots:
 	void record() override;
 	void recordAccompany() override;
 	void stop() override;
+	void stopAndGoBack() override;
 
 	void lostFocus();
 	void adjustUiAfterProjectLoad();

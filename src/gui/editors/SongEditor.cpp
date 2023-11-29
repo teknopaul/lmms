@@ -1138,7 +1138,11 @@ void SongEditorWindow::stop()
 }
 
 
-
+void SongEditorWindow::stopAndGoBack()
+{
+	m_editor->m_song->stopAndGoBack();
+	getGUI()->pianoRoll()->stopRecording();
+}
 
 void SongEditorWindow::lostFocus()
 {

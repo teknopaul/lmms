@@ -63,6 +63,7 @@ protected slots:
 	virtual void recordAccompany() {}
 	virtual void toggleStepRecording() {}
 	virtual void stop() {}
+	virtual void stopAndGoBack() {}
 
 private slots:
 	/// Called by pressing the space key. Plays or stops.
@@ -91,6 +92,7 @@ protected:
 	QAction* m_recordAccompanyAction;
 	QAction* m_toggleStepRecordingAction;
 	QAction* m_stopAction;
+	QAction* m_stopAndGoBackAction;
 };
 
 

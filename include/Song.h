@@ -473,6 +473,7 @@ public slots:
 	void playMidiClip( const lmms::MidiClip * midiClipToPlay, bool loop = true );
 	void togglePause();
 	void stop();
+	void stopAndGoBack();
 
 	void startExport();
 	void stopExport();

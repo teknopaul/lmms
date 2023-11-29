@@ -217,6 +217,7 @@ protected slots:
 	void recordAccompany();
 	bool toggleStepRecording();
 	void stop();
+	void stopAndGoBack();
 
 	void startRecordNote( const lmms::Note & n );
 	void finishRecordNote( const lmms::Note & n );
@@ -543,6 +544,7 @@ public:
 	void record() override;
 	void recordAccompany() override;
 	void toggleStepRecording() override;
+	void stopAndGoBack() override;
 	void stopRecording();
 
 	bool isRecording() const;

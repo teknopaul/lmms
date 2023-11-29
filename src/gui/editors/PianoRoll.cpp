@@ -4065,6 +4065,16 @@ void PianoRoll::stop()
 
 
 
+void PianoRoll::stopAndGoBack()
+{
+	Engine::getSong()->stopAndGoBack();
+	m_recording = false;
+	m_scrollBack = ( m_timeLine->autoScroll() == TimeLineWidget::AutoScrollState::Enabled );
+}
+
+
+
+
 void PianoRoll::startRecordNote(const Note & n )
 {
 	if (hasValidMidiClip())
@@ -4754,19 +4764,19 @@ void PianoRoll::alignTuplets()
 	NoteVector notes = getSelectedNotes();
 	if ( notes.size() > 1)
 	{
-		float ticksPerNote = DefaultTicksPerBar / notes.size();
+		float ticksPerNote = (float) DefaultTicksPerBar / (float) notes.size();
 
 		for ( int i = 1 ; i < notes.size() ; i++ )
 		{
 			Note * n = notes.at(i);
 
-			float ticksf = ticksPerNote * i;
-			tick_t ticks = (tick_t) ticksf;
-			f_cnt_t offset = (ticksf - ticks) * Engine::framesPerTick();
+			float ticksFloat = ticksPerNote * (float) i;
+			tick_t ticksInt = (tick_t) ticksFloat;
+			f_cnt_t offset = (ticksFloat - ticksInt) * Engine::framesPerTick();
 
 			Note copy(*n);
 			m_midiClip->removeNote( n );
-			copy.setPos(TimePos(ticks));
+			copy.setPos(TimePos(ticksInt));
 			copy.setNoteOffset(offset);
 			m_midiClip->addNote(copy, false);
 
@@ -5250,6 +5260,13 @@ void PianoRollWindow::stop()
 	m_editor->stop();
 }
 
+
+
+
+void PianoRollWindow::stopAndGoBack()
+{
+	m_editor->stopAndGoBack();
+}
 
 
 

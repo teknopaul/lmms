@@ -92,7 +92,8 @@ Editor::Editor(bool record, bool stepRecord) :
 	m_recordAction(nullptr),
 	m_recordAccompanyAction(nullptr),
 	m_toggleStepRecordingAction(nullptr),
-	m_stopAction(nullptr)
+	m_stopAction(nullptr),
+	m_stopAndGoBackAction(nullptr)
 {
 	m_toolBar = addDropToolBarToTop(tr("Transport controls"));
 
@@ -102,8 +103,10 @@ Editor::Editor(bool record, bool stepRecord) :
 	};
 
 	// Set up play and record actions
+	m_stopAndGoBackAction = new QAction(embed::getIconPixmap("back_to_zero"), tr("Back"), this);
 	m_playAction = new QAction(embed::getIconPixmap("play"), tr("Play (Space)"), this);
 	m_stopAction = new QAction(embed::getIconPixmap("stop"), tr("Stop (Space)"), this);
+
 
 	m_recordAction = new QAction(embed::getIconPixmap("record"), tr("Record"), this);
 	m_recordAccompanyAction = new QAction(embed::getIconPixmap("record_accompany"), tr("Record while playing"), this);
@@ -115,11 +118,13 @@ Editor::Editor(bool record, bool stepRecord) :
 	connect(m_recordAccompanyAction, SIGNAL(triggered()), this, SLOT(recordAccompany()));
 	connect(m_toggleStepRecordingAction, SIGNAL(triggered()), this, SLOT(toggleStepRecording()));
 	connect(m_stopAction, SIGNAL(triggered()), this, SLOT(stop()));
+	connect(m_stopAndGoBackAction, SIGNAL(triggered()), this, SLOT(stopAndGoBack()));
 	new QShortcut(Qt::Key_Space, this, SLOT(togglePlayStop()));
 	new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_Space), this, SLOT(togglePause()));
 	new QShortcut(QKeySequence(Qt::SHIFT + Qt::Key_F11), this, SLOT(toggleMaximize()));
 
 	// Add actions to toolbar
+	addButton(m_stopAndGoBackAction, "stopAndGoBAckButton");
 	addButton(m_playAction, "playButton");
 	if (record)
 	{
