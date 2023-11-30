@@ -41,6 +41,8 @@
 #include "Knob.h"
 #include "Note.h"
 #include "Controls.h"
+#include "LeftRightNav.h"
+#include "DirectoryScroller.h"
 
 #include <math.h>
 
@@ -123,6 +125,8 @@ public:
 
 public slots:
 	bool setAudioFile( const QString & _audio_file, bool _rename = true );
+	void setAudioFileNext();
+	void setAudioFilePrev();
 	bool setCuesheetFile( const QString & _cuesheet_file, bool _rename = true );
 	void resetStutter()
 	{
@@ -182,6 +186,7 @@ private:
 
 	QString m_audioFile;
 	QString m_cuesheetFile;
+	DirectoryScroller m_dirScroller;
 	int m_cueCount;
 	SampleBuffer m_sampleBuffer;                  // used for view
 	std::vector<SampleBuffer *> m_sampleBuffers;  // used to play
@@ -242,6 +247,7 @@ private:
 
 	gui::PixmapButton * m_openAudioFileButton;
 	gui::PixmapButton * m_openCuesheetFileButton;
+	LeftRightNav * m_fileSwitcher;
 
 	PixmapButton * m_stutterButton;
 	ComboBox * m_interpBox;

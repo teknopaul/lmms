@@ -109,6 +109,7 @@ Voxpop::Voxpop( InstrumentTrack * _instrument_track ) :
 	m_modeModel( this, tr( "Mode" )),
 	m_audioFile(""),
 	m_cuesheetFile(""),
+	m_dirScroller( ),
 	m_cueCount( 0 ),
 	m_sampleBuffer(),
 	m_sampleBuffers( 0 ),
@@ -294,6 +295,7 @@ void Voxpop::saveSettings(QDomDocument& doc, QDomElement& elem)
 
 void Voxpop::loadSettings(const QDomElement& elem)
 {
+	m_dirScroller.disable();
 	QString src = elem.attribute("cuesheet");
 	if ( !elem.attribute("cuesheet").isEmpty() )
 	{
@@ -323,6 +325,7 @@ void Voxpop::loadSettings(const QDomElement& elem)
 			m_sampleBuffer.setAudioFile(src);
 			m_sampleBuffer.setAllPointFrames( 0, m_sampleBuffer.frames(), 0, m_sampleBuffer.frames() );
 			m_audioFile = src;
+			m_dirScroller.setFile( src );
 		}
 	}
 
@@ -447,9 +450,35 @@ bool Voxpop::setAudioFile( const QString & _audioFile, bool _rename )
 	{
 		m_sampleBuffer.setAllPointFrames( 0, m_sampleBuffer.frames(), 0, m_sampleBuffer.frames() );
 		m_audioFile = _audioFile;
+		m_dirScroller.setFile( _audioFile );
 		return reloadCuesheet();
 	}
 	return false;
+}
+
+
+void Voxpop::setAudioFileNext()
+{
+	QString newFile = m_dirScroller.next();
+	qDebug("next '%s'", newFile.toStdString().c_str());
+	if ( ! newFile.isEmpty() )
+	{
+		QFileInfo fInfo(PathUtil::toAbsolute(m_sampleBuffer.audioFile()));
+		setAudioFile( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile), true );
+	}
+}
+
+
+
+void Voxpop::setAudioFilePrev()
+{
+	QString newFile = m_dirScroller.prev();
+	qDebug("prev '%s'", newFile.toStdString().c_str());
+	if ( ! newFile.isEmpty() )
+	{
+		QFileInfo fInfo(PathUtil::toAbsolute(m_sampleBuffer.audioFile()));
+		setAudioFile( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile), true );
+	}
 }
 
 
@@ -731,6 +760,12 @@ VoxpopView::VoxpopView( Instrument * _instrument, QWidget * _parent ) :
 	m_openCuesheetFileButton->setInactiveGraphic( PLUGIN_NAME::getIconPixmap( "select_file" ) );	
 	m_openCuesheetFileButton->setToolTip(tr("Open cue sheet"));
 	connect( m_openCuesheetFileButton, SIGNAL( clicked() ), this, SLOT( openCuesheetFile() ) );
+
+	m_fileSwitcher = new LeftRightNav( this );
+	m_fileSwitcher->setCursor( QCursor( Qt::PointingHandCursor ) );
+	m_fileSwitcher->move( 50, topline + 9);
+	connect( m_fileSwitcher, SIGNAL( onNavLeft() ), _instrument , SLOT( setAudioFilePrev() ));
+	connect( m_fileSwitcher, SIGNAL( onNavRight() ), _instrument , SLOT( setAudioFileNext() ));
 
 	int baseline = 145;
 	m_ampKnob = new Knob( KnobType::Bright26, this );
