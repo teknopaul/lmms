@@ -499,12 +499,6 @@ AudioFileProcessorView::AudioFileProcessorView( Instrument * _instrument,
 	connect( m_fileSwitcher, SIGNAL( onNavLeft() ), _instrument , SLOT( setAudioFilePrev() ));
 	connect( m_fileSwitcher, SIGNAL( onNavRight() ), _instrument , SLOT( setAudioFileNext() ));
 
-	m_fileSwitcher = new LeftRightNav( this );
-	m_fileSwitcher->setCursor( QCursor( Qt::PointingHandCursor ) );
-	m_fileSwitcher->move( 2, 70 );
-	connect( m_fileSwitcher, SIGNAL( onNavLeft() ), _instrument , SLOT( setAudioFilePrev() ));
-	connect( m_fileSwitcher, SIGNAL( onNavRight() ), _instrument , SLOT( setAudioFileNext() ));
-
 	m_openAudioFileButton = new PixmapButton( this );
 	m_openAudioFileButton->setCursor( QCursor( Qt::PointingHandCursor ) );
 	m_openAudioFileButton->move( 227, 72 );
