@@ -936,6 +936,19 @@ void VoxpopView::editAudioFile()
 	QString program = ConfigManager::inst()->externalEditor();
 	if ( ! program.isEmpty() && ! audioFile.isEmpty() )
 	{
+		// if we keep .txt, .wav and .aup in the same dir with the same name open the audacity project
+		if ( program.endsWith( "/audacity" ) || program.endsWith( "audacity.exe" ) )
+		{
+			QFileInfo fileInfo(audioFile);
+			QString baseDir = fileInfo.absoluteDir().absolutePath();
+			QString baseFilename = fileInfo.completeBaseName();
+			QString audacityFileName = baseDir + QDir::separator() + baseFilename + ".aup";
+			if ( QFileInfo(audacityFileName).exists() )
+			{
+				audioFile = audacityFileName;
+			}
+		}
+
 		QStringList args(audioFile);
 		QProcess * proc = new QProcess(this);
 		proc->start(program, args);
