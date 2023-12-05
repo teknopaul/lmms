@@ -1147,6 +1147,8 @@ void SongEditorWindow::stop()
 void SongEditorWindow::stopAndGoBack()
 {
 	m_editor->m_song->stopAndGoBack();
+	m_editor->updatePosition(0);
+	m_editor->scrollToStart();
 	getGUI()->pianoRoll()->stopRecording();
 }
 

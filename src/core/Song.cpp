@@ -644,12 +644,19 @@ void Song::togglePause()
 
 void Song::stopAndGoBack()
 {
+	stop();
 	gui::TimeLineWidget * tl = getPlayPos().m_timeLine;
 	if ( tl )
 	{
+		getPlayPos().setTicks(0);
+		m_elapsedMilliSeconds[static_cast<std::size_t>(m_playMode)] = 0;
 		tl->savePos(TimePos(0));
-		stop();
-		lmms::gui::getGUI()->songEditor()->m_editor->scrollToStart();
+	}
+	else {
+		// this happens if play was not recently called
+		getPlayPos().setTicks(0);
+		m_elapsedMilliSeconds[static_cast<std::size_t>(m_playMode)] = 0;
+		// BUG UI does not fully update, but how do we get a hanbdle on the TimeLineWidget to update it?
 	}
 }
 
