@@ -642,21 +642,28 @@ void Song::togglePause()
 
 
 
-void Song::stopAndGoBack()
+void Song::stopAndGoBack(lmms::gui::TimeLineWidget * timeLine, PlayMode playMode)
 {
 	stop();
-	gui::TimeLineWidget * tl = getPlayPos().m_timeLine;
-	if ( tl )
+
+	// reset position for the stopped mode
+	m_elapsedMilliSeconds[static_cast<std::size_t>(PlayMode::None)] = 0;
+	getPlayPos(PlayMode::None).setTicks(0);
+	getPlayPos(PlayMode::None).setCurrentFrame(0);
+	getPlayPos(PlayMode::None).setJumped(true);
+
+	// reset the position for the Editor that called this method Song/MidiClip/Automation/Pattern
+	m_elapsedMilliSeconds[static_cast<std::size_t>(playMode)] = 0;
+	getPlayPos(playMode).setTicks(0);
+	getPlayPos(playMode).setCurrentFrame(0);
+	getPlayPos(playMode).setJumped(true);
+
+	gui::getGUI()->pianoRoll()->stopRecording();
+
+	if ( timeLine )
 	{
-		getPlayPos().setTicks(0);
-		m_elapsedMilliSeconds[static_cast<std::size_t>(m_playMode)] = 0;
-		tl->savePos(TimePos(0));
-	}
-	else {
-		// this happens if play was not recently called
-		getPlayPos().setTicks(0);
-		m_elapsedMilliSeconds[static_cast<std::size_t>(m_playMode)] = 0;
-		// BUG UI does not fully update, but how do we get a hanbdle on the TimeLineWidget to update it?
+		timeLine->savePos(TimePos(0));
+		timeLine->updatePosition(TimePos(0));
 	}
 }
 

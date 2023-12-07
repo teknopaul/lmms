@@ -70,7 +70,7 @@ class AutomationEditor : public QWidget, public JournallingObject
 	Q_PROPERTY(QColor backgroundShade MEMBER m_backgroundShade)
 public:
 	void setCurrentClip(AutomationClip * new_clip);
-
+	void scrollToStart();
 	inline const AutomationClip * currentClip() const
 	{
 		return m_clip;
@@ -307,6 +307,7 @@ protected:
 protected slots:
 	void play() override;
 	void stop() override;
+	void stopAndGoBack() override;
 
 private slots:
 	void updateWindowTitle();

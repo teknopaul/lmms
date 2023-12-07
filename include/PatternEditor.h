@@ -26,6 +26,7 @@
 #define LMMS_GUI_PATTERN_EDITOR_H
 
 #include "Editor.h"
+#include "Note.h"
 #include "TrackContainerView.h"
 
 namespace lmms
@@ -45,12 +46,22 @@ class PatternEditor : public TrackContainerView
 public:
 	PatternEditor(PatternStore* ps);
 
+	enum class QuantizeAction
+	{
+		Groove,
+		RemoveGroove,
+		HumanizeVelocity,
+		HumanizeTiming,
+		HumanizeLength
+	};
+
 	bool fixedClips() const override
 	{
 		return true;
 	}
 
 	void removeViewsForPattern(int pattern);
+	void quantizeNotes( QuantizeAction mode );
 
 	void saveSettings(QDomDocument& doc, QDomElement& element) override;
 	void loadSettings(const QDomElement& element) override;
@@ -70,6 +81,11 @@ protected slots:
 private:
 	PatternStore* m_ps;
 	void makeSteps( bool clone );
+	void humanizeTiming( Note * n );
+	void humanizeVelocity( Note * n );
+	void humanizeLength( Note * n );
+	void quantizeGroove( Note * n );
+	void removeGroove( Note * n );
 };
 
 
@@ -87,6 +103,7 @@ public:
 public slots:
 	void play() override;
 	void stop() override;
+	void stopAndGoBack() override;
 
 private:
 	ComboBox* m_patternComboBox;

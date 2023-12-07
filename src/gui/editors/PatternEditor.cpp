@@ -25,14 +25,17 @@
 #include "PatternEditor.h"
 
 #include <QAction>
+#include <QToolButton>
 
 #include "ClipView.h"
 #include "ComboBox.h"
 #include "DataFile.h"
 #include "embed.h"
+#include "GuiApplication.h"
 #include "MainWindow.h"
 #include "PatternStore.h"
 #include "PatternTrack.h"
+#include "PianoRoll.h"
 #include "Song.h"
 #include "StringPairDrag.h"
 #include "TrackView.h"
@@ -218,12 +221,107 @@ void PatternEditor::cloneClip()
 }
 
 
+void PatternEditor::quantizeNotes(QuantizeAction mode)
+{
+
+	const TrackContainer::TrackList& tl = model()->tracks();
+
+	for (const auto& track : tl)
+	{
+		if (track->type() == Track::Type::Instrument)
+		{
+			auto midiClip = static_cast<MidiClip*>(track->getClip(m_ps->currentPattern()));
+			if ( midiClip )
+			{
+				for ( Note * n : midiClip->notes() )
+				{
+					if ( n->length() == TimePos( 0 ) )
+					{
+						continue;
+					}
+
+					if (mode == QuantizeAction::HumanizeTiming)
+					{
+						humanizeTiming(n);
+						continue;
+					}
+					if (mode == QuantizeAction::HumanizeVelocity)
+					{
+						humanizeVelocity(n);
+						continue;
+					}
+					if (mode == QuantizeAction::HumanizeLength)
+					{
+						humanizeLength(n);
+						continue;
+					}
+					if (mode == QuantizeAction::Groove)
+					{
+						quantizeGroove(n);
+						continue;
+					}
+					if (mode == QuantizeAction::RemoveGroove)
+					{
+						removeGroove(n);
+						continue;
+					}
+
+					Note copy(*n);
+					midiClip->removeNote( n );
+					midiClip->addNote(copy, false);
+				}
+			}
+		}
+	}
+
+	Engine::getSong()->setModified();
+}
+
+void PatternEditor::humanizeTiming(Note * n)
+{
+	f_cnt_t offset =  (double)std::rand() / RAND_MAX * Engine::framesPerTick();
+	n->setNoteOffset(n->getNoteOffset() + offset);
+}
+
+
+void PatternEditor::humanizeVelocity(Note * n)
+{
+	volume_t newVol = n->getVolume() - (std::rand() % 5);
+	if (newVol < n->getVolume()) // volume_t is unsigned this is test for overflow
+	{
+		n->setVolume(newVol);
+	}
+}
+
+
+void PatternEditor::humanizeLength(Note * n)
+{
+	TimePos length = n->length();
+	tick_t newlen = length.getTicks() + (std::rand() % 6) - 2;
+	if (newlen > 4) {
+		length.setTicks(newlen);
+		n->setLength(length);
+	}
+}
+
+
+void PatternEditor::quantizeGroove(Note * n)
+{
+	Engine::getSong()->globalGroove()->apply(n);
+}
+
+void PatternEditor::removeGroove(Note * n)
+{
+	n->setNoteOffset(0);
+}
+
 
 
 PatternEditorWindow::PatternEditorWindow(PatternStore* ps) :
 	Editor(false),
 	m_editor(new PatternEditor(ps))
 {
+
 	setWindowIcon(embed::getIconPixmap("pattern_track_btn"));
 	setWindowTitle(tr("Pattern Editor"));
 	setCentralWidget(m_editor);
@@ -295,6 +393,39 @@ PatternEditorWindow::PatternEditorWindow(PatternStore* ps) :
 	connect(viewPrevious, SIGNAL(triggered()), m_patternComboBox, SLOT(selectPrevious()));
 	viewPrevious->setShortcut(Qt::Key_Minus);
 	addAction(viewPrevious);
+
+	DropToolBar *notesActionsToolBar = addDropToolBarToTop( tr( "Edit actions" ) );
+
+	auto quantizeButton = new QToolButton(notesActionsToolBar);
+	auto quantizeButtonMenu = new QMenu(quantizeButton);
+
+	auto applyGrooveAction = new QAction(tr("Apply groove"), this);
+	auto removeGrooveAction = new QAction(tr("Remove groove"), this);
+	auto humanizeVelocityAction = new QAction(tr("Humanize velocity"), this);
+	auto humanizeTimingAction = new QAction(tr("Humanize timing"), this);
+	auto humanizeLengthAction = new QAction(tr("Humanize length"), this);
+
+	connect(applyGrooveAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PatternEditor::QuantizeAction::Groove); });
+	connect(removeGrooveAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PatternEditor::QuantizeAction::RemoveGroove); });
+	connect(humanizeVelocityAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PatternEditor::QuantizeAction::HumanizeVelocity); });
+	connect(humanizeTimingAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PatternEditor::QuantizeAction::HumanizeTiming); });
+	connect(humanizeLengthAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PatternEditor::QuantizeAction::HumanizeLength); });
+
+	applyGrooveAction->setShortcut( Qt::CTRL | Qt::Key_G );
+	humanizeVelocityAction->setShortcut( Qt::CTRL | Qt::Key_H );
+
+	quantizeButton->setPopupMode(QToolButton::MenuButtonPopup);
+	quantizeButton->setDefaultAction(applyGrooveAction);
+	quantizeButton->setMenu(quantizeButtonMenu);
+	quantizeButtonMenu->addAction(applyGrooveAction);
+	quantizeButtonMenu->addAction(removeGrooveAction);
+	quantizeButtonMenu->addAction(humanizeVelocityAction);
+	quantizeButtonMenu->addAction(humanizeTimingAction);
+	quantizeButtonMenu->addAction(humanizeLengthAction);
+
+	notesActionsToolBar->addSeparator();
+	notesActionsToolBar->addWidget(quantizeButton);
+
 }
 
 
@@ -322,5 +453,10 @@ void PatternEditorWindow::stop()
 	Engine::getSong()->stop();
 }
 
+
+void PatternEditorWindow::stopAndGoBack()
+{
+	Engine::getSong()->stopAndGoBack(nullptr, Song::PlayMode::Pattern);
+}
 
 } // namespace lmms::gui

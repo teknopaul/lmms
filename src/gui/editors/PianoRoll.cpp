@@ -4067,7 +4067,7 @@ void PianoRoll::stop()
 
 void PianoRoll::stopAndGoBack()
 {
-	Engine::getSong()->stopAndGoBack();
+	Engine::getSong()->stopAndGoBack(m_timeLine, Song::PlayMode::MidiClip);
 	m_recording = false;
 	m_scrollBack = ( m_timeLine->autoScroll() == TimeLineWidget::AutoScrollState::Enabled );
 }
@@ -4728,7 +4728,6 @@ void PianoRoll::humanizeLength(Note * n)
 {
 	TimePos length = n->length();
 	tick_t newlen = length.getTicks() + (std::rand() % 6) - 2;
-	qDebug("len = %i new len = %i", length.getTicks(), newlen);
 	if (newlen > 4) {
 		length.setTicks(newlen);
 		n->setLength(length);

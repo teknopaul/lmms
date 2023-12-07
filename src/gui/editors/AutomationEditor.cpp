@@ -235,6 +235,10 @@ void AutomationEditor::updateAfterClipChange()
 }
 
 
+void AutomationEditor::scrollToStart()
+{
+	m_leftRightScroll->setValue(0);
+}
 
 
 void AutomationEditor::update()
@@ -1690,8 +1694,6 @@ void AutomationEditor::stop()
 }
 
 
-
-
 void AutomationEditor::horScrolled(int new_pos )
 {
 	m_currentPosition = new_pos;
@@ -2251,6 +2253,14 @@ void AutomationEditorWindow::play()
 void AutomationEditorWindow::stop()
 {
 	m_editor->stop();
+}
+
+
+void AutomationEditorWindow::stopAndGoBack()
+{
+	Engine::getSong()->stopAndGoBack(m_editor->m_timeLine, Song::PlayMode::AutomationClip);
+	m_editor->updatePosition(0);
+	m_editor->scrollToStart();
 }
 
 void AutomationEditorWindow::updateWindowTitle()
