@@ -332,6 +332,7 @@ void Voxpop::loadSettings(const QDomElement& elem)
 	m_ampModel.loadSettings(elem, "amp");
 	m_freqModel.loadSettings(elem, "freq");
 	m_timestretchModel.loadSettings(elem, "timestretch");
+	m_respectEndpointModel.loadSettings(elem, "respectendpoint");
 	if ( m_timestretchModel.value() )
 	{
 		timestretchChanged();
@@ -357,7 +358,6 @@ void Voxpop::loadSettings(const QDomElement& elem)
 	{
 		m_modeModel.setValue(1.0f); // Automation bty default
 	}
-	m_respectEndpointModel.loadSettings(elem, "respectendpoint");
 	modeChanged();
 	if (m_cueCount > 0)
 	{
@@ -460,7 +460,6 @@ bool Voxpop::setAudioFile( const QString & _audioFile, bool _rename )
 void Voxpop::setAudioFileNext()
 {
 	QString newFile = m_dirScroller.next();
-	qDebug("next '%s'", newFile.toStdString().c_str());
 	if ( ! newFile.isEmpty() )
 	{
 		QFileInfo fInfo(PathUtil::toAbsolute(m_sampleBuffer.audioFile()));
@@ -473,7 +472,6 @@ void Voxpop::setAudioFileNext()
 void Voxpop::setAudioFilePrev()
 {
 	QString newFile = m_dirScroller.prev();
-	qDebug("prev '%s'", newFile.toStdString().c_str());
 	if ( ! newFile.isEmpty() )
 	{
 		QFileInfo fInfo(PathUtil::toAbsolute(m_sampleBuffer.audioFile()));
