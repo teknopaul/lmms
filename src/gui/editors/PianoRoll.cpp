@@ -4623,7 +4623,7 @@ int PianoRoll::quantization() const
 
 void PianoRoll::quantizeNotes(QuantizeAction mode)
 {
-	if( ! hasValidMidiClip() )
+	if ( ! hasValidMidiClip() )
 	{
 		return;
 	}
@@ -4632,9 +4632,9 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 
 	NoteVector notes = getSelectedNotes();
 
-	if( notes.empty() )
+	if ( notes.empty() )
 	{
-		for( Note* n : m_midiClip->notes() )
+		for ( Note * n : m_midiClip->notes() )
 		{
 			notes.push_back( n );
 		}
@@ -4642,13 +4642,19 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 
 	if (mode == QuantizeAction::Tuplets)
 	{
-		alignTuplets();
+		alignTuplets(notes);
+		return;
+	}
+	if (mode == QuantizeAction::Flam)
+	{
+		flamDrums(notes);
 		return;
 	}
 
-	for( Note* n : notes )
+
+	for ( Note * n : notes )
 	{
-		if( n->length() == TimePos( 0 ) )
+		if ( n->length() == TimePos( 0 ) )
 		{
 			continue;
 		}
@@ -4758,33 +4764,46 @@ void PianoRoll::nudgeBack(Note * n)
 }
 
 
-void PianoRoll::alignTuplets()
+void PianoRoll::alignTuplets(NoteVector notes)
 {
-	NoteVector notes = getSelectedNotes();
-	if ( notes.size() > 1)
+	float ticksPerNote = (float) DefaultTicksPerBar / (float) notes.size();
+
+	for ( int i = 0 ; i < notes.size() ; i++ )
 	{
-		float ticksPerNote = (float) DefaultTicksPerBar / (float) notes.size();
+		Note * n = notes.at(i);
 
-		for ( int i = 1 ; i < notes.size() ; i++ )
-		{
-			Note * n = notes.at(i);
+		float ticksFloat = ticksPerNote * (float) i;
+		tick_t ticksInt = (tick_t) ticksFloat;
+		f_cnt_t offset = (ticksFloat - ticksInt) * Engine::framesPerTick();
 
-			float ticksFloat = ticksPerNote * (float) i;
-			tick_t ticksInt = (tick_t) ticksFloat;
-			f_cnt_t offset = (ticksFloat - ticksInt) * Engine::framesPerTick();
-
-			Note copy(*n);
-			m_midiClip->removeNote( n );
-			copy.setPos(TimePos(ticksInt));
-			copy.setNoteOffset(offset);
-			m_midiClip->addNote(copy, false);
-
-		}
+		Note copy(*n);
+		m_midiClip->removeNote( n );
+		copy.setPos(TimePos(ticksInt));
+		copy.setNoteOffset(offset);
+		m_midiClip->addNote(copy, false);
 	}
 
 }
 
 
+void PianoRoll::flamDrums(NoteVector notes)
+{
+	int FLAM_TICKS = 6;
+
+	for ( Note * n : notes )
+	{
+		int ticks = n->pos().getTicks();
+		if ( ticks > FLAM_TICKS ) {
+			Note copy(*n);
+			copy.setPos(TimePos(ticks - FLAM_TICKS));
+			copy.setVolume(n->getVolume() / 2);
+			copy.setSelected(true);
+			m_midiClip->addNote(copy, false);
+		}
+		n->setSelected(false);
+	}
+
+}
 
 void PianoRoll::updateSemiToneMarkerMenu()
 {
@@ -4911,6 +4930,7 @@ PianoRollWindow::PianoRollWindow() :
 	auto nudgeForwardAction = new QAction(tr("Nudge forward"), this);
 	auto nudgeBackAction = new QAction(tr("Nudge back"), this);
 	auto tupletsAction = new QAction(tr("Tuplets"), this);
+	auto flamAction = new QAction(tr("Flam"), this);
 
 	connect(quantizeAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(); });
 	connect(quantizePosAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Pos); });
@@ -4923,6 +4943,7 @@ PianoRollWindow::PianoRollWindow() :
 	connect(nudgeForwardAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::NudgeForward); });
 	connect(nudgeBackAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::NudgeBack); });
 	connect(tupletsAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Tuplets); });
+	connect(flamAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Flam); });
 
 
 	applyGrooveAction->setShortcut( Qt::CTRL | Qt::Key_G );
@@ -4941,6 +4962,7 @@ PianoRollWindow::PianoRollWindow() :
 	quantizeButtonMenu->addAction(nudgeForwardAction);
 	quantizeButtonMenu->addAction(nudgeBackAction);
 	quantizeButtonMenu->addAction(tupletsAction);
+	quantizeButtonMenu->addAction(flamAction);
 
 	notesActionsToolBar->addAction( drawAction );
 	notesActionsToolBar->addAction( eraseAction );
