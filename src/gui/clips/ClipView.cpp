@@ -1100,18 +1100,18 @@ void ClipView::contextMenuEvent( QContextMenuEvent * cme )
 			tr("Double"),
 			[this](){ contextMenuAction( ContextMenuAction::Double ); } );
 		contextMenu.addAction(
-			embed::getIconPixmap( "edit_copy" ),
+			embed::getIconPixmap( "fade_in" ),
 			tr("Fade in"),
 			[this](){ contextMenuAction( ContextMenuAction::FadeIn ); } );
 		contextMenu.addAction(
-			embed::getIconPixmap( "edit_copy" ),
+			embed::getIconPixmap( "fade_out" ),
 			 tr("Fade out"),
 			[this](){ contextMenuAction( ContextMenuAction::FadeOut ); } );
 	}
 	else
 	{
 		contextMenu.addAction(
-			embed::getIconPixmap( "edit_copy" ),
+			embed::getIconPixmap( "index_clips" ),
 			tr("Add index suffix"),
 			[this](){ contextMenuAction( ContextMenuAction::Index ); } );
 	}
