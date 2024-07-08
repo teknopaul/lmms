@@ -329,7 +329,47 @@ void MidiClip::splitNotes(const NoteVector& notes, TimePos pos)
 	}
 }
 
+/**
+ * Fade note in (or out) based on its position inside the clip
+ */
+void fadeNote(Note * note, tick_t start, tick_t end, bool in)
+{
+	float length = end - start;
+	float pos = note->pos().getTicks() - start;
+	float factor = (length - pos) / length;
+	factor = in ? 1.0 - factor : factor;
 
+	note->setVolume(note->getVolume() * factor);
+}
+
+void MidiClip::fadeOutNotes()
+{
+	if (m_notes.empty()) { return; }
+
+	addJournalCheckPoint();
+
+	tick_t start = this->startPosition().getTicks();
+	tick_t end = this->endPosition().getTicks();
+
+	for (const auto& note : m_notes)
+	{
+		fadeNote(note, start, end, false);
+	}
+}
+void MidiClip::fadeInNotes()
+{
+	if (m_notes.empty()) { return; }
+
+	addJournalCheckPoint();
+
+	TimePos start = this->startPosition();
+	TimePos end = this->endPosition();
+
+	for (const auto& note : m_notes)
+	{
+		fadeNote(note, start, end, true);
+	}
+}
 
 
 void MidiClip::setType( Type _new_clip_type )
@@ -351,6 +391,7 @@ void MidiClip::checkType()
 
 	setType(beatClip ? Type::BeatClip : Type::MelodyClip);
 }
+
 
 
 

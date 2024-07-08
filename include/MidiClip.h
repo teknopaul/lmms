@@ -69,6 +69,8 @@ public:
 
 	void rearrangeAllNotes();
 	void clearNotes();
+	void fadeInNotes();
+	void fadeOutNotes();
 
 	inline const NoteVector & notes() const
 	{

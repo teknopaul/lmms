@@ -115,8 +115,10 @@ public:
 	void copy( QVector<ClipView *> clipvs );
 	void cut( QVector<ClipView *> clipvs );
 	void paste();
-	void doubleClip( QVector<ClipView *> clipvs );
+	void doubleClip( ClipView * clipv );
 	void indexClips( QVector<ClipView *> clipvs );
+	void fadeIn( ClipView * clipv );
+	void fadeOut( ClipView * clipv );
 	// remove and toggleMute are static because they don't depend
 	// being called from a particular Clip view, but can be called anywhere as long
 	// as a valid Clip view list is given, while copy/cut require an instance for
@@ -152,7 +154,9 @@ protected:
 		Mute,
 		Merge,
 		Double,
-		Index
+		Index,
+		FadeIn,
+		FadeOut
 	};
 
 	TrackView * m_trackView;
