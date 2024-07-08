@@ -1092,6 +1092,24 @@ void ClipView::contextMenuEvent( QContextMenuEvent * cme )
 		tr( "Paste" ),
 		[this](){ contextMenuAction( ContextMenuAction::Paste ); } );
 
+	if (individualClip)
+	{
+		contextMenu.addAction(
+			embed::getIconPixmap( "edit_copy" ),
+			individualClip
+				? tr("Double")
+				: tr("Double length"),
+			[this](){ contextMenuAction( ContextMenuAction::Double ); } );
+	}
+	else
+	{
+		contextMenu.addAction(
+			embed::getIconPixmap( "edit_copy" ),
+			individualClip
+				? tr("Index")
+				: tr("Add index suffix"),
+			[this](){ contextMenuAction( ContextMenuAction::Index ); } );
+	}
 	contextMenu.addSeparator();
 
 	contextMenu.addAction(
@@ -1134,6 +1152,12 @@ void ClipView::contextMenuAction( ContextMenuAction action )
 			break;
 		case ContextMenuAction::Paste:
 			paste();
+			break;
+		case ContextMenuAction::Double:
+			doubleClip( active );
+			break;
+		case ContextMenuAction::Index:
+			indexClips( active );
 			break;
 		case ContextMenuAction::Mute:
 			toggleMute( active );
@@ -1212,6 +1236,96 @@ void ClipView::paste()
 	{
 		// If we succeed on the paste we delete the Clip we pasted on
 		remove();
+	}
+}
+
+
+void ClipView::doubleClip(QVector<ClipView *> clipvs)
+{
+	if ( clipvs.length() == 1 )
+	{
+		auto clipv = clipvs.at(0);
+
+		// Get the track that we are merging Clips in
+		auto track = dynamic_cast<InstrumentTrack*>(clipv->getTrackView()->getTrack());
+
+		if (!track)
+		{
+			qWarning("Warning: Couldn't retrieve InstrumentTrack in mergeClips()");
+			return;
+		}
+
+		// For Undo/Redo
+		track->addJournalCheckPoint();
+		track->saveJournallingState(false);
+
+		const TimePos earliestPos = clipv->getClip()->startPosition();
+		const TimePos latestPos = clipv->getClip()->endPosition();
+
+		// Create a clip where all notes will be added
+		auto newMidiClip = dynamic_cast<MidiClip*>(track->createClip(earliestPos));
+		if (!newMidiClip)
+		{
+			qWarning("Warning: Failed to convert Clip to MidiClip on mergeClips");
+			return;
+		}
+
+		newMidiClip->saveJournallingState(false);
+		newMidiClip->setName(clipv->getClip()->name());
+
+		// Add the notes and remove the Clips that are being merged
+		// Convert ClipV to MidiClipView
+		auto mcView = dynamic_cast<MidiClipView*>(clipv);
+
+		if (!mcView)
+		{
+			qWarning("Warning: Non-MidiClip Clip on InstrumentTrack");
+			return;
+		}
+
+		const NoteVector& currentClipNotes = mcView->getMidiClip()->notes();
+
+		// copy original
+		for (Note* note: currentClipNotes)
+		{
+			newMidiClip->addNote(*note, false);
+		}
+
+		// duplicate notes
+		for (Note* note: currentClipNotes)
+		{
+			Note* newNote = newMidiClip->addNote(*note, false);
+			TimePos originalNotePos = newNote->pos();
+			newNote->setPos(originalNotePos + (latestPos - earliestPos));
+		}
+
+		// We disable the journalling system before removing, so the
+		// removal doesn't get added to the undo/redo history
+		clipv->getClip()->saveJournallingState(false);
+		// No need to check for nullptr because we check while building the clipvs QVector
+		clipv->remove();
+
+		// Update length since we might have moved notes beyond the end of the MidiClip length
+		newMidiClip->updateLength();
+		// Rearrange notes because we might have moved them
+		newMidiClip->rearrangeAllNotes();
+		// Restore journalling states now that the operation is finished
+		newMidiClip->restoreJournallingState();
+		track->restoreJournallingState();
+		// Update song
+		Engine::getSong()->setModified();
+		getGUI()->songEditor()->update();
+	}
+}
+
+void ClipView::indexClips(QVector<ClipView *> clipvs)
+{
+	QString base = clipvs.at(0)->getClip()->name();
+	for( int i = 0 ; i < clipvs.length() ; i++)
+	{
+		dynamic_cast<InstrumentTrack*>(clipvs.at(i)->getTrackView()->getTrack())->addJournalCheckPoint();
+		auto clip = clipvs.at(i)->getClip();
+		clip->setName(base + QString::number(i + 1));
 	}
 }
 
