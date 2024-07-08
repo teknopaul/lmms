@@ -162,6 +162,7 @@ PianoRoll::PianoRoll() :
 	m_midiClip( nullptr ),
 	m_currentPosition(),
 	m_recording( false ),
+	m_noteType( Note::Type::Sub ),
 	m_currentNote( nullptr ),
 	m_action( Action::None ),
 	m_noteEditMode( NoteEditMode::Volume ),
@@ -1756,6 +1757,7 @@ void PianoRoll::mousePressEvent(QMouseEvent * me )
 					TimePos note_len( newNoteLen() );
 
 					Note new_note( note_len, note_pos, key_num );
+					new_note.setType( m_noteType );
 					new_note.setSelected( true );
 					new_note.setPanning( m_lastNotePanning );
 					new_note.setVolume( m_lastNoteVolume );
@@ -1776,6 +1778,7 @@ void PianoRoll::mousePressEvent(QMouseEvent * me )
 								note_pos += note_len;
 							}
 							Note new_note( note_len, note_pos, key_num + chord[i] );
+							new_note.setType( m_noteType );
 							new_note.setSelected( true );
 							new_note.setPanning( m_lastNotePanning );
 							new_note.setVolume( m_lastNoteVolume );
@@ -3467,7 +3470,22 @@ void PianoRoll::paintEvent(QPaintEvent * pe )
 			{
 				// We've done and checked all, let's draw the note with
 				// the appropriate color
-				const auto fillColor = note->type() == Note::Type::Regular ? m_noteColor : m_stepNoteColor;
+				QColor fillColor;
+				switch( note->type() )
+				{
+					case Note::Type::Regular : {
+						fillColor = m_noteColor;
+						break;
+					}
+					case Note::Type::Step : {
+						fillColor = m_stepNoteColor;
+						break;
+					}
+					case Note::Type::Sub : {
+						fillColor = m_subNoteColor;
+						break;
+					}
+				}
 
 				drawNoteRect(
 					p, x + m_whiteKeyWidth, noteYPos(note->key()), note_width,
@@ -4267,6 +4285,34 @@ void PianoRoll::selectNotesOnKey()
 	}
 }
 
+// selects notes of type
+void PianoRoll::selectNotes(Note::Type t)
+{
+	if (hasValidMidiClip()) {
+		for (Note * note : m_midiClip->notes()) {
+			if (note->type() == t) {
+				note->setSelected(true);
+			} else {
+				note->setSelected(false);
+			}
+		}
+		update();
+	}
+}
+
+
+void PianoRoll::setNoteType(Note::Type t)
+{
+	if (hasValidMidiClip()) {
+		for (Note * note : m_midiClip->notes()) {
+			if (note->selected()) {
+				note->setType(t);
+			}
+		}
+		update();
+	}
+}
+
 void PianoRoll::enterValue( NoteVector* nv )
 {
 
@@ -4645,9 +4691,19 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 		alignTuplets(notes);
 		return;
 	}
-	if (mode == QuantizeAction::Flam)
+	else if (mode == QuantizeAction::Flam)
 	{
 		flamDrums(notes);
+		return;
+	}
+	else if (mode == QuantizeAction::Echo1)
+	{
+		echoDrums1(notes);
+		return;
+	}
+	else if (mode == QuantizeAction::Echo2)
+	{
+		echoDrums2(notes);
 		return;
 	}
 
@@ -4795,6 +4851,7 @@ void PianoRoll::flamDrums(NoteVector notes)
 		int ticks = n->pos().getTicks();
 		if ( ticks > FLAM_TICKS ) {
 			Note copy(*n);
+			copy.setType(Note::Type::Sub);
 			copy.setPos(TimePos(ticks - FLAM_TICKS));
 			copy.setVolume(n->getVolume() / 2);
 			copy.setSelected(true);
@@ -4803,6 +4860,56 @@ void PianoRoll::flamDrums(NoteVector notes)
 		n->setSelected(false);
 	}
 
+}
+
+
+void PianoRoll::echoDrums1(NoteVector notes)
+{
+	int ECHO_TICKS = 24;
+
+	for ( Note * n : notes )
+	{
+		int ticks = n->pos().getTicks();
+		Note copy(*n);
+		copy.setType(Note::Type::Sub);
+		copy.setPos(TimePos(ticks + ECHO_TICKS));
+		copy.setVolume(n->getVolume() / 2);
+		copy.setSelected(true);
+		m_midiClip->addNote(copy, false);
+		n->setSelected(false);
+	}
+
+}
+
+
+void PianoRoll::echoDrums2(NoteVector notes)
+{
+	int ECHO_TICKS = 16;
+
+	for ( Note * n : notes )
+	{
+		int ticks = n->pos().getTicks();
+		Note copy1(*n);
+		copy1.setType(Note::Type::Sub);
+		copy1.setPos(TimePos(ticks + ECHO_TICKS));
+		copy1.setVolume(n->getVolume() / 2);
+		copy1.setSelected(true);
+		m_midiClip->addNote(copy1, false);
+
+		Note copy2(*n);
+		copy2.setType(Note::Type::Sub);
+		copy2.setPos(TimePos(ticks + ECHO_TICKS + ECHO_TICKS));
+		copy2.setVolume(n->getVolume() / 4);
+		copy2.setSelected(true);
+		m_midiClip->addNote(copy2, false);
+		n->setSelected(false);
+	}
+
+}
+
+void PianoRoll::changeNoteType(Note::Type t)
+{
+	m_noteType = t;
 }
 
 void PianoRoll::updateSemiToneMarkerMenu()
@@ -4931,6 +5038,8 @@ PianoRollWindow::PianoRollWindow() :
 	auto nudgeBackAction = new QAction(tr("Nudge back"), this);
 	auto tupletsAction = new QAction(tr("Tuplets"), this);
 	auto flamAction = new QAction(tr("Flam"), this);
+	auto echo1Action = new QAction(tr("Echo 1"), this);
+	auto echo2Action = new QAction(tr("Echo 2"), this);
 
 	connect(quantizeAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(); });
 	connect(quantizePosAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Pos); });
@@ -4944,6 +5053,8 @@ PianoRollWindow::PianoRollWindow() :
 	connect(nudgeBackAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::NudgeBack); });
 	connect(tupletsAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Tuplets); });
 	connect(flamAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Flam); });
+	connect(echo1Action, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Echo1); });
+	connect(echo2Action, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Echo2); });
 
 
 	applyGrooveAction->setShortcut( Qt::CTRL | Qt::Key_G );
@@ -4962,14 +5073,47 @@ PianoRollWindow::PianoRollWindow() :
 	quantizeButtonMenu->addAction(nudgeForwardAction);
 	quantizeButtonMenu->addAction(nudgeBackAction);
 	quantizeButtonMenu->addAction(tupletsAction);
-	quantizeButtonMenu->addAction(flamAction);
+
+	// Sub-notes combo button
+	auto subNotesButton = new QToolButton(notesActionsToolBar);
+	auto subNotesButtonMenu = new QMenu(subNotesButton);
+
+	auto drawSubNotesAction = new QAction(embed::getIconPixmap("subnotes"), tr("Draw sub notes"), this);
+	auto drawRegularNotesAction = new QAction(tr("Draw regular notes"), this);
+	auto selectAllRegularNotesAction = new QAction(tr("Select regular"), this);
+	auto selectAllSubNotesAction = new QAction(tr("Select sub "), this);
+	auto setNoteTypeSubAction = new QAction(tr("Set sub"), this);
+	auto setNoteTypeRegularAction = new QAction(tr("Set regular"), this);
+
+	subNotesButton->setPopupMode(QToolButton::MenuButtonPopup);
+	subNotesButton->setDefaultAction(drawSubNotesAction);
+	subNotesButton->setMenu(subNotesButtonMenu);
+	subNotesButtonMenu->addAction(drawSubNotesAction);
+	subNotesButtonMenu->addAction(drawRegularNotesAction);
+	subNotesButtonMenu->addAction(selectAllSubNotesAction);
+	subNotesButtonMenu->addAction(selectAllRegularNotesAction);
+	subNotesButtonMenu->addAction(setNoteTypeSubAction);
+	subNotesButtonMenu->addAction(setNoteTypeRegularAction);
+
+	// quantize features that add sub notes so make more sense here
+	subNotesButtonMenu->addAction(flamAction);
+	subNotesButtonMenu->addAction(echo1Action);
+	subNotesButtonMenu->addAction(echo2Action);
+
+	connect(drawSubNotesAction, &QAction::triggered, [this](){ m_editor->m_noteType = Note::Type::Sub; });
+	connect(drawRegularNotesAction, &QAction::triggered, [this](){ m_editor->m_noteType = Note::Type::Regular; });
+	connect(selectAllSubNotesAction, &QAction::triggered, [this](){ m_editor->selectNotes(Note::Type::Sub); });
+	connect(selectAllRegularNotesAction, &QAction::triggered, [this](){ m_editor->selectNotes(Note::Type::Regular); });
+	connect(setNoteTypeSubAction, &QAction::triggered, [this](){ m_editor->setNoteType(Note::Type::Sub); });
+	connect(setNoteTypeRegularAction, &QAction::triggered, [this](){ m_editor->setNoteType(Note::Type::Regular); });
 
 	notesActionsToolBar->addAction( drawAction );
 	notesActionsToolBar->addAction( eraseAction );
 	notesActionsToolBar->addAction( selectAction );
 	notesActionsToolBar->addAction( pitchBendAction );
 	notesActionsToolBar->addSeparator();
-	notesActionsToolBar->addWidget(quantizeButton);
+	notesActionsToolBar->addWidget( quantizeButton );
+	notesActionsToolBar->addWidget( subNotesButton );
 
 	// -- File actions
 	DropToolBar* fileActionsToolBar = addDropToolBarToTop(tr("File actions"));
@@ -5549,5 +5693,4 @@ void PianoRollWindow::updateStepRecordingIcon()
 
 
 } // namespace gui
-
 } // namespace lmms

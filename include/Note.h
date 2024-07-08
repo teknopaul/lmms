@@ -111,7 +111,8 @@ public:
 	enum class Type
 	{
 		Regular = 0,
-		Step
+		Step,
+		Sub // ghost notes but this name is already used
 	};
 
 	Type type() const { return m_type; }

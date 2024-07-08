@@ -74,6 +74,7 @@ class PianoRoll : public QWidget
 	Q_PROPERTY(QColor noteModeColor MEMBER m_noteModeColor)
 	Q_PROPERTY(QColor noteColor MEMBER m_noteColor)
 	Q_PROPERTY(QColor stepNoteColor MEMBER m_stepNoteColor)
+	Q_PROPERTY(QColor subNoteColor MEMBER m_subNoteColor)
 	Q_PROPERTY(QColor ghostNoteColor MEMBER m_ghostNoteColor)
 	Q_PROPERTY(QColor noteTextColor MEMBER m_noteTextColor)
 	Q_PROPERTY(QColor ghostNoteTextColor MEMBER m_ghostNoteTextColor)
@@ -172,7 +173,9 @@ protected:
 		NudgeForward,
 		NudgeBack,
 		Tuplets,
-		Flam
+		Flam,
+		Echo1,
+		Echo2
 	};
 
 	enum class SemiToneMarkerAction
@@ -232,6 +235,8 @@ protected slots:
 	void cutSelectedNotes();
 	void pasteNotes();
 	bool deleteSelectedNotes();
+	void selectNotes(Note::Type t);
+	void setNoteType(Note::Type t);
 
 	void updatePosition(const lmms::TimePos & t );
 	void updatePositionAccompany(const lmms::TimePos & t );
@@ -252,6 +257,10 @@ protected slots:
 	void nudgeBack(Note * n);
 	void alignTuplets(NoteVector notes);
 	void flamDrums(NoteVector notes);
+	void echoDrums1(NoteVector notes);
+	void echoDrums2(NoteVector notes);
+
+	void changeNoteType(Note::Type t);
 
 	void updateSemiToneMarkerMenu();
 
@@ -401,6 +410,8 @@ private:
 	TimePos m_currentPosition;
 	bool m_recording;
 	QList<Note> m_recordingNotes;
+	// not type do add when adding new notes
+	Note::Type m_noteType;
 
 	Note * m_currentNote;
 	Action m_action;
@@ -492,6 +503,7 @@ private:
 	QColor m_noteModeColor;
 	QColor m_noteColor;
 	QColor m_stepNoteColor;
+	QColor m_subNoteColor;
 	QColor m_noteTextColor;
 	QColor m_ghostNoteColor;
 	QColor m_ghostNoteTextColor;
