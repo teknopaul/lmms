@@ -162,7 +162,7 @@ PianoRoll::PianoRoll() :
 	m_midiClip( nullptr ),
 	m_currentPosition(),
 	m_recording( false ),
-	m_noteType( Note::Type::Sub ),
+	m_noteType( Note::Type::Regular ),
 	m_currentNote( nullptr ),
 	m_action( Action::None ),
 	m_noteEditMode( NoteEditMode::Volume ),
