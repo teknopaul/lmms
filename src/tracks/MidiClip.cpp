@@ -335,7 +335,7 @@ void MidiClip::splitNotes(const NoteVector& notes, TimePos pos)
 void fadeNote(Note * note, tick_t start, tick_t end, bool in)
 {
 	float length = end - start;
-	float pos = note->pos().getTicks() - start;
+	float pos = note->pos().getTicks();
 	float factor = (length - pos) / length;
 	factor = in ? 1.0 - factor : factor;
 
