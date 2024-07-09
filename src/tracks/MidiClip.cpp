@@ -344,7 +344,7 @@ void fadeNote(Note * note, tick_t start, tick_t end, bool in)
 
 void MidiClip::fadeOutNotes()
 {
-	if (m_notes.empty()) { return; }
+	if (m_notes.empty()) return;
 
 	addJournalCheckPoint();
 
@@ -356,14 +356,15 @@ void MidiClip::fadeOutNotes()
 		fadeNote(note, start, end, false);
 	}
 }
+
 void MidiClip::fadeInNotes()
 {
-	if (m_notes.empty()) { return; }
+	if (m_notes.empty()) return;
 
 	addJournalCheckPoint();
 
-	TimePos start = this->startPosition();
-	TimePos end = this->endPosition();
+	tick_t start = this->startPosition().getTicks();
+	tick_t end = this->endPosition().getTicks();
 
 	for (const auto& note : m_notes)
 	{
