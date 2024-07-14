@@ -80,6 +80,7 @@ set(LMMS_SRCS
 	core/LmmsSemaphore.cpp
 	core/SerializingObject.cpp
 	core/Song.cpp
+	core/StudioControllerActions.cpp
 	core/TempoSyncKnobModel.cpp
 	core/TimePos.cpp
 	core/ToolPlugin.cpp

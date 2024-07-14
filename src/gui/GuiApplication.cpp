@@ -33,6 +33,7 @@
 #include "ConfigManager.h"
 #include "ControllerRackView.h"
 #include "GrooveView.h"
+#include "StudioControllerView.h"
 #include "MixerView.h"
 #include "MainWindow.h"
 #include "MicrotunerConfig.h"
@@ -151,6 +152,8 @@ GuiApplication::GuiApplication()
 	displayInitProgress(tr("Preparing mixer"));
 	m_mixerView = new MixerView;
 	connect(m_mixerView, SIGNAL(destroyed(QObject*)), this, SLOT(childDestroyed(QObject*)));
+
+	displayInitProgress(tr("Preparing groove view"));
 	m_grooveView = new GrooveView;
 	connect(m_grooveView, SIGNAL(destroyed(QObject*)), this, SLOT(childDestroyed(QObject*)));
 
@@ -173,6 +176,10 @@ GuiApplication::GuiApplication()
 	displayInitProgress(tr("Preparing piano roll"));
 	m_pianoRoll = new PianoRollWindow();
 	connect(m_pianoRoll, SIGNAL(destroyed(QObject*)), this, SLOT(childDestroyed(QObject*)));
+
+	displayInitProgress(tr("Preparing studio controller"));
+	m_studioControllerView = new StudioControllerView;
+	connect(m_studioControllerView, SIGNAL(destroyed(QObject*)), this, SLOT(childDestroyed(QObject*)));
 
 	displayInitProgress(tr("Preparing automation editor"));
 	m_automationEditor = new AutomationEditorWindow;
@@ -215,6 +222,10 @@ void GuiApplication::childDestroyed(QObject *obj)
 	else if (obj == m_grooveView)
 	{
 		m_grooveView = nullptr;
+	}
+	else if (obj == m_studioControllerView)
+	{
+		m_studioControllerView = nullptr;
 	}
 	else if (obj == m_songEditor)
 	{

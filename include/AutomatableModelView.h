@@ -75,7 +75,7 @@ public:
 
 	void setConversionFactor( float factor );
 	float getConversionFactor();
-
+	void removeConnection();
 
 protected:
 	virtual void mousePressEvent( QMouseEvent* event );

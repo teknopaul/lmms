@@ -94,6 +94,7 @@ SET(LMMS_SRCS
 	gui/tracks/TrackView.cpp
 
 	gui/widgets/AutomatableButton.cpp
+	gui/widgets/AutomatableControlButton.cpp
 	gui/widgets/AutomatableSlider.cpp
 	gui/widgets/BarModelEditor.cpp
 	gui/widgets/CPULoadWidget.cpp
@@ -117,6 +118,7 @@ SET(LMMS_SRCS
 	gui/widgets/Oscilloscope.cpp
 	gui/widgets/PixmapButton.cpp
 	gui/widgets/SimpleTextFloat.cpp
+	gui/widgets/StudioControllerView.cpp
 	gui/widgets/TabBar.cpp
 	gui/widgets/TabWidget.cpp
 	gui/widgets/TempoSyncBarModelEditor.cpp

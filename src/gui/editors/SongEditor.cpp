@@ -1152,6 +1152,38 @@ void SongEditorWindow::stopAndGoBack()
 	m_editor->scrolled(0);
 }
 
+
+void SongEditorWindow::next()
+{
+	TimePos pos = m_editor->m_song->getPlayPos(Song::PlayMode::Song);
+	const TimePos newPos(pos.getTicks() + pos.ticksPerBar());
+	m_editor->updatePosition( newPos );
+	m_editor->m_song->setToTime( newPos, Song::PlayMode::Song );
+}
+
+
+void SongEditorWindow::prev()
+{
+	TimePos pos = m_editor->m_song->getPlayPos(Song::PlayMode::Song);
+	TimePos newPos(pos.getTicks() - pos.ticksPerBar());
+	if ( newPos.getBar() >= 0 ) {
+		m_editor->updatePosition( newPos );
+		m_editor->m_song->setToTime( newPos, Song::PlayMode::Song );
+	} else {
+		m_editor->updatePosition( 0 );
+		m_editor->scrollToStart();
+		m_editor->scrolled( 0 );
+	}
+}
+
+
+void SongEditorWindow::end()
+{
+	bar_t len = Engine::getSong()->length();
+	m_editor->updatePosition(TimePos(len, 0));
+	m_editor->scrolled(TimePos(len, 0));
+}
+
 void SongEditorWindow::lostFocus()
 {
 	if( m_crtlAction )

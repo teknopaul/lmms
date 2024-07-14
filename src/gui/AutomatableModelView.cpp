@@ -197,6 +197,17 @@ float AutomatableModelView::getConversionFactor()
 	return m_conversionFactor;
 }
 
+void AutomatableModelView::removeConnection()
+{
+	AutomatableModel* m = modelUntyped();
+
+	if( m->controllerConnection() )
+	{
+		delete m->controllerConnection();
+		m->setControllerConnection( nullptr );
+	}
+}
+
 
 AutomatableModelViewSlots::AutomatableModelViewSlots( AutomatableModelView* amv, QObject* parent ) :
 	QObject(),

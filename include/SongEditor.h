@@ -183,16 +183,21 @@ public:
 	SongEditor* m_editor;
 	void syncEditMode();
 
-protected:
-	void resizeEvent( QResizeEvent * event ) override;
-	void changeEvent( QEvent * ) override;
-
-protected slots:
+public slots:
 	void play() override;
 	void record() override;
 	void recordAccompany() override;
 	void stop() override;
 	void stopAndGoBack() override;
+	void next();
+	void prev();
+	void end();
+
+protected:
+	void resizeEvent( QResizeEvent * event ) override;
+	void changeEvent( QEvent * ) override;
+
+protected slots:
 
 	void lostFocus();
 	void adjustUiAfterProjectLoad();
