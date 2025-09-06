@@ -4706,6 +4706,28 @@ void PianoRoll::quantizeNotes(QuantizeAction mode)
 		echoDrums2(notes);
 		return;
 	}
+	else if (mode == QuantizeAction::AddKicks)
+	{
+		addKicks(notes);
+		return;
+	}
+	else if (mode == QuantizeAction::AddHH)
+	{
+		addHH(notes);
+		return;
+	}
+	else if (mode == QuantizeAction::FadeIn)
+	{
+		fadeIn(notes);
+		return;
+	}
+	else if (mode == QuantizeAction::FadeOut)
+	{
+		fadeOut(notes);
+		return;
+	}
+
+
 
 
 	for ( Note * n : notes )
@@ -4907,6 +4929,119 @@ void PianoRoll::echoDrums2(NoteVector notes)
 
 }
 
+
+void PianoRoll::addKicks(NoteVector selected)
+{
+
+	int numerator = Engine::getSong()->getTimeSigModel().getNumerator();
+	tick_t ticksPerBeat = m_midiClip->startPosition().ticksPerBar() / numerator;
+
+	Note::Type type = Note::Type::Regular;
+	TimePos noteLen = TimePos(ticksPerBeat);
+	volume_t vol = 100;
+	int key = 69;
+
+	// if one note is selected use it as a reference
+	if (selected.size() == 1) {
+		type = selected.at(0)->type();
+		key = selected.at(0)->key();
+		noteLen = selected.at(0)->length();
+		vol = selected.at(0)->getVolume();
+		m_midiClip->removeNote( selected.at(0) );
+	}
+
+	for ( int k = 0; k < numerator * 2; k++ )
+	{
+		Note kick;
+		kick.setKey(key);
+		kick.setType(type);
+		kick.setPos(TimePos(ticksPerBeat * k));
+		kick.setLength(noteLen);
+		kick.setVolume(vol);
+		kick.setSelected(true);
+		m_midiClip->addNote(kick, false);
+	}
+
+}
+
+void PianoRoll::addHH(NoteVector selected)
+{
+
+	int numerator = Engine::getSong()->getTimeSigModel().getNumerator();
+	tick_t ticksPerBeat = m_midiClip->startPosition().ticksPerBar() / numerator;
+	tick_t ticksPerHalfBeat = ticksPerBeat / 2;
+
+	Note::Type type = Note::Type::Regular;
+	TimePos noteLen = TimePos(ticksPerHalfBeat);
+	volume_t vol = 100;
+	int key = 69;
+
+	// if one note is selected use it as a reference
+	if (selected.size() == 1) {
+		type = selected.at(0)->type();
+		key = selected.at(0)->key();
+		noteLen = selected.at(0)->length();
+		vol = selected.at(0)->getVolume();
+		m_midiClip->removeNote( selected.at(0) );
+	}
+
+	for ( int k = 0; k < numerator * 2; k++ )
+	{
+		Note kick;
+		kick.setKey(key);
+		kick.setType(type);
+		kick.setPos(TimePos(ticksPerHalfBeat + (ticksPerBeat * k)));
+		kick.setLength(noteLen);
+		kick.setVolume(vol);
+		kick.setSelected(true);
+		m_midiClip->addNote(kick, false);
+	}
+
+}
+
+void fadeSelectedNote(Note * note, tick_t clipStartOffset, tick_t start, tick_t end, bool in)
+{
+	float length = end - start;
+	float pos = note->pos().getTicks() - clipStartOffset;
+	float factor = (length - pos) / length;
+	factor = in ? 1.0 - factor : factor;
+
+	note->setVolume(note->getVolume() * factor);
+}
+
+void PianoRoll::fadeIn(NoteVector notes)
+{
+	if (notes.size() == 0) {
+		m_midiClip->fadeInNotes();
+	} else {
+		tick_t start = notes.at(0)->pos().getTicks();
+		Note * last = notes.at(notes.size() - 1);
+		tick_t end = last->pos().getTicks() + last->length().getTicks();
+		for ( Note * n : notes )
+		{
+			fadeSelectedNote(n, start, start, end, true);
+		}
+	}
+	emit m_midiClip->dataChanged();
+}
+
+void PianoRoll::fadeOut(NoteVector notes)
+{
+	if (notes.size() == 0) {
+		m_midiClip->fadeOutNotes();
+	} else {
+		tick_t start = notes.at(0)->pos().getTicks();
+		Note * last = notes.at(notes.size() - 1);
+		tick_t end = last->pos().getTicks() + last->length().getTicks();
+		for ( Note * n : notes )
+		{
+			fadeSelectedNote(n, start, start, end, false);
+		}
+	}
+	emit m_midiClip->dataChanged();
+}
+
+
 void PianoRoll::changeNoteType(Note::Type t)
 {
 	m_noteType = t;
@@ -5040,6 +5175,10 @@ PianoRollWindow::PianoRollWindow() :
 	auto flamAction = new QAction(tr("Flam"), this);
 	auto echo1Action = new QAction(tr("Echo 1"), this);
 	auto echo2Action = new QAction(tr("Echo 2"), this);
+	auto addKicksAction = new QAction(tr("Add kicks"), this);
+	auto addHHAction = new QAction(tr("Add hh"), this);
+	auto fadeInAction = new QAction(tr("Fade in"), this);
+	auto fadeOutAction = new QAction(tr("Fade out"), this);
 
 	connect(quantizeAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(); });
 	connect(quantizePosAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Pos); });
@@ -5055,6 +5194,10 @@ PianoRollWindow::PianoRollWindow() :
 	connect(flamAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Flam); });
 	connect(echo1Action, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Echo1); });
 	connect(echo2Action, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::Echo2); });
+	connect(addKicksAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::AddKicks); });
+	connect(addHHAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::AddHH); });
+	connect(fadeInAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::FadeIn); });
+	connect(fadeOutAction, &QAction::triggered, [this](){ m_editor->quantizeNotes(PianoRoll::QuantizeAction::FadeOut); });
 
 
 	applyGrooveAction->setShortcut( Qt::CTRL | Qt::Key_G );
@@ -5099,6 +5242,10 @@ PianoRollWindow::PianoRollWindow() :
 	subNotesButtonMenu->addAction(flamAction);
 	subNotesButtonMenu->addAction(echo1Action);
 	subNotesButtonMenu->addAction(echo2Action);
+	subNotesButtonMenu->addAction(addKicksAction);
+	subNotesButtonMenu->addAction(addHHAction);
+	subNotesButtonMenu->addAction(fadeInAction);
+	subNotesButtonMenu->addAction(fadeOutAction);
 
 	connect(drawSubNotesAction, &QAction::triggered, [this](){ m_editor->m_noteType = Note::Type::Sub; });
 	connect(drawRegularNotesAction, &QAction::triggered, [this](){ m_editor->m_noteType = Note::Type::Regular; });

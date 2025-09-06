@@ -175,7 +175,11 @@ protected:
 		Tuplets,
 		Flam,
 		Echo1,
-		Echo2
+		Echo2,
+		AddKicks,
+		AddHH,
+		FadeIn,
+		FadeOut
 	};
 
 	enum class SemiToneMarkerAction
@@ -259,6 +263,10 @@ protected slots:
 	void flamDrums(NoteVector notes);
 	void echoDrums1(NoteVector notes);
 	void echoDrums2(NoteVector notes);
+	void addKicks(NoteVector selected);
+	void addHH(NoteVector selected);
+	void fadeIn(NoteVector notes);
+	void fadeOut(NoteVector notes);
 
 	void changeNoteType(Note::Type t);
 

@@ -69,6 +69,7 @@ SaSpectrumView::SaSpectrumView(SaControls *controls, SaProcessor *processor, QWi
 	m_displayBufferR.resize(m_processor->binCount(), 0);
 	m_peakBufferL.resize(m_processor->binCount(), 0);
 	m_peakBufferR.resize(m_processor->binCount(), 0);
+	m_referencePath.clear();
 
 	m_freqRangeIndex = m_controls->m_freqRangeModel.value();
 	m_ampRangeIndex = m_controls->m_ampRangeModel.value();
@@ -82,6 +83,9 @@ SaSpectrumView::SaSpectrumView(SaControls *controls, SaProcessor *processor, QWi
 
 	// Initialize the size of bin → pixel X position LUT to the maximum allowed number of bins + 1.
 	m_cachedBinToX.resize(FFT_BLOCK_SIZES.back() / 2 + 2);
+
+	m_referencePath.clear();
+	makeReferencePath();
 
 	#ifdef SA_DEBUG
 		m_execution_avg = m_path_avg = m_draw_avg = 0;
@@ -139,6 +143,9 @@ void SaSpectrumView::paintEvent(QPaintEvent *event)
 
 	// 2) Spectrum display
 	drawSpectrum(painter);
+
+	// 2 draw reference line
+	drawReference(painter);
 
 	// 3) Overlays
 	// draw cursor (if it is within bounds)
@@ -223,6 +230,11 @@ void SaSpectrumView::drawSpectrum(QPainter &painter)
 	#endif
 }
 
+void SaSpectrumView::drawReference(QPainter &painter)
+{
+	painter.setPen(QPen(QColor(100, 150, 100, 255), 1, Qt::SolidLine, Qt::RoundCap, Qt::BevelJoin));
+	painter.drawPath(m_referencePath);
+}
 
 // Read newest FFT results from SaProcessor, update local display buffers
 // and build QPainter paths.
@@ -429,6 +441,31 @@ QPainterPath SaSpectrumView::makePath(std::vector<float> &displayBuffer, float r
 	return path;
 }
 
+QPoint SaSpectrumView::translateReferencePoint(float x, float y)
+{
+	int ty = y * m_displayBottom;
+	int tx = (x * m_displayWidth) + 28;
+	return QPoint(tx, ty);
+}
+
+void SaSpectrumView::makeReferencePath()
+{
+	if (m_referencePath.isEmpty()) {
+		m_referencePath.moveTo(translateReferencePoint(0, 0.26));
+		m_referencePath.cubicTo(
+					translateReferencePoint(0.15, 0.25),
+					translateReferencePoint(0.16, 0.06),
+					translateReferencePoint(0.296, 0.050));
+		m_referencePath.cubicTo(
+					translateReferencePoint(0.44, 0.06),
+					translateReferencePoint(0.44, 0.30),
+					translateReferencePoint(0.76, 0.31));
+		m_referencePath.cubicTo(
+					translateReferencePoint(0.97, 0.33),
+					translateReferencePoint(0.995, 0.38),
+					translateReferencePoint(0.995, 1));
+	}
+}
 
 // Draw background, grid and associated frequency and amplitude labels.
 void SaSpectrumView::drawGrid(QPainter &painter)
@@ -844,6 +881,8 @@ void SaSpectrumView::resizeEvent(QResizeEvent *event)
 	// amplitude does: rebuild labels
 	m_logAmpTics = makeLogAmpTics(m_processor->getAmpRangeMin(), m_processor->getAmpRangeMax());
 	m_linearAmpTics = makeLinearAmpTics(m_processor->getAmpRangeMin(), m_processor->getAmpRangeMax());
+	m_referencePath.clear();
+	makeReferencePath();
 }
 
 

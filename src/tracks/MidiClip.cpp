@@ -342,6 +342,7 @@ void fadeNote(Note * note, tick_t start, tick_t end, bool in)
 	note->setVolume(note->getVolume() * factor);
 }
 
+
 void MidiClip::fadeOutNotes()
 {
 	if (m_notes.empty()) return;

@@ -1253,21 +1253,29 @@ void ClipView::paste()
 
 void ClipView::doubleClip( ClipView * clipv)
 {
-	// Get the track that we are merging Clips in
-	auto track = dynamic_cast<InstrumentTrack*>(clipv->getTrackView()->getTrack());
-
-	if (!track)
+	auto mcView = dynamic_cast<MidiClipView*>(clipv);
+	if (!mcView)
 	{
-		qWarning("Warning: Couldn't retrieve InstrumentTrack in mergeClips()");
+		qWarning("Warning: Non-MidiClip Clip on InstrumentTrack");
 		return;
 	}
+
+	// Get the track that we are merging Clips in
+	auto track = dynamic_cast<InstrumentTrack*>(clipv->getTrackView()->getTrack());
+	if (!track)
+	{
+		qWarning("Warning: Couldn't retrieve InstrumentTrack in doubleClip()");
+		return;
+	}
+
+	const NoteVector& currentClipNotes = mcView->getMidiClip()->notes();
+	if (currentClipNotes.size() == 0) return;
 
 	// For Undo/Redo
 	track->addJournalCheckPoint();
 	track->saveJournallingState(false);
 
 	const TimePos earliestPos = clipv->getClip()->startPosition();
-	const TimePos latestPos = clipv->getClip()->endPosition();
 
 	// Create a clip where all notes will be added
 	auto newMidiClip = dynamic_cast<MidiClip*>(track->createClip(earliestPos));
@@ -1282,15 +1290,9 @@ void ClipView::doubleClip( ClipView * clipv)
 
 	// Add the notes and remove the Clips that are being merged
 	// Convert ClipV to MidiClipView
-	auto mcView = dynamic_cast<MidiClipView*>(clipv);
 
-	if (!mcView)
-	{
-		qWarning("Warning: Non-MidiClip Clip on InstrumentTrack");
-		return;
-	}
-
-	const NoteVector& currentClipNotes = mcView->getMidiClip()->notes();
+	// this gives bar end after final note ends
+	TimePos latestPos = clipv->getClip()->endPosition();
 
 	// copy original
 	for (Note* note: currentClipNotes)

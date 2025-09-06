@@ -102,8 +102,11 @@ private:
 	QPainterPath m_pathR;
 	QPainterPath m_pathPeakL;
 	QPainterPath m_pathPeakR;
+	QPainterPath m_referencePath;
 	void refreshPaths();
 	QPainterPath makePath(std::vector<float> &displayBuffer, float resolution);
+	void makeReferencePath();
+	QPoint translateReferencePoint(float x, float y);
 
 	// helper variables for path drawing
 	float m_decaySum;		// indicates if there is anything left to draw
@@ -112,6 +115,8 @@ private:
 
 	// top level: refresh buffers, make paths and draw the spectrum
 	void drawSpectrum(QPainter &painter);
+
+	void drawReference(QPainter &painter);
 
 	// current cursor location and a method to draw it
 	QPointF m_cursor;

@@ -26,6 +26,7 @@
 #include "AudioFileMP3.h"
 
 #include <QFileInfo>
+#include <QMessageBox>
 #include <QTextCodec>
 #include <QTextStream>
 
@@ -183,6 +184,9 @@ bool AudioFileMP3::initEncoder()
 		else if ( m_imageSize > LAME_MAXALBUMART )
 		{
 			qWarning("Image to big for lame");
+			QMessageBox msgBox;
+			msgBox.setText("Image to big for lame");
+			msgBox.exec();
 		}
 		else if ( id3tag_set_albumart(m_lame, imageData, m_imageSize) )
 		{
