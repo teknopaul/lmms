@@ -2,7 +2,7 @@
 #include <cmath>
 #include <algorithm>
 #include <QDebug>
-#include "OscillatorBezier.h"
+#include "OscillatorBezierU.h"
 
 
 namespace lmms
@@ -10,15 +10,21 @@ namespace lmms
 
 /**
  * A ducking oscillator that use bezier math.
- * Bezeri curve draws a smothed very specific U shape, across a grid with x=1 and y from -1.0 to 1.0, i.e.; y is a wave function.
- * Goal is to ensure that the changes to volume are smooth.
- * The volume as the kick plays is lowest. (typically you can phase adjust in DuckingController)
- * Return to full volume is faster than a sine wave.
+ * Bezier curve draws a smoothed very specific U shape, across a grid with x=1 and y from -1.0 to 1.0, i.e.; y is a wave function.
+ * Goal is to ensure that the changes to volume are smooth. (square wave sucks for any ducking)
+ *   The volume as the kick plays is lowest. (typically you can phase adjust in DuckingController)
+ *   Return to full volume is fast (sine wave sucks for ducking kicks).
+ *
  * There are 4 bezier curves that make up the U shape, number of curves does not affect performance.
  * There is hard plynominal math here that we trust because it works.
  * If the math is wrong its very convincing and produces functional output.
- * The points on the bezeir curves we trust literally becuse it looks nice visually.
- * The curve was draw in Inkscape
+ * The points on the bezeir curves we trust literally because it looks nice visually and conceptually.
+ * The curve was drawn in Inkscape.
+ *
+ * This code is perf sensitive, it runs for almost every sample, wave table synth is faster.
+ * Consider this a luxury for Ducking, I wrote it as a stepping stone to a bezier powered synth.
+ *
+ * Not useful for an audio wave: starts at +-1.0 and has an ugly DC offset.
  */
 
 // TODO
@@ -27,15 +33,16 @@ namespace lmms
 //   first point x=0
 //   last point x=1
 //   x increases for each point
-// bezier points dont go out of range (hard ish to calculate if any point will go out of range, could run it and see)
-// could also limit range to 1.0 and =1.0 at runtime, that would cost more I guess, best do it once
+// bezier points dont go out of range (hard-ish to calculate if _any_ point will go out of range, could run a it few times and see)
 // Starting with any Y is OK for a Control oscillator but not for sound which should start at 0,0 and end at 1,0
 // Option to save bezier path to a  wavetable
 // GUI to draw paths in LMMS
 
 
-OscillatorBezier::OscillatorBezier() :
+OscillatorBezierU::OscillatorBezierU() :
 	m_number_of_segments(4),
+	m_newton_steps(4),
+	m_bisection_steps(4),
 	m_segments{
 		// N.B starts at 0,1 ends at 1,1, but for some reason we need to invert output phase for ducking
 		{ {0.0000f, 0.954f}, {0.152f,  0.954f}, {0.193f, -0.012f}, {0.270f, -0.711f} },
@@ -72,54 +79,72 @@ static inline float bezier_comp_d1(const float p0, const float p1, const float p
 
 // Solve x(t)=x_target on [0,1] using a few Newton iterations with bisection fallback.
 // Assumes the segment is forward in x overall (P0.x <= P3.x).
-static inline float solve_t_for_x(float x0, float x1, float x2, float x3, float x_last, float x_target)
+static inline float solve_t_for_x(float x0, float x1, float x2, float x3, float x_last, float x_target,
+								  int newton_steps, int bisection_steps)
 {
-	// Initial guess, x from last iteration
-	float t = x_last;
-	float lo = 0.0f, hi = 1.0f;
+	// Initial guess, t from last iteration, theoretically, t must be greater than x_last (or we have a square wave)
+	// std::nextafter(x_last, 1.0f) is technically better, may not be necessary
+	float t = std::nextafter(x_last, 1.0f);
+	float lo = t;  // bounding on next after t prevents interations producing the same value
+	float hi = 1.0f; // calculating a closer bound not worth it
 
 	// Hybrid: a few Newton steps, clamped; if it stalls, use bisection refinement.
-	for (int iter = 0; iter < 4; ++iter) {
+	for (int iter = 0; newton_steps < 4; ++iter) {
 		const float x  = bezier_comp(x0, x1, x2, x3, t);
 		const float dx = x - x_target;
 		const float d1 = bezier_comp_d1(x0, x1, x2, x3, t);
-		if (std::fabs(dx) < 1e-6f) break;
+		if (std::fabs(dx) < 1e-6f) break; // 1e-6f is idiomatic C++ for "very small sample", per ChatGPT, but is it in LMMS?
 
 		// Maintain bracket
-		if (dx > 0.0f) hi = t; else lo = t;
+		if (dx > 0.0f) {
+			hi = t;
+		} else {
+			lo = t;
+		}
 
-		if (std::fabs(d1) > 1e-9f) {
+		if (std::fabs(d1) > 1e-9f) { // 1e-9f is idiomatic C++ for "very small float" (i.e. close to epsilon())
 			float t_new = t - dx / d1;
 			// If Newton left [lo,hi], do a bisection step instead
-			if (t_new < lo || t_new > hi) t = 0.5f * (lo + hi);
-			else t = t_new;
+			if (t_new < lo || t_new > hi) {
+				t = 0.5f * (lo + hi);
+			}
+			else {
+				t = t_new;
+			}
 		} else {
 			t = 0.5f * (lo + hi); // derivative too small; bisect
 		}
 		t = clampf(t, 0.0f, 1.0f);
 	}
 
+	// TODO experimentation to see if this is necessary after caching "t" fix
+	// with accurate "t" perhaps even 4 newton steps is excessive?  Hence configurable
 	// A couple of bisection cleanups for robustness
-	for (int i = 0; i < 4; ++i) {
+	for (int i = 0; i < bisection_steps; ++i) {
 		const float x = bezier_comp(x0, x1, x2, x3, t);
 		if (x > x_target) hi = t; else lo = t;
 		t = 0.5f * (lo + hi);
 	}
+
+	// TODO debug mode with Peak detection, it would indicate a bug if we return a number >1.0 or <-1.0
+	// Subclasses might be more risky than this class's m_segments
+	// TODO clampf _should_ not be necessary here if we control input values, (and our math is solid)
 	return clampf(t, 0.0f, 1.0f);
 }
 
 // as per wave-shape-routines in Oscillator.h
-sample_t OscillatorBezier::oscSample(const float sample)
+sample_t OscillatorBezierU::oscSample(const float sample)
 {
 	float ph = absFraction( sample );
 	return bezierSample( ph );
 }
 
 /**
- * Main oscillator function,
- * sample is that value passed by LMMS to all oscilators which is between 0.0 and 1.0 see absFraction()
+ * Main oscillator function.
+ * sample is the value passed by LMMS to all oscillators which is x between 0.0 and 1.0 see absFraction()
+ * Behavour outside 0 - 1.0 is undefined.
  */
-sample_t OscillatorBezier::bezierSample(const float sample)
+sample_t OscillatorBezierU::bezierSample(const float sample)
 {
 	// find segment the sample is inside
 	int segment_index;
@@ -132,6 +157,11 @@ sample_t OscillatorBezier::bezierSample(const float sample)
 	if (m_last_i != segment_index) {
 		m_last_t = 0;
 	}
+	// TODO support for single segment curves by detecting sample = 0.0 and resetting t
+	// do we get 0.0 or sample < 1e-6f? setting "t" to zero for low sample values is probably OK,
+	// "t" accidentally high is probably not OK.
+	// maybe sample < m_last_sample, but that requries state specific to single segment oscillators
+	// maybe create OscillatorBezier1 which takes one curve only, and cache sample instead of last_i
 
 	// t is “how far along this particular bezier segment we are.” its not simply x value so we need to calculate it by guessing and iterating
 	// fortunatly for audio its very close to the t from last time we ran this function, so our starting guess is very good.
@@ -142,7 +172,7 @@ sample_t OscillatorBezier::bezierSample(const float sample)
 	const Point& p3 = m_segments[segment_index][3];
 
 	// Solve x(t) = s for this segment
-	const float t = solve_t_for_x(p0.x, p1.x, p2.x, p3.x, m_last_t, sample);
+	const float t = solve_t_for_x(p0.x, p1.x, p2.x, p3.x, m_last_t, sample, m_newton_steps, m_bisection_steps);
 
 	// Return y(t) in [-1,1]
 	const float y = bezier_comp(p0.y, p1.y, p2.y, p3.y, t);

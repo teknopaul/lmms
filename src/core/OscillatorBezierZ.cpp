@@ -1,0 +1,45 @@
+#include <cmath>
+#include <algorithm>
+#include <QDebug>
+#include "OscillatorBezierZ.h"
+#include "OscillatorBezierU.h"
+
+
+namespace lmms
+{
+
+// OscillatorBezierU handles 2 to 4 curves (Point m_segments[4][4])
+
+/**
+ * 2 point bezier curves that draw a specific sound wave.
+ * This is its SVG representaion, as draw in Inkscape.
+ * <path
+ *      style="fill:none;stroke:#000000;stroke-width:0.0060154px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+ *      d="M 3.1669362e-4,0.5 C 0.24957661,7.5995137e-4 8.2341817e-4,0.99765707 0.5,0.5 0.99917658,0.00234293 0.75036395,1.0016561 1.0002507,0.5"
+ *      id="path876" />
+ * I have clamped the points to 1/4, it looks OK, does not produce square waves,
+ * and because I think maybe mathematically coherant sound waves might be appealing
+ * to the ear.
+ * Math was written by God, and while she was not involved in Concert A at 440hz,
+ * she did a fine job on the Octave and harmonics for 1/12 octave steps.
+ * It is symetrical, so should have a DC offset of 0.0
+ */
+OscillatorBezierZ::OscillatorBezierZ() : OscillatorBezierU()
+{
+	overrideNumOfSegment(2);
+
+	overrideSegments({
+		// N.B starts at {0.0,0.0} ends at {1.0,0.0} so that wave starts and ends at zero amplitude
+		// Despite being only 2 bezier curves, this produces 2 cycles over x=1 which is to say its apparent frequncey
+		// will be one octave above, but each cycle is not identical, so it cant be optimized
+		// in compressor terms there are two "hard knees" and two "soft knees" in the same wave form
+		{ {0.000f, 0.000f}, {0.250f,  0.100f}, {0.000f, -1.000f}, {0.500f, 0.0f} },
+		{ {0.500f, 0.000f}, {1.000f, -1.000f}, {0.750f, -1.000f}, {1.0f, 0.0f} },
+		{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} },
+		{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} }
+	});
+
+}
+
+
+} // namespace lmms

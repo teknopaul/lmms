@@ -33,7 +33,7 @@
 #include "ControllerDialog.h"
 #include "TempoSyncKnobModel.h"
 #include "Oscillator.h"
-#include "OscillatorBezier.h"
+#include "OscillatorBezierU.h"
 
 namespace lmms
 {
@@ -63,7 +63,7 @@ public:
 		Triangle,
 		Saw,
 		Square,
-		Bezier1,
+		BezierU,
 		UserDefined,
 		Count //!< Number of all available wave shapes
 	};
@@ -102,7 +102,7 @@ protected:
 private:
 	float m_heldSample;
 	SampleBuffer * m_userDefSampleBuffer;
-	OscillatorBezier * m_oscillatorBezier;
+	OscillatorBezierU * m_oscillatorBezierU;
 
 protected slots:
 	void updatePhase();

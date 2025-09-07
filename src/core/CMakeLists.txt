@@ -56,7 +56,8 @@ set(LMMS_SRCS
 	core/Note.cpp
 	core/NotePlayHandle.cpp
 	core/Oscillator.cpp
-	core/OscillatorBezier.cpp
+	core/OscillatorBezierU.cpp
+	core/OscillatorBezierZ.cpp
 	core/PathUtil.cpp
 	core/PatternClip.cpp
 	core/PatternStore.cpp

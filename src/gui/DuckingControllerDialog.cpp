@@ -116,11 +116,11 @@ DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget *
 					"square_wave_inactive" ) );
 	sqr_wave_btn->setToolTip( tr( "Square wave" ) );
 
-	auto bezier1_wave_btn = new PixmapButton(this, nullptr);
-	bezier1_wave_btn->move( CD_LFO_SHAPES_X, CD_LFO_SHAPES_Y + 15 );
-	bezier1_wave_btn->setActiveGraphic( embed::getIconPixmap( "bezier1_wave_active" ) );
-	bezier1_wave_btn->setInactiveGraphic( embed::getIconPixmap( "bezier1_wave_inactive" ) );
-	bezier1_wave_btn->setToolTip( tr( "Bezier1 wave" ) );
+	auto bezieru_wave_btn = new PixmapButton(this, nullptr);
+	bezieru_wave_btn->move( CD_LFO_SHAPES_X, CD_LFO_SHAPES_Y + 15 );
+	bezieru_wave_btn->setActiveGraphic( embed::getIconPixmap( "bezieru_wave_active" ) );
+	bezieru_wave_btn->setInactiveGraphic( embed::getIconPixmap( "bezieru_wave_inactive" ) );
+	bezieru_wave_btn->setToolTip( tr( "BezierU wave" ) );
 
 	m_userWaveBtn = new PixmapButton( this, nullptr );
 	m_userWaveBtn->move( CD_LFO_SHAPES_X + 45, CD_LFO_SHAPES_Y + 15 );
@@ -139,7 +139,7 @@ DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget *
 	m_waveBtnGrp->addButton( triangle_wave_btn );
 	m_waveBtnGrp->addButton( saw_wave_btn );
 	m_waveBtnGrp->addButton( sqr_wave_btn );
-	m_waveBtnGrp->addButton( bezier1_wave_btn );
+	m_waveBtnGrp->addButton( bezieru_wave_btn );
 	m_waveBtnGrp->addButton( m_userWaveBtn );
 
 	auto x1 = new PixmapButton(this, nullptr);

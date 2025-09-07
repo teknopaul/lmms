@@ -27,7 +27,7 @@
 
 
 #include "DuckingController.h"
-#include "OscillatorBezier.h"
+#include "OscillatorBezierU.h"
 #include "AudioEngine.h"
 #include "Song.h"
 
@@ -42,7 +42,7 @@ DuckingController::DuckingController( Model * _parent ) :
 	m_speedModel( 2.0, 0.01, 20.0, 0.0001, 20000.0, this, tr( "Oscillator speed" ) ),
 	m_amountModel( 0.35, -1.0, 1.0, 0.005, this, tr( "Oscillator amount" ) ),
 	m_phaseModel( 0.0, 0.0, 360.0, 4.0, this, tr( "Oscillator phase" ) ),
-	m_waveModel( static_cast<int>(DuckingController::DuckShape::Bezier1), 0, DuckingController::NumDuckShapes,
+	m_waveModel( static_cast<int>(DuckingController::DuckShape::BezierU), 0, DuckingController::NumDuckShapes,
 			this, tr( "Oscillator waveform" ) ),
 	m_multiplierModel( 0, 0, 2, this, tr( "Frequency Multiplier" ) ),
 	m_duration( 1000 ),
@@ -50,7 +50,7 @@ DuckingController::DuckingController( Model * _parent ) :
 	m_currentPhase( 0 ),
 	m_sampleFunction( &Oscillator::sinSample ),
 	m_userDefSampleBuffer( new SampleBuffer ),
-	m_oscillatorBezier(new OscillatorBezier() )
+	m_oscillatorBezierU(new OscillatorBezierU() )
 {
 	setSampleExact( true );
 	connect( &m_waveModel, SIGNAL(dataChanged()),
@@ -118,10 +118,10 @@ void DuckingController::updateValueBuffer()
 			currentSample = m_userDefSampleBuffer->userWaveSample(phase);
 			break;
 		}
-		case DuckingController::DuckShape::Bezier1:
+		case DuckingController::DuckShape::BezierU:
 		{
 			float ph = absFraction( phase );
-			currentSample = m_oscillatorBezier->bezierSample(ph);
+			currentSample = m_oscillatorBezierU->bezierSample(ph);
 			break;
 		}
 		default:
@@ -189,7 +189,7 @@ void DuckingController::updateSampleFunction()
 		case DuckingController::DuckShape::Square:
 			m_sampleFunction = &Oscillator::squareSample;
 			break;
-		case DuckingController::DuckShape::Bezier1:
+		case DuckingController::DuckShape::BezierU:
 			m_sampleFunction = nullptr;
 			break;
 		case DuckingController::DuckShape::UserDefined:
