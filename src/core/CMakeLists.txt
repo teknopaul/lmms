@@ -19,6 +19,7 @@ set(LMMS_SRCS
 	core/DataFile.cpp
 	core/DirectoryScroller.cpp
 	core/DrumSynth.cpp
+	core/DuckingController.cpp
 	core/Effect.cpp
 	core/EffectChain.cpp
 	core/Engine.cpp
@@ -55,6 +56,7 @@ set(LMMS_SRCS
 	core/Note.cpp
 	core/NotePlayHandle.cpp
 	core/Oscillator.cpp
+	core/OscillatorBezier.cpp
 	core/PathUtil.cpp
 	core/PatternClip.cpp
 	core/PatternStore.cpp

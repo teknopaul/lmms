@@ -32,6 +32,7 @@
 #include "ControllerConnection.h"
 #include "ControllerDialog.h"
 #include "LfoController.h"
+#include "DuckingController.h"
 #include "MidiController.h"
 #include "PeakController.h"
 
@@ -203,6 +204,10 @@ Controller * Controller::create( ControllerType _ct, Model * _parent )
 		case ControllerType::Peak:
 			//Already instantiated in EffectChain::loadSettings()
 			Q_ASSERT( false );
+			break;
+
+		case ControllerType::Ducking:
+			c = new class DuckingController( _parent );
 			break;
 
 		case ControllerType::Midi:

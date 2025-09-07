@@ -1412,6 +1412,40 @@ void PianoRoll::keyPressEvent(QKeyEvent* ke)
 			}
 			break;
 
+			/*
+		case Qt::Key_S:
+			if( ke->modifiers() & Qt::AltModifier )
+			{
+				selectNotes(Note::Type::Sub);
+			}
+			break;
+
+
+		case Qt::Key_N:
+			if( ke->modifiers() & Qt::AltModifier )
+			{
+				selectNotes(Note::Type::Regular);
+			}
+			break;
+
+		case Qt::Key_Q:
+			if( ke->modifiers() & Qt::AltModifier )
+			{
+				m_noteType = Note::Type::Sub;
+				setNoteType(Note::Type::Sub);
+			}
+			break;
+
+
+		case Qt::Key_W:
+			if( ke->modifiers() & Qt::AltModifier )
+			{
+				m_noteType = Note::Type::Regular;
+				setNoteType(Note::Type::Regular);
+			}
+			break;
+			*/
+
 		case Qt::Key_Escape:
 			// On the Knife mode, ESC cancels it
 			if (m_editMode == EditMode::Knife)
@@ -5221,22 +5255,22 @@ PianoRollWindow::PianoRollWindow() :
 	auto subNotesButton = new QToolButton(notesActionsToolBar);
 	auto subNotesButtonMenu = new QMenu(subNotesButton);
 
-	auto drawSubNotesAction = new QAction(embed::getIconPixmap("subnotes"), tr("Draw sub notes"), this);
-	auto drawRegularNotesAction = new QAction(tr("Draw regular notes"), this);
-	auto selectAllRegularNotesAction = new QAction(tr("Select regular"), this);
-	auto selectAllSubNotesAction = new QAction(tr("Select sub "), this);
-	auto setNoteTypeSubAction = new QAction(tr("Set sub"), this);
+	auto setNoteTypeSubAction = new QAction(embed::getIconPixmap("subnotes"), tr("Set sub"), this);
 	auto setNoteTypeRegularAction = new QAction(tr("Set regular"), this);
+	auto selectAllSubNotesAction = new QAction(tr("Select sub"), this);
+	auto selectAllRegularNotesAction = new QAction(tr("Select regular"), this);
+	setNoteTypeSubAction->setShortcut( Qt::ALT | Qt::Key_Q );
+	setNoteTypeRegularAction->setShortcut( Qt::ALT | Qt::Key_W );
+	selectAllSubNotesAction->setShortcut( Qt::ALT | Qt::Key_S );
+	selectAllRegularNotesAction->setShortcut( Qt::ALT | Qt::Key_N );
 
 	subNotesButton->setPopupMode(QToolButton::MenuButtonPopup);
-	subNotesButton->setDefaultAction(drawSubNotesAction);
+	subNotesButton->setDefaultAction(setNoteTypeSubAction);
 	subNotesButton->setMenu(subNotesButtonMenu);
-	subNotesButtonMenu->addAction(drawSubNotesAction);
-	subNotesButtonMenu->addAction(drawRegularNotesAction);
-	subNotesButtonMenu->addAction(selectAllSubNotesAction);
-	subNotesButtonMenu->addAction(selectAllRegularNotesAction);
 	subNotesButtonMenu->addAction(setNoteTypeSubAction);
 	subNotesButtonMenu->addAction(setNoteTypeRegularAction);
+	subNotesButtonMenu->addAction(selectAllSubNotesAction);
+	subNotesButtonMenu->addAction(selectAllRegularNotesAction);
 
 	// quantize features that add sub notes so make more sense here
 	subNotesButtonMenu->addAction(flamAction);
@@ -5247,12 +5281,16 @@ PianoRollWindow::PianoRollWindow() :
 	subNotesButtonMenu->addAction(fadeInAction);
 	subNotesButtonMenu->addAction(fadeOutAction);
 
-	connect(drawSubNotesAction, &QAction::triggered, [this](){ m_editor->m_noteType = Note::Type::Sub; });
-	connect(drawRegularNotesAction, &QAction::triggered, [this](){ m_editor->m_noteType = Note::Type::Regular; });
 	connect(selectAllSubNotesAction, &QAction::triggered, [this](){ m_editor->selectNotes(Note::Type::Sub); });
 	connect(selectAllRegularNotesAction, &QAction::triggered, [this](){ m_editor->selectNotes(Note::Type::Regular); });
-	connect(setNoteTypeSubAction, &QAction::triggered, [this](){ m_editor->setNoteType(Note::Type::Sub); });
-	connect(setNoteTypeRegularAction, &QAction::triggered, [this](){ m_editor->setNoteType(Note::Type::Regular); });
+	connect(setNoteTypeSubAction, &QAction::triggered, [this](){
+		m_editor->setNoteType(Note::Type::Sub);
+		m_editor->m_noteType = Note::Type::Sub;
+	});
+	connect(setNoteTypeRegularAction, &QAction::triggered, [this](){
+		m_editor->setNoteType(Note::Type::Regular);
+		m_editor->m_noteType = Note::Type::Regular;
+	});
 
 	notesActionsToolBar->addAction( drawAction );
 	notesActionsToolBar->addAction( eraseAction );

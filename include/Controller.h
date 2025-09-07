@@ -57,6 +57,7 @@ public:
 		Lfo,
 		Midi,
 		Peak,
+		Ducking,
 		/*
 		XY,
 		Equation
@@ -94,6 +95,7 @@ public:
 		switch( m_type )
 		{
 			case ControllerType::Lfo: return( true );
+			case ControllerType::Ducking: return( true );
 			case ControllerType::Peak: return( true );
 			default:
 				break;

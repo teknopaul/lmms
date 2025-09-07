@@ -36,6 +36,7 @@
 #include "ControllerRackView.h"
 #include "ControllerView.h"
 #include "LfoController.h"
+#include "DuckingController.h"
 #include "SubWindow.h"
 
 namespace lmms::gui
@@ -61,11 +62,16 @@ ControllerRackView::ControllerRackView() :
 	m_scrollArea->setWidget( scrollAreaWidget );
 	m_scrollArea->setWidgetResizable( true );
 
-	m_addButton = new QPushButton( this );
-	m_addButton->setText( tr( "Add" ) );
+	m_addLfoButton = new QPushButton( this );
+	m_addLfoButton->setText( tr( "Add LFO" ) );
 
-	connect( m_addButton, SIGNAL(clicked()),
-			this, SLOT(addController()));
+	m_addDuckingButton = new QPushButton( this );
+	m_addDuckingButton->setText( tr( "Add Ducking" ) );
+
+	connect( m_addLfoButton, SIGNAL(clicked()),
+			this, SLOT(addLfoController()));
+	connect( m_addDuckingButton, SIGNAL(clicked()),
+			this, SLOT(addDuckingController()));
 
 	Song * song = Engine::getSong();
 	connect( song, SIGNAL(controllerAdded(lmms::Controller*)), SLOT(onControllerAdded(lmms::Controller*)));
@@ -73,7 +79,8 @@ ControllerRackView::ControllerRackView() :
 
 	auto layout = new QVBoxLayout();
 	layout->addWidget( m_scrollArea );
-	layout->addWidget( m_addButton );
+	layout->addWidget( m_addLfoButton );
+	layout->addWidget( m_addDuckingButton );
 	this->setLayout( layout );
 
 	QMdiSubWindow * subWin = getGUI()->mainWindow()->addWindowedWidget( this );
@@ -181,17 +188,17 @@ void ControllerRackView::onControllerRemoved( Controller * removedController )
 
 
 
-void ControllerRackView::addController()
+void ControllerRackView::addLfoController()
 {
-	// TODO: Eventually let the user pick from available controller types
-
 	Engine::getSong()->addController( new LfoController( Engine::getSong() ) );
-
-	// fix bug which always made ControllerRackView loose focus when adding
-	// new controller
 	setFocus();
 }
 
+void ControllerRackView::addDuckingController()
+{
+	Engine::getSong()->addController( new DuckingController( Engine::getSong() ) );
+	setFocus();
+}
 
 
 

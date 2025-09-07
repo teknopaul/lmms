@@ -73,7 +73,8 @@ protected:
 	void closeEvent( QCloseEvent * _ce ) override;
 
 private slots:
-	void addController();
+	void addLfoController();
+	void addDuckingController();
 
 
 private:
@@ -81,7 +82,8 @@ private:
 
 	QScrollArea * m_scrollArea;
 	QVBoxLayout * m_scrollAreaLayout;
-	QPushButton * m_addButton;
+	QPushButton * m_addLfoButton;
+	QPushButton * m_addDuckingButton;
 
 	// Stores the index of where to insert the next ControllerView.
 	// Needed so that the StretchItem always stays at the last position.
