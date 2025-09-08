@@ -70,7 +70,8 @@ Oscillator::Oscillator(const IntModel *wave_shape_model,
 	m_phase(phase_offset),
 	m_userWave(nullptr),
 	m_useWaveTable(false),
-	m_isModulator(false)
+	m_isModulator(false),
+	m_bezierz(new OscillatorBezierZ)
 {
 }
 
@@ -342,6 +343,9 @@ void Oscillator::updateNoSub( sampleFrame * _ab, const fpp_t _frames,
 		case WaveShape::UserDefined:
 			updateNoSub<WaveShape::UserDefined>( _ab, _frames, _chnl );
 			break;
+		case WaveShape::BezierZ:
+			updateNoSub<WaveShape::BezierZ>( _ab, _frames, _chnl );
+			break;
 	}
 }
 
@@ -377,6 +381,9 @@ void Oscillator::updatePM( sampleFrame * _ab, const fpp_t _frames,
 			break;
 		case WaveShape::UserDefined:
 			updatePM<WaveShape::UserDefined>( _ab, _frames, _chnl );
+			break;
+		case WaveShape::BezierZ:
+			updatePM<WaveShape::BezierZ>( _ab, _frames, _chnl );
 			break;
 	}
 }
@@ -414,6 +421,9 @@ void Oscillator::updateAM( sampleFrame * _ab, const fpp_t _frames,
 		case WaveShape::UserDefined:
 			updateAM<WaveShape::UserDefined>( _ab, _frames, _chnl );
 			break;
+		case WaveShape::BezierZ:
+			updateAM<WaveShape::BezierZ>( _ab, _frames, _chnl );
+			break;
 	}
 }
 
@@ -449,6 +459,9 @@ void Oscillator::updateMix( sampleFrame * _ab, const fpp_t _frames,
 			break;
 		case WaveShape::UserDefined:
 			updateMix<WaveShape::UserDefined>( _ab, _frames, _chnl );
+			break;
+		case WaveShape::BezierZ:
+			updateMix<WaveShape::BezierZ>( _ab, _frames, _chnl );
 			break;
 	}
 }
@@ -486,6 +499,9 @@ void Oscillator::updateSync( sampleFrame * _ab, const fpp_t _frames,
 		case WaveShape::UserDefined:
 			updateSync<WaveShape::UserDefined>( _ab, _frames, _chnl );
 			break;
+		case WaveShape::BezierZ:
+			updateSync<WaveShape::BezierZ>( _ab, _frames, _chnl );
+			break;
 	}
 }
 
@@ -521,6 +537,9 @@ void Oscillator::updateFM( sampleFrame * _ab, const fpp_t _frames,
 			break;
 		case WaveShape::UserDefined:
 			updateFM<WaveShape::UserDefined>( _ab, _frames, _chnl );
+			break;
+		case WaveShape::BezierZ:
+			updateFM<WaveShape::BezierZ>( _ab, _frames, _chnl );
 			break;
 	}
 }
@@ -815,6 +834,14 @@ inline sample_t Oscillator::getSample<Oscillator::WaveShape::UserDefined>(
 	{
 		return userWaveSample(_sample);
 	}
+}
+
+
+template<>
+inline sample_t Oscillator::getSample<Oscillator::WaveShape::BezierZ>(
+							const float _sample )
+{
+	return bezierZSample(_sample);
 }
 
 

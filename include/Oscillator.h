@@ -35,6 +35,7 @@
 #include "lmmsconfig.h"
 #include "AudioEngine.h"
 #include "OscillatorConstants.h"
+#include "OscillatorBezierZ.h"
 #include "SampleBuffer.h"
 
 namespace lmms
@@ -58,6 +59,7 @@ public:
 		Exponential,
 		WhiteNoise,
 		UserDefined,
+		BezierZ,
 		Count //!< Number of all available wave shapes
 	};
 	constexpr static auto NumWaveShapes = static_cast<std::size_t>(WaveShape::Count);
@@ -169,6 +171,11 @@ public:
 		return m_userWave->userWaveSample( _sample );
 	}
 
+	inline sample_t bezierZSample( const float _sample ) const
+	{
+		return m_bezierz->oscSample( _sample );
+	}
+
 	struct wtSampleControl {
 		float frame;
 		f_cnt_t f1;
@@ -252,6 +259,7 @@ private:
 	// There are many update*() variants; the modulator flag is stored as a member variable to avoid
 	// adding more explicit parameters to all of them. Can be converted to a parameter if needed.
 	bool m_isModulator;
+	OscillatorBezierZ * m_bezierz;
 
 	/* Multiband WaveTable */
 	static sample_t s_waveTables[NumWaveShapeTables][OscillatorConstants::WAVE_TABLES_PER_WAVEFORM_COUNT][OscillatorConstants::WAVETABLE_LENGTH];
