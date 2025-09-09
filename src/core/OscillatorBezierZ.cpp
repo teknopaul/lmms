@@ -20,9 +20,7 @@ namespace lmms
  * I have clamped the points to 1/4, it looks OK, does not produce square waves,
  * and because I think maybe mathematically coherant sound waves might be appealing
  * to the ear.
- * Math was written by God, and while she was not involved in Concert A at 440hz,
- * she did a fine job on the Octave and harmonics for 1/12 octave steps.
- * It is symetrical, so should have a DC offset of 0.0
+ * It is symetrical, so should have a DC offset of 0.0.
  */
 OscillatorBezierZ::OscillatorBezierZ() : OscillatorBezierU()
 {
@@ -41,5 +39,15 @@ OscillatorBezierZ::OscillatorBezierZ() : OscillatorBezierU()
 
 }
 
+void OscillatorBezierZ::modulate(float mod)
+{
+	// TODO
+	/*
+	vary m_segments[0][1][0] from 0.250f  to 0.150f
+	vary m_segments[1][2[0] from 0.750f  to 0.850f
+	this will alter how hard the hard knee phase is
+	hopefully this will make it go from nasty to nice :)
+	*/
+}
 
 } // namespace lmms

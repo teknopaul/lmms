@@ -259,6 +259,7 @@ private:
 	// There are many update*() variants; the modulator flag is stored as a member variable to avoid
 	// adding more explicit parameters to all of them. Can be converted to a parameter if needed.
 	bool m_isModulator;
+	// TODO remove this when BezierSynth exists
 	OscillatorBezierZ * m_bezierz;
 
 	/* Multiband WaveTable */

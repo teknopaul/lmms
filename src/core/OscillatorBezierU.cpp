@@ -2,6 +2,7 @@
 #include <cmath>
 #include <algorithm>
 #include <QDebug>
+#include "OscillatorBezier.h"
 #include "OscillatorBezierU.h"
 
 
@@ -28,6 +29,7 @@ namespace lmms
  */
 
 // TODO
+// refactor out a BezierBaseMath OscillatorBezierU jsut defines its curves
 // import from any svg
 // Validate / force that...
 //   first point x=0

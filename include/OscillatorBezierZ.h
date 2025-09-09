@@ -14,6 +14,7 @@ public:
 	{
 	}
 
+	void modulate(float mod);
 };
 
 } // end namespace lmms
