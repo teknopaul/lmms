@@ -2,13 +2,13 @@
 #include <algorithm>
 #include <QDebug>
 #include "OscillatorBezierZ.h"
-#include "OscillatorBezierU.h"
+#include "OscillatorBezierBase.h"
 
 
 namespace lmms
 {
 
-// OscillatorBezierU handles 2 to 4 curves (Point m_segments[4][4])
+// OscillatorBezierBase handles 2 to 4 curves (Point m_segments[4][4])
 
 /**
  * 2 point bezier curves that draw a specific sound wave.
@@ -22,7 +22,10 @@ namespace lmms
  * to the ear.
  * It is symetrical, so should have a DC offset of 0.0.
  */
-OscillatorBezierZ::OscillatorBezierZ() : OscillatorBezierU()
+OscillatorBezierZ::OscillatorBezierZ() :
+	OscillatorBezierBase(),
+	m_mod(0),
+	m_next_mod(0)
 {
 	overrideNumOfSegment(2);
 
@@ -41,13 +44,22 @@ OscillatorBezierZ::OscillatorBezierZ() : OscillatorBezierU()
 
 void OscillatorBezierZ::modulate(float mod)
 {
-	// TODO
-	/*
-	vary m_segments[0][1][0] from 0.250f  to 0.150f
-	vary m_segments[1][2[0] from 0.750f  to 0.850f
-	this will alter how hard the hard knee phase is
-	hopefully this will make it go from nasty to nice :)
-	*/
+	m_next_mod = mod;
+}
+
+/**
+ * vary m_segments[0][1][0] from 0.250f  to 0.150f
+ * vary m_segments[1][2[0] from 0.750f  to 0.850f
+ * this will alter how hard the hard knee phase is
+ * hopefully this will make it go from nasty to nice :)
+ */
+void OscillatorBezierZ::applyModulations()
+{
+	if (m_mod == m_next_mod) return;
+
+	float diff = m_next_mod / 10;
+	m_segments[0][1].x = 0.250f - diff;
+	m_segments[1][2].x = 0.750f + diff;
 }
 
 } // namespace lmms

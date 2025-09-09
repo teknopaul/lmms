@@ -44,6 +44,7 @@ BezierOsc::BezierOsc(
 			const float &freq,
 			const float &detuning_div_samplerate,
 			const float &volume,
+			const FloatModel * mutateModel,
 			BezierOsc * sub_osc,
 			SampleBuffer * user_wave) :
 	m_waveAlgo(wave_algo),
@@ -51,6 +52,7 @@ BezierOsc::BezierOsc(
 	m_freq(freq),
 	m_detuning_div_samplerate(detuning_div_samplerate),
 	m_volume(volume),
+	m_mutateModel(mutateModel),
 	m_subOsc(sub_osc),
 	m_phaseOffset(0),
 	m_phase(0),
@@ -58,12 +60,23 @@ BezierOsc::BezierOsc(
 	m_bezier(nullptr),
 	m_userWave(user_wave)
 {
-	if (wave_algo == BezierOsc::WaveAlgo::BezierZ) {
+	if (m_waveAlgo == WaveAlgo::BezierZ) {
 		m_bezier = new OscillatorBezierZ();
+		if (m_mutateModel == nullptr) {
+			// bug
+			qWarning("m_mutateModel nullptr creating osc");
+		} else {
+			connect( m_mutateModel, SIGNAL( dataChanged() ), this, SLOT( mutateChanged() ) );
+		}
 	}
 }
 
-
+void BezierOsc::mutateChanged()
+{
+	if (m_bezier != nullptr) {
+		m_bezier->modulate(m_mutateModel->value());
+	}
+}
 
 
 void BezierOsc::update(sampleFrame* ab, const fpp_t frames, const ch_cnt_t chnl, bool modulator)
@@ -186,7 +199,6 @@ void BezierOsc::updateFM( sampleFrame * _ab, const fpp_t _frames,
 		case WaveAlgo::BezierZ:
 			updateFM<WaveAlgo::BezierZ>( _ab, _frames, _chnl );
 			break;
-			// TODO these dont exist
 		case WaveAlgo::Noise:
 			updateFM<WaveAlgo::Noise>( _ab, _frames, _chnl );
 			break;

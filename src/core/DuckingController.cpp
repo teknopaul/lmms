@@ -50,7 +50,7 @@ DuckingController::DuckingController( Model * _parent ) :
 	m_currentPhase( 0 ),
 	m_sampleFunction( &Oscillator::sinSample ),
 	m_userDefSampleBuffer( new SampleBuffer ),
-	m_oscillatorBezierU(new OscillatorBezierU() )
+	m_oscillatorBezier(new OscillatorBezierU() )
 {
 	setSampleExact( true );
 	connect( &m_waveModel, SIGNAL(dataChanged()),
@@ -120,8 +120,7 @@ void DuckingController::updateValueBuffer()
 		}
 		case DuckingController::DuckShape::BezierU:
 		{
-			float ph = absFraction( phase );
-			currentSample = m_oscillatorBezierU->bezierSample(ph);
+			currentSample = m_oscillatorBezier->oscSample(phase);
 			break;
 		}
 		default:

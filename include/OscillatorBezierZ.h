@@ -1,12 +1,12 @@
 #ifndef OSCILLATORBEZIERZ_H
 #define OSCILLATORBEZIERZ_H
 
-#include "OscillatorBezierU.h"
+#include "OscillatorBezierBase.h"
 
 namespace lmms
 {
 
-class OscillatorBezierZ : public OscillatorBezierU
+class OscillatorBezierZ : public OscillatorBezierBase
 {
 public:
 	OscillatorBezierZ();
@@ -14,7 +14,15 @@ public:
 	{
 	}
 
-	void modulate(float mod);
+public slots:
+	void modulate(float mod) override;
+
+protected:
+	void applyModulations() override;
+
+private:
+	float m_mod;
+	float m_next_mod;
 };
 
 } // end namespace lmms

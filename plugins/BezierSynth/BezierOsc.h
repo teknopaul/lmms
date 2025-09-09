@@ -11,6 +11,7 @@
 #include "lmms_math.h"
 #include "lmmsconfig.h"
 #include "AudioEngine.h"
+#include "AutomatableModel.h"
 #include "OscillatorConstants.h"
 #include "OscillatorBezier.h"
 #include "OscillatorBezierZ.h"
@@ -23,8 +24,9 @@ namespace lmms
 class SampleBuffer;
 
 
-class LMMS_EXPORT BezierOsc
+class LMMS_EXPORT BezierOsc : QObject
 {
+	Q_OBJECT
 	// MM_OPERATORS
 public:
 	enum class WaveAlgo
@@ -51,6 +53,7 @@ public:
 			const float &freq,
 			const float &detuning_div_samplerate,
 			const float &volume,
+			const FloatModel * mutateModel,
 			BezierOsc * m_subOsc = nullptr,
 			SampleBuffer * m_userWave = nullptr
 			);
@@ -91,6 +94,8 @@ public:
 		return m_bezier->oscSample( _sample );
 	}
 
+public slots:
+	void mutateChanged();
 
 private:
 	// N.B. not a model Core/Oscillator can change model mid-note, we dont support that
@@ -99,6 +104,7 @@ private:
 	const float & m_freq;
 	const float & m_detuning_div_samplerate;
 	const float & m_volume;
+	const FloatModel * m_mutateModel;
 	BezierOsc * m_subOsc;
 	float m_phaseOffset;
 	float m_phase;

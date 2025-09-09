@@ -33,7 +33,7 @@
 #include "ControllerDialog.h"
 #include "TempoSyncKnobModel.h"
 #include "Oscillator.h"
-#include "OscillatorBezierU.h"
+#include "OscillatorBezier.h"
 
 namespace lmms
 {
@@ -102,7 +102,7 @@ protected:
 private:
 	float m_heldSample;
 	SampleBuffer * m_userDefSampleBuffer;
-	OscillatorBezierU * m_oscillatorBezierU;
+	OscillatorBezier * m_oscillatorBezier;
 
 protected slots:
 	void updatePhase();
