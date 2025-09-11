@@ -58,6 +58,7 @@ set(LMMS_SRCS
 	core/Oscillator.cpp
 	core/OscillatorBezierBase.cpp
 	core/OscillatorBezierU.cpp
+	core/OscillatorBezierUser.cpp
 	core/OscillatorBezierZ.cpp
 	core/PathUtil.cpp
 	core/PatternClip.cpp

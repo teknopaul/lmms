@@ -5,6 +5,7 @@
 #include <cassert>
 #include <fftw3.h>
 #include <cstdlib>
+#include <QObject>
 
 #include "Engine.h"
 #include "lmms_constants.h"
@@ -23,8 +24,11 @@ namespace lmms
 
 class SampleBuffer;
 
-
-class LMMS_EXPORT BezierOsc : QObject
+/**
+ * @brief The BezierOsc class generates sound waves using one of a few different algorythms.
+ * 4 of these are created for each note play they are chained together with m_subOsc.
+ */
+class LMMS_EXPORT BezierOsc : public QObject
 {
 	Q_OBJECT
 	// MM_OPERATORS
@@ -53,7 +57,8 @@ public:
 			const float &freq,
 			const float &detuning_div_samplerate,
 			const float &volume,
-			const FloatModel * mutateModel,
+			FloatModel * mutateModel,
+			const float &attack,
 			BezierOsc * m_subOsc = nullptr,
 			SampleBuffer * m_userWave = nullptr
 			);
@@ -63,35 +68,36 @@ public:
 		delete m_subOsc;
 	}
 
-	inline void setUserWave( const SampleBuffer * _wave )
+	inline void setUserWave( const SampleBuffer * wave )
 	{
-		m_userWave = _wave;
+		m_userWave = wave;
 	}
 
-	void update(sampleFrame* ab, const fpp_t frames, const ch_cnt_t chnl, bool modulator = false);
+	// writes both channels
+	void update(sampleFrame* ab, const fpp_t frames, bool clean);
 
-	static inline sample_t sinSample( const float _sample )
+	static inline sample_t sinSample( const float sample )
 	{
-		return sinf( _sample * F_2PI );
+		return sinf( sample * F_2PI );
 	}
 
 	static inline sample_t noiseSample( const float )
 	{
-		return 1.0f - fast_rand() / FAST_RAND_MAX;
+		return (1.0f - fast_rand() * 2.0f / FAST_RAND_MAX) * 0.25f;
 	}
 
-	inline sample_t userWaveSample( const float _sample ) const
+	inline sample_t userWaveSample( const float sample ) const
 	{
 		// TODO play the whole thing once only
 		if (m_userWave != nullptr) {
-			return m_userWave->userWaveSample( _sample );
+			return m_userWave->userWaveSample( sample );
 		}
 		return 0;
 	}
 
-	inline sample_t bezierSample( const float _sample ) const
+	inline sample_t bezierSample( const float sample ) const
 	{
-		return m_bezier->oscSample( _sample );
+		return m_bezier->oscSample( sample );
 	}
 
 public slots:
@@ -104,36 +110,40 @@ private:
 	const float & m_freq;
 	const float & m_detuning_div_samplerate;
 	const float & m_volume;
-	const FloatModel * m_mutateModel;
+	FloatModel * m_mutateModel;
+	const float & m_attack;
 	BezierOsc * m_subOsc;
 	float m_phaseOffset;
 	float m_phase;
-	bool m_isModulator;
+	sample_rate_t m_sample_rate;
 	OscillatorBezier * m_bezier;
+	using handleState = SampleBuffer::handleState;
 	const SampleBuffer * m_userWave;
+	fpp_t m_frames_played;
 
-	void updateNoSub( sampleFrame * _ab, const fpp_t _frames, const ch_cnt_t _chnl );
-	void updatePM( sampleFrame * _ab, const fpp_t _frames, const ch_cnt_t _chnl );
-	void updateAM( sampleFrame * _ab, const fpp_t _frames, const ch_cnt_t _chnl );
-	void updateMix( sampleFrame * _ab, const fpp_t _frames, const ch_cnt_t _chnl );
-	void updateFM( sampleFrame * _ab, const fpp_t _frames, const ch_cnt_t _chnl );
-
-	template<WaveAlgo W>
-	void updateNoSub( sampleFrame * _ab, const fpp_t _frames, const ch_cnt_t _chnl );
-	template<WaveAlgo W>
-	void updateAM( sampleFrame * _ab, const fpp_t _frames, const ch_cnt_t _chnl );
-	template<WaveAlgo W>
-	void updateMix( sampleFrame * _ab, const fpp_t _frames, const ch_cnt_t _chnl );
-	template<WaveAlgo W>
-	void updateFM( sampleFrame * _ab, const fpp_t _frames, const ch_cnt_t _chnl );
+	void updateNoSub( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
+	void updateNoSubNoise( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
+	void updateAM( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
+	void updateMix( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
+	void updateMixNoise( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
+	void updateFM( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
 
 	template<WaveAlgo W>
-	inline sample_t getSample( const float _sample );
+	void updateNoSub( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
+	template<WaveAlgo W>
+	void updateAM( sampleFrame * sampleArrays, const fpp_t frames , bool clean);
+	template<WaveAlgo W>
+	void updateMix( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
+	template<WaveAlgo W>
+	void updateFM( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
 
-	float syncInit( sampleFrame * _ab, const fpp_t _frames,
-							const ch_cnt_t _chnl );
-	inline bool syncOk( float _osc_coeff );
+	template<WaveAlgo W>
+	inline sample_t getSample( const float sample );
 
+	float syncInit( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
+	inline bool syncOk( float osc_coeff );
+	inline sample_t fadeOut(int frames_played, float seconds);
+	inline sample_t fadeIn(int frames_played, float seconds);
 	inline void recalcPhase();
 
 } ;

@@ -9,7 +9,7 @@ namespace lmms
 class OscillatorBezierZ : public OscillatorBezierBase
 {
 public:
-	OscillatorBezierZ();
+	OscillatorBezierZ(float mod = 0.0f);
 	virtual ~OscillatorBezierZ()
 	{
 	}
@@ -21,7 +21,7 @@ protected:
 	void applyModulations() override;
 
 private:
-	float m_mod;
+	// -1 for no change
 	float m_next_mod;
 };
 

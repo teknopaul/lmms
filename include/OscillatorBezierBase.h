@@ -2,6 +2,7 @@
 #define LMMS_OSCILLATOR_BEZIER_BASE_H
 
 #include <cstring>
+#include <QObject>
 
 #include "Engine.h"
 #include "lmms_constants.h"
@@ -35,6 +36,9 @@ public:
 
 	sample_t oscSample(const float sample) override;
 
+	/**
+	 * @param mod value from 0.0f - 1.0f
+	 */
 	void modulate(float mod) override {
 		// noop for BezierBase
 	}

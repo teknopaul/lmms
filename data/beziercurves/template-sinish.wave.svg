@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1mm"
+   height="1mm"
+   viewBox="0 0 1 1"
+   version="1.1"
+   id="wave-template"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs68401" />
+  <g
+     id="audiolayer">
+    <desc
+       id="mutations">range=-0.1
+m_segments[0][1].x
+range=+0.1
+m_segments[1][2].x</desc>
+    <path
+       id="wave"
+       style="fill:none;stroke:#000000;stroke-width:0.0060154px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 0,0.5 c 0.26105438,-0.49622862 0.46311149,-0.0885624 0.5,0 0.0357214,0.0857605 0.24483495,0.4994755 0.5,0" />
+  </g>
+  <path
+     style="fill:#808080;stroke:#808080;stroke-width:0.01;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:0.5;stroke-miterlimit:4;stroke-dasharray:none;fill-opacity:0.5"
+     d="m -0.09994584,0.49978025 1.19989164,4.395e-4"
+     id="path120627" />
+  <path
+     style="fill:#808080;fill-opacity:0.5;stroke:#808080;stroke-width:0.01;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.5"
+     d="M -0.09999817,0.005 1.0998934,0.0054395"
+     id="path120627-7" />
+  <path
+     style="fill:#808080;fill-opacity:0.5;stroke:#808080;stroke-width:0.01;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.5"
+     d="M -0.09999817,1.005 1.0998933,1.0054395"
+     id="path120627-7-5" />
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+     x="1.1308444"
+     y="0.54557127"
+     id="text125153"><tspan
+       id="tspan125151"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:0.176389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+       x="1.1308444"
+       y="0.54557127">zero crossing</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+     x="1.1253253"
+     y="0.047922719"
+     id="text125153-1"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:0.176389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+       x="1.1253253"
+       y="0.047922719"
+       id="tspan137349">-1.0f</tspan></text>
+  <text
+     xml:space="preserve"
+     style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+     x="1.1272198"
+     y="1.0635804"
+     id="text125153-1-8"><tspan
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:0.176389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583"
+       x="1.1272198"
+       y="1.0635804"
+       id="tspan137349-0">+1.0f</tspan></text>
+</svg>

@@ -28,9 +28,12 @@
 #include "Instrument.h"
 #include "InstrumentView.h"
 #include "AutomatableModel.h"
+#include "LedCheckBox.h"
 #include "LeftRightNav.h"
 #include "DirectoryScroller.h"
 #include "BezierOsc.h"
+#include "OscillatorBezierUser.h"
+
 
 namespace lmms
 {
@@ -58,6 +61,9 @@ public:
 	BezierSynthOscillatorObject( Model * _parent, int _idx );
 	~BezierSynthOscillatorObject() override;
 
+	float getVolume() {
+		return m_volume;
+	}
 
 private:
 	int m_oscIndex;
@@ -65,12 +71,14 @@ private:
 	FloatModel m_mutateModel;
 	FloatModel m_coarseModel;
 	FloatModel m_fineModel;
+	FloatModel m_attackModel;
 	IntModel m_waveAlgoModel;
 	IntModel m_modulationAlgoModel; // only osc1
 	SampleBuffer * m_sampleBuffer;  // only oscSample
+	BoolModel m_playModel;
+	OscillatorBezierDefinition * m_bezierDefinition;
 
-	float m_volumeLeft;
-	float m_volumeRight;
+	float m_volume;
 
 	// normalized detuning -> x/sampleRate
 	float m_detuning;
@@ -83,6 +91,9 @@ private slots:
 	void oscUserDefWaveDblClick();
 	void oscUserDefWaveNext();
 	void oscUserDefWavePrev();
+	void oscUserDefSampleDblClick();
+	void oscUserDefSampleNext();
+	void oscUserDefSamplePrev();
 
 	void updateVolume();
 	void updateMutate();
@@ -96,13 +107,14 @@ class BezierSynth : public Instrument
 {
 	Q_OBJECT
 public:
-	BezierSynth( InstrumentTrack * _track );
+	BezierSynth( InstrumentTrack * track );
 	~BezierSynth() override = default;
 
-	void playNote( NotePlayHandle * _n, sampleFrame * _working_buffer ) override;
+	void playNote( NotePlayHandle * n, sampleFrame * working_buffer ) override;
+	void playSample( NotePlayHandle * n, sampleFrame * working_buffer, SampleBuffer * sampleBuffer );
 	void deleteNotePluginData( NotePlayHandle * _n ) override;
 
-	void saveSettings( QDomDocument & _doc, QDomElement & _parent ) override;
+	void saveSettings( QDomDocument & doc, QDomElement & parent ) override;
 	void loadSettings( const QDomElement & _this ) override;
 
 	QString nodeName() const override;
@@ -112,8 +124,7 @@ public:
 		return( 128 );
 	}
 
-	gui::PluginView* instantiateView( QWidget * _parent ) override;
-
+	gui::PluginView* instantiateView( QWidget * parent ) override;
 
 protected slots:
 	void updateAllDetuning();
@@ -125,12 +136,13 @@ private:
 	BezierSynthOscillatorObject * m_osc_noise;
 	BezierSynthOscillatorObject * m_osc_sample;
 
+	using handleState = SampleBuffer::handleState;
 	struct oscPtr
 	{
 		MM_OPERATORS
-		BezierOsc * oscLeft;
-		BezierOsc * oscRight;
-	} ;
+		BezierOsc * osc;
+		handleState * playState;
+	};
 
 
 	friend class gui::BezierSynthView;
@@ -146,7 +158,7 @@ class BezierSynthView : public InstrumentViewFixedSize
 {
 	Q_OBJECT
 public:
-	BezierSynthView( Instrument * _instrument, QWidget * _parent );
+	BezierSynthView( Instrument * instrument, QWidget * parent );
 	~BezierSynthView() override = default;
 
 
@@ -162,6 +174,8 @@ private:
 					Knob * coarse,
 					Knob * fine,
 					Knob * mutate,
+					Knob * attack,
+					LedCheckBox * play,
 					automatableButtonGroup * waveAlgoBtnGroup,
 					PixmapButton * userWaveButton,
 					LeftRightNav * leftRightNav) :
@@ -169,6 +183,8 @@ private:
 			m_coarseKnob( coarse ),
 			m_fineKnob( fine ),
 			m_mutateKnob( mutate ),
+			m_attackKnob( attack ),
+			m_playLed( play ),
 			m_waveAlgoBtnGrp( waveAlgoBtnGroup ),
 			m_userWaveButton( userWaveButton ),
 			m_userWaveSwitcher( leftRightNav )
@@ -179,6 +195,8 @@ private:
 		Knob * m_coarseKnob;
 		Knob * m_fineKnob;
 		Knob * m_mutateKnob;
+		Knob * m_attackKnob;
+		LedCheckBox * m_playLed;
 		automatableButtonGroup * m_waveAlgoBtnGrp;
 		PixmapButton * m_userWaveButton;
 		LeftRightNav * m_userWaveSwitcher;

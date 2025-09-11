@@ -22,10 +22,9 @@ namespace lmms
  * to the ear.
  * It is symetrical, so should have a DC offset of 0.0.
  */
-OscillatorBezierZ::OscillatorBezierZ() :
+OscillatorBezierZ::OscillatorBezierZ(float mod) :
 	OscillatorBezierBase(),
-	m_mod(0),
-	m_next_mod(0)
+	m_next_mod(-1.0f)
 {
 	overrideNumOfSegment(2);
 
@@ -39,9 +38,15 @@ OscillatorBezierZ::OscillatorBezierZ() :
 		{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} },
 		{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} }
 	});
-
+	if (mod >= 0.0 && mod <= 1.0 ) {
+		modulate(mod);
+		applyModulations();
+	}
 }
 
+/**
+ * @param mod value from 0.0f to 1.0f
+ */
 void OscillatorBezierZ::modulate(float mod)
 {
 	m_next_mod = mod;
@@ -49,17 +54,18 @@ void OscillatorBezierZ::modulate(float mod)
 
 /**
  * vary m_segments[0][1][0] from 0.250f  to 0.150f
- * vary m_segments[1][2[0] from 0.750f  to 0.850f
+ * vary m_segments[1][2][0] from 0.750f  to 0.850f
  * this will alter how hard the hard knee phase is
  * hopefully this will make it go from nasty to nice :)
  */
 void OscillatorBezierZ::applyModulations()
 {
-	if (m_mod == m_next_mod) return;
+	if (m_next_mod < 0.0f) return;
 
-	float diff = m_next_mod / 10;
+	float diff = m_next_mod / 5;
 	m_segments[0][1].x = 0.250f - diff;
 	m_segments[1][2].x = 0.750f + diff;
+	m_next_mod = -1.0f;
 }
 
 } // namespace lmms

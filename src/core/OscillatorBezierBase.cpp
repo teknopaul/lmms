@@ -155,6 +155,7 @@ sample_t OscillatorBezierBase::bezierSample(const float sample)
 	if (m_last_i != segment_index) {
 		m_last_t = 0;
 		if (segment_index == 0) {
+			// at a Z crossing
 			applyModulations();
 		}
 	}

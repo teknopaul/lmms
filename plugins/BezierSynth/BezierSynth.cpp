@@ -51,6 +51,13 @@ namespace lmms
 extern "C"
 {
 
+
+/**
+ * A synth that uses bezier curves to generate sound.
+ * Has 2 prinscipal oscillators, one can AM FM or mix modulate the other.
+ * Each Bezier curve oscillator support a mutate knob to modulate the sound wave in some way
+ * by applying some changes tot he bezier vectors used to generate sounds.
+ */
 Plugin::Descriptor PLUGIN_EXPORT beziersynth_plugin_descriptor =
 {
 	LMMS_STRINGIFY( PLUGIN_NAME ),
@@ -68,9 +75,14 @@ Plugin::Descriptor PLUGIN_EXPORT beziersynth_plugin_descriptor =
 
 // this synth has 4 of these
 // osc1 is the core sound wave
-// osc2 is eithe a layered wave ior a modulation wave
-// osc3 is a noise wave
-// osc4 is a sample
+// osc2 is either a layered wave or a modulation wave
+// osc3 is a noise layer
+// osc4 is a waveform loaded as an audio file.
+const int OSC_WAVE1 = 0;
+const int OSC_WAVE2 = 0;
+const int OSC_NOISE = 0;
+const int OSC_SAMPLE = 0;
+
 
 BezierSynthOscillatorObject::BezierSynthOscillatorObject( Model * _parent, int _idx ) :
 	Model( _parent ),
@@ -79,6 +91,7 @@ BezierSynthOscillatorObject::BezierSynthOscillatorObject( Model * _parent, int _
 	m_mutateModel( 0.0f, 0.0f, 1.0f, 0.01f, this, tr("Mutate")),
 	m_coarseModel( -_idx * KeysPerOctave, -2 * KeysPerOctave, 2 * KeysPerOctave, 1.0f, this, tr( "Osc %1 coarse detuning" ).arg( _idx+1 ) ),
 	m_fineModel( 0.0f, -100.0f, 100.0f, 1.0f, this, tr( "Osc %1 fine detuning" ).arg( _idx+1 ) ),
+	m_attackModel( 0.0f, 0.0f, 1.0f, 0.01f, this, tr("Attack")),
 	m_waveAlgoModel( static_cast<int>(BezierOsc::WaveAlgo::BezierZ), 0,
 			BezierOsc::NumWaveAlgos-1, this,
 			tr( "Bezier wave algo %1" ).arg( _idx+1 ) ),
@@ -86,33 +99,34 @@ BezierSynthOscillatorObject::BezierSynthOscillatorObject( Model * _parent, int _
 				BezierOsc::NumModulationAlgos-1, this,
 				tr( "Modulation type %1" ).arg( _idx+1 ) ),
 	m_sampleBuffer( new SampleBuffer ),
-	m_volumeLeft( 0.0f ),
-	m_volumeRight( 0.0f ),
+	m_bezierDefinition( new OscillatorBezierDefinition ),
+	m_volume( 0.0f ),
 	m_detuning( 0.0f ),
 	m_dirScroller()
 {
-	if (m_oscIndex == 2) {
+	if (m_oscIndex == OSC_NOISE) {
 		m_fineModel.setValue(0);
 		m_waveAlgoModel.setValue( static_cast<int>(BezierOsc::WaveAlgo::Noise) );
 		m_modulationAlgoModel.setValue( static_cast<int>(BezierOsc::ModulationAlgo::SignalMix) );
 	}
-	if (m_oscIndex == 3) {
+	if (m_oscIndex == OSC_SAMPLE) {
 		m_fineModel.setValue(0);
 		m_waveAlgoModel.setValue( static_cast<int>(BezierOsc::WaveAlgo::Sample) );
 		m_modulationAlgoModel.setValue( static_cast<int>(BezierOsc::ModulationAlgo::SignalMix) );
 	}
+
 	// Connect knobs with Oscillators' inputs
 	connect( &m_volumeModel, SIGNAL( dataChanged() ), this, SLOT( updateVolume() ), Qt::DirectConnection );
 	updateVolume();
 
-	if (m_oscIndex < 2) {
-		connect( &m_coarseModel, SIGNAL( dataChanged() ), this, SLOT( updateDetuning() ), Qt::DirectConnection );
-		connect( &m_fineModel, SIGNAL( dataChanged() ), this, SLOT( updateDetuning() ), Qt::DirectConnection );
-		updateDetuning();
+	connect( &m_coarseModel, SIGNAL( dataChanged() ), this, SLOT( updateDetuning() ), Qt::DirectConnection );
 
-		connect( &m_mutateModel, SIGNAL( dataChanged() ), this, SLOT( updateMutate() ), Qt::DirectConnection );
+	if (m_oscIndex == OSC_WAVE1 || OSC_WAVE2) {
+		connect( &m_fineModel, SIGNAL( dataChanged() ), this, SLOT( updateDetuning() ), Qt::DirectConnection );
+		connect( &m_mutateModel, &FloatModel::dataChanged, this, &BezierSynthOscillatorObject::updateMutate , Qt::DirectConnection );
 		updateMutate();
 	}
+	updateDetuning();
 }
 
 
@@ -124,7 +138,7 @@ BezierSynthOscillatorObject::~BezierSynthOscillatorObject()
 
 void BezierSynthOscillatorObject::oscUserDefWaveDblClick()
 {
-	QString fileName = m_sampleBuffer->openAndSetWaveformFile();
+	QString fileName = m_bezierDefinition->openSvgFile();
 	if( fileName != "" )
 	{
 		// TODO:
@@ -140,13 +154,50 @@ void BezierSynthOscillatorObject::oscUserDefWaveNext()
 	if ( ! newFile.isEmpty() )
 	{
 		qWarning("setting wave '%s'", newFile.toStdString().c_str());
+		QFileInfo fInfo(PathUtil::toAbsolute(m_bezierDefinition->getFile()));
+		m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile) );
+	}
+}
+
+
+void BezierSynthOscillatorObject::oscUserDefWavePrev()
+{
+	QString newFile = m_dirScroller.prev();
+	if ( ! newFile.isEmpty() )
+	{
+		qWarning("setting wave '%s' current='%s'", newFile.toStdString().c_str(), "todo");
+
+		QFileInfo fInfo(PathUtil::toAbsolute(m_bezierDefinition->getFile()));
+		m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile) );
+	}
+}
+
+
+void BezierSynthOscillatorObject::oscUserDefSampleDblClick()
+{
+	QString fileName = m_sampleBuffer->openAndSetWaveformFile();
+	if( fileName != "" )
+	{
+		// TODO:
+		//m_usrWaveBtn->setToolTip(m_sampleBuffer->audioFile());
+		m_dirScroller.setFile(fileName);
+		qWarning("set wave '%s'", PathUtil::toAbsolute(fileName).toStdString().c_str());
+	}
+}
+
+void BezierSynthOscillatorObject::oscUserDefSampleNext()
+{
+	QString newFile = m_dirScroller.next();
+	if ( ! newFile.isEmpty() )
+	{
+		qWarning("setting wave '%s'", newFile.toStdString().c_str());
 		QFileInfo fInfo(PathUtil::toAbsolute(m_sampleBuffer->audioFile()));
 		m_sampleBuffer->setAudioFile( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile) );
 	}
 }
 
 
-void BezierSynthOscillatorObject::oscUserDefWavePrev()
+void BezierSynthOscillatorObject::oscUserDefSamplePrev()
 {
 	QString newFile = m_dirScroller.prev();
 	if ( ! newFile.isEmpty() )
@@ -159,14 +210,12 @@ void BezierSynthOscillatorObject::oscUserDefWavePrev()
 
 void BezierSynthOscillatorObject::updateVolume()
 {
-	m_volumeLeft = m_volumeModel.value() / 100.0f;
-	m_volumeRight = m_volumeModel.value() / 100.0f;
+	m_volume = m_volumeModel.value() / 100.0f;
 }
 
 
 void BezierSynthOscillatorObject::updateMutate()
 {
-	// todo anything here? Change UI somehow?
 }
 
 void BezierSynthOscillatorObject::updateDetuning()
@@ -202,6 +251,8 @@ void BezierSynth::saveSettings( QDomDocument & _doc, QDomElement & _this )
 	m_osc1->m_volumeModel.saveSettings( _doc, _this, "vol" + is );
 	m_osc1->m_coarseModel.saveSettings( _doc, _this, "coarse" + is );
 	m_osc1->m_fineModel.saveSettings( _doc, _this, "fine" + is );
+	m_osc1->m_mutateModel.saveSettings( _doc, _this, "mutate" + is );
+	m_osc1->m_attackModel.saveSettings( _doc, _this, "attack" + is );
 	m_osc1->m_waveAlgoModel.saveSettings( _doc, _this, "wavealgo" + is );
 
 	m_osc1->m_modulationAlgoModel.saveSettings( _doc, _this, "modalgo" + QString::number( i+1 ) );
@@ -212,6 +263,8 @@ void BezierSynth::saveSettings( QDomDocument & _doc, QDomElement & _this )
 	m_osc2->m_volumeModel.saveSettings( _doc, _this, "vol" + is );
 	m_osc2->m_coarseModel.saveSettings( _doc, _this, "coarse" + is );
 	m_osc2->m_fineModel.saveSettings( _doc, _this, "fine" + is );
+	m_osc1->m_mutateModel.saveSettings( _doc, _this, "mutate" + is );
+	m_osc2->m_attackModel.saveSettings( _doc, _this, "attack" + is );
 	m_osc2->m_waveAlgoModel.saveSettings( _doc, _this, "wavealgo" + is );
 
 	// osc_noise
@@ -225,6 +278,8 @@ void BezierSynth::saveSettings( QDomDocument & _doc, QDomElement & _this )
 	is = QString::number( i );
 	m_osc_sample->m_volumeModel.saveSettings( _doc, _this, "vol" + is );
 	m_osc_sample->m_coarseModel.saveSettings( _doc, _this, "coarse" + is );
+	m_osc_sample->m_attackModel.saveSettings( _doc, _this, "attack" + is );
+	m_osc_sample->m_playModel.saveSettings( _doc, _this, "play" + is );
 	_this.setAttribute( "userwavefile" + is, m_osc_sample->m_sampleBuffer->audioFile() );
 }
 
@@ -239,6 +294,7 @@ void BezierSynth::loadSettings( const QDomElement & _this )
 	m_osc1->m_coarseModel.loadSettings( _this, "coarse" + is );
 	m_osc1->m_fineModel.loadSettings( _this, "fine" + is );
 	m_osc1->m_mutateModel.loadSettings( _this, "mutate" + is );
+	m_osc1->m_attackModel.loadSettings( _this, "attack" + is );
 	m_osc1->m_waveAlgoModel.loadSettings( _this, "wavealgo" + is );
 	m_osc1->m_modulationAlgoModel.loadSettings( _this, "modalgo" + QString::number( i+1 ) );
 
@@ -248,6 +304,7 @@ void BezierSynth::loadSettings( const QDomElement & _this )
 	m_osc2->m_coarseModel.loadSettings( _this, "coarse" + is );
 	m_osc2->m_fineModel.loadSettings( _this, "fine" + is );
 	m_osc2->m_mutateModel.loadSettings( _this, "mutate" + is );
+	m_osc2->m_attackModel.loadSettings( _this, "attack" + is );
 	m_osc2->m_waveAlgoModel.loadSettings( _this, "wavealgo" + is );
 
 	i = 2;
@@ -259,6 +316,8 @@ void BezierSynth::loadSettings( const QDomElement & _this )
 	is = QString::number( i );
 	m_osc_sample->m_volumeModel.loadSettings( _this, "vol" + is );
 	m_osc_sample->m_coarseModel.loadSettings( _this, "coarse" + is );
+	m_osc_sample->m_attackModel.loadSettings( _this, "attack" + is );
+	m_osc_sample->m_playModel.loadSettings( _this, "play" + is );
 	m_osc_sample->m_sampleBuffer->setAudioFile( _this.attribute( "userwavefile" + is ) );
 }
 
@@ -271,127 +330,131 @@ QString BezierSynth::nodeName() const
 
 void BezierSynth::playNote( NotePlayHandle * _n, sampleFrame * _working_buffer )
 {
+	bool playWholeSample = m_osc_sample->m_playModel.value();
 	if (!_n->m_pluginData)
 	{
-		// TODO no need for left and right the do the same math twice
-		auto oscs_l = std::array<BezierOsc*, 4>{};
-		auto oscs_r = std::array<BezierOsc*, 4>{};
+		// TODO no need for left and right they do the same math twice
+		auto oscs = std::array<BezierOsc*, 4>{};
 
-		// osc_sample
-		oscs_l[3] = new BezierOsc(
-				BezierOsc::WaveAlgo::Sample,
-				BezierOsc::ModulationAlgo::SignalMix,
-				_n->frequency(),
-				m_osc_sample->m_detuning,
-				m_osc_sample->m_volumeLeft,
-				nullptr,
-				nullptr, // no sub osc
-				m_osc_sample->m_sampleBuffer );
-		oscs_r[3] = new BezierOsc(
-				BezierOsc::WaveAlgo::Sample,
-				BezierOsc::ModulationAlgo::SignalMix,
-				_n->frequency(),
-				m_osc_sample->m_detuning,
-				m_osc_sample->m_volumeRight,
-				nullptr,
-				nullptr, // no sub osc
-				m_osc_sample->m_sampleBuffer );
+		if ( ! playWholeSample ) {
+			// osc_sample
+			oscs[3] = new BezierOsc(
+					BezierOsc::WaveAlgo::Sample,
+					BezierOsc::ModulationAlgo::SignalMix,
+					_n->frequency(),
+					m_osc_sample->m_detuning,
+					m_osc_sample->m_volume,
+					nullptr,
+					m_osc_sample->m_attackModel.value(),
+					nullptr, // no sub osc
+					m_osc_sample->m_sampleBuffer );
+		} else {
+			oscs[3] = nullptr;
+		}
 
 		// osc_noise
-		oscs_l[2] = new BezierOsc(
+		oscs[2] = new BezierOsc(
 				BezierOsc::WaveAlgo::Noise,
 				BezierOsc::ModulationAlgo::SignalMix,
 				_n->frequency(),
 				m_osc_noise->m_detuning,
-				m_osc_noise->m_volumeLeft,
+				m_osc_noise->m_volume,
 				nullptr,
-				oscs_l[3],
-				nullptr );
-		oscs_r[2] = new BezierOsc(
-				BezierOsc::WaveAlgo::Noise,
-				BezierOsc::ModulationAlgo::SignalMix,
-				_n->frequency(),
-				m_osc_noise->m_detuning,
-				m_osc_noise->m_volumeRight,
-				nullptr,
-				oscs_r[3],
+				0.0f,
+				oscs[3],
 				nullptr );
 
+
 		// osc2
-		oscs_l[1] = new BezierOsc(
+		oscs[1] = new BezierOsc(
 				static_cast<BezierOsc::WaveAlgo>( m_osc2->m_waveAlgoModel.value() ),
 				BezierOsc::ModulationAlgo::SignalMix,
 				_n->frequency(),
 				m_osc2->m_detuning,
-				m_osc2->m_volumeLeft,
+				m_osc2->m_volume,
 				&m_osc2->m_mutateModel,
-				oscs_l[2],
-				nullptr);
-		oscs_r[1] = new BezierOsc(
-				static_cast<BezierOsc::WaveAlgo>( m_osc2->m_waveAlgoModel.value() ),
-				BezierOsc::ModulationAlgo::SignalMix,
-				_n->frequency(),
-				m_osc2->m_detuning,
-				m_osc2->m_volumeRight,
-				&m_osc2->m_mutateModel,
-				oscs_r[2],
+				m_osc2->m_attackModel.value(),
+				oscs[2],
 				nullptr);
 
 		// osc1
-		oscs_l[0] = new BezierOsc(
+		oscs[0] = new BezierOsc(
 				static_cast<BezierOsc::WaveAlgo>( m_osc1->m_waveAlgoModel.value() ),
 				static_cast<BezierOsc::ModulationAlgo>( m_osc1->m_modulationAlgoModel.value() ),
 				_n->frequency(),
 				m_osc1->m_detuning,
-				m_osc1->m_volumeLeft,
+				m_osc1->m_volume,
 				&m_osc1->m_mutateModel,
-				oscs_l[1],
-				nullptr );
-		oscs_r[0] = new BezierOsc(
-				static_cast<BezierOsc::WaveAlgo>( m_osc1->m_waveAlgoModel.value() ),
-				static_cast<BezierOsc::ModulationAlgo>( m_osc1->m_modulationAlgoModel.value() ),
-				_n->frequency(),
-				m_osc1->m_detuning,
-				m_osc1->m_volumeRight,
-				&m_osc1->m_mutateModel,
-				oscs_r[1],
+				m_osc1->m_attackModel.value(),
+				oscs[1],
 				nullptr );
 
 		_n->m_pluginData = new oscPtr;
-		static_cast<oscPtr *>( _n->m_pluginData )->oscLeft = oscs_l[0];
-		static_cast<oscPtr *>( _n->m_pluginData )->oscRight = oscs_r[0];
+		static_cast<oscPtr *>( _n->m_pluginData )->osc = oscs[0];
 	}
 
-	BezierOsc * osc_l = static_cast<oscPtr *>( _n->m_pluginData )->oscLeft;
-	BezierOsc * osc_r = static_cast<oscPtr *>( _n->m_pluginData )->oscRight;
+	BezierOsc * osc = static_cast<oscPtr *>( _n->m_pluginData )->osc;
 
 	const fpp_t frames = _n->framesLeftForCurrentPeriod();
 	const f_cnt_t offset = _n->noteOffset();
 
-	osc_l->update( _working_buffer + offset, frames, 0 );
-	osc_r->update( _working_buffer + offset, frames, 1 );
+	if ( playWholeSample ) {
+		playSample( _n, _working_buffer + offset, m_osc_sample->m_sampleBuffer );
+	}
+
+	osc->update( _working_buffer + offset, frames, !playWholeSample );
 
 	applyFadeIn(_working_buffer, _n);
 	applyRelease( _working_buffer, _n );
 
 }
 
-
-
-
-void BezierSynth::deleteNotePluginData( NotePlayHandle * _n )
+void BezierSynth::playSample( NotePlayHandle * n, sampleFrame * working_buffer, SampleBuffer * sampleBuffer )
 {
-	delete static_cast<BezierOsc *>( static_cast<oscPtr *>( _n->m_pluginData )->oscLeft );
-	delete static_cast<BezierOsc *>( static_cast<oscPtr *>( _n->m_pluginData )->oscRight );
-	delete static_cast<oscPtr *>( _n->m_pluginData );
+	const fpp_t frames = n->framesLeftForCurrentPeriod();
+	const f_cnt_t offset = n->noteOffset();
+
+	handleState * playState;
+	if( !static_cast<oscPtr *>( n->m_pluginData )->playState )
+	{
+		playState = new handleState( false, SRC_LINEAR );
+		static_cast<oscPtr *>( n->m_pluginData )->playState = playState;
+		sampleBuffer->setFrequency(n->frequency());
+		sampleBuffer->setFrequency(440.0f);
+		sampleBuffer->setAmplification(m_osc_sample->getVolume());
+	} else {
+		playState = static_cast<oscPtr *>( n->m_pluginData )->playState;
+	}
+
+	if( ! n->isFinished() )
+	{
+		// this makes not play around the correct freequency , why??
+		//float freq = n->frequency() - instrumentTrack()->baseFreq();
+		float freq = 440.0f;
+		if (sampleBuffer->play( working_buffer + offset,
+						playState,
+						frames, freq,
+						SampleBuffer::LoopMode::Off )) {
+			applyRelease( working_buffer, n );
+		} else {
+			memset( working_buffer, 0, ( frames + offset ) * sizeof( sampleFrame ) );
+		}
+	}
+}
+
+
+void BezierSynth::deleteNotePluginData( NotePlayHandle * n )
+{
+	delete static_cast<BezierOsc *>( static_cast<oscPtr *>( n->m_pluginData )->osc );
+	delete static_cast<handleState *>( static_cast<oscPtr *>( n->m_pluginData )->playState );
+	delete static_cast<oscPtr *>( n->m_pluginData );
 }
 
 
 
-
-gui::PluginView* BezierSynth::instantiateView( QWidget * _parent )
+gui::PluginView* BezierSynth::instantiateView( QWidget * parent )
 {
-	return new gui::BezierSynthView( this, _parent );
+	return new gui::BezierSynthView( this, parent );
 }
 
 
@@ -399,6 +462,8 @@ void BezierSynth::updateAllDetuning()
 {
 	m_osc2->updateDetuning();
 	m_osc2->updateDetuning();
+	m_osc_noise->updateDetuning();
+	m_osc_sample->updateDetuning();
 }
 
 
@@ -409,17 +474,31 @@ namespace gui
 class BezierSynthKnob : public Knob
 {
 public:
-	BezierSynthKnob( QWidget * _parent ) : Knob( KnobType::Dark28, _parent )
+	BezierSynthKnob( QWidget * parent ) : Knob( KnobType::Dark28, parent )
 	{
 		setFixedSize( 30, 35 );
+	}
+};
+
+class BezierMutateKnob : public Knob
+{
+public:
+	BezierMutateKnob( QWidget * parent ) : Knob( KnobType::Bright26, parent )
+	{
+		setFixedSize( 30, 35 );
+		setProperty("outerColor", QColor(0, 100, 0));
+		setProperty("arcInctiveColor", QColor(0, 100, 0));
+		setProperty("arcActiveColor", QColor(220, 0, 0));
+		setProperty("lineInctiveColor", QColor(0, 100, 0));
+		setProperty("lineActiveColor", QColor(220, 0, 0));
 	}
 };
 
 // 82, 109
 
 
-BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) :
-	InstrumentViewFixedSize( _instrument, _parent )
+BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
+	InstrumentViewFixedSize( instrument, parent )
 {
 	setAutoFillBackground( true );
 	QPalette pal;
@@ -469,23 +548,29 @@ BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) 
 	auto vol1 = new BezierSynthKnob(this);
 	vol1->setVolumeKnob( true );
 	vol1->move( knob_x, knob_y );
-	vol1->setHintText( tr( "Wave %1 volume:" ).arg( i+1 ), "%" );
+	vol1->setHintText( tr( "Volume:" ).arg( i+1 ), "%" );
 
 	// setup coarse-knob
 	Knob * course1 = new BezierSynthKnob(this);
 	course1->move( knob_x + 40, knob_y );
-	course1->setHintText( tr( "Wave %1 coarse detuning:" ).arg( i + 1 ) , " " + tr( "semitones" ) );
+	course1->setHintText( tr( "Coarse detuning %1:" ).arg( i + 1 ) , " " + tr( "semitones" ) );
 
 	// setup knob for fine-detuning
 	Knob * fine1 = new BezierSynthKnob(this);
 	fine1->move(  knob_x + 72, knob_y );
-	fine1->setHintText( tr( "Wave %1 fine detuning:" ).arg( i + 1 ), " " + tr( "cents" ) );
+	fine1->setHintText( tr( "Fine detuning %1:" ).arg( i + 1 ), " " + tr( "cents" ) );
 
 	// setup mutate-knob
-	auto mutate1 = new BezierSynthKnob(this);
+	auto mutate1 = new BezierMutateKnob(this);
 	mutate1->setVolumeKnob( true );
 	mutate1->move(  knob_x + 104, knob_y );
 	mutate1->setHintText( tr( "Wave %1 mutate:" ).arg( i+1 ), "" );
+
+	// setup attack-knob
+	auto attack1 = new BezierSynthKnob(this);
+	attack1->setVolumeKnob( true );
+	attack1->move(  knob_x + 134, knob_y );
+	attack1->setHintText( tr( "Attack %1 :" ).arg( i+1 ), "" );
 
 
 	int btn_y = 0;
@@ -510,7 +595,7 @@ BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) 
 	bezierz_btn1->setToolTip(tr("BezierZ wave"));
 
 	auto uwb1 = new PixmapButton(this, nullptr);
-	uwb1->move( btn_x + ( x++ * 15), btn_y );
+	uwb1->move( 199, btn_y );
 	uwb1->setActiveGraphic( PLUGIN_NAME::getIconPixmap( "usr_shape_active" ) );
 	uwb1->setInactiveGraphic( PLUGIN_NAME::getIconPixmap( "usr_shape_inactive" ) );
 	uwb1->setToolTip(tr("User-defined wave"));
@@ -527,7 +612,7 @@ BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) 
 	wabg1->addButton( uwb1 );
 
 
-	m_osc1Knobs = BezierOscKnobs( vol1, course1, fine1, mutate1, wabg1, uwb1, lrn1 );
+	m_osc1Knobs = BezierOscKnobs( vol1, course1, fine1, mutate1, attack1, nullptr, wabg1, uwb1, lrn1 );
 
 	// OSCILLATOR 2
 
@@ -551,11 +636,16 @@ BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) 
 	fine2->setHintText( tr( "Wave %1 fine detuning:" ).arg( i + 1 ), " " + tr( "cents" ) );
 
 	// setup mutate-knob
-	auto mutate2 = new BezierSynthKnob(this);
+	auto mutate2 = new BezierMutateKnob(this);
 	mutate2->setVolumeKnob( true );
 	mutate2->move(  knob_x + 104, knob_y );
 	mutate2->setHintText( tr( "Wave %1 mutate:" ).arg( i+1 ), "" );
 
+	// setup attack-knob
+	auto attack2 = new BezierSynthKnob(this);
+	attack2->setVolumeKnob( true );
+	attack2->move(  knob_x + 134, knob_y );
+	attack2->setHintText( tr( "Attack %1 :" ).arg( i+1 ), "" );
 
 	btn_y = 63;
 
@@ -579,7 +669,7 @@ BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) 
 	bezierz_btn2->setToolTip(tr("BezierZ wave"));
 
 	auto uwb2 = new PixmapButton(this, nullptr);
-	uwb2->move( btn_x + ( x++ * 15), btn_y );
+	uwb2->move( 199, btn_y );
 	uwb2->setActiveGraphic( PLUGIN_NAME::getIconPixmap( "usr_shape_active" ) );
 	uwb2->setInactiveGraphic( PLUGIN_NAME::getIconPixmap( "usr_shape_inactive" ) );
 	uwb2->setToolTip(tr("User-defined wave"));
@@ -595,7 +685,7 @@ BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) 
 	wabg2->addButton( bezierz_btn2 );
 	wabg2->addButton( uwb2 );
 
-	m_osc2Knobs = BezierOscKnobs( vol2, course2, fine2, mutate2, wabg2, uwb2, lrn2 );
+	m_osc2Knobs = BezierOscKnobs( vol2, course2, fine2, mutate2, attack2, nullptr, wabg2, uwb2, lrn2 );
 
 
 	// NOISE
@@ -614,7 +704,7 @@ BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) 
 	course3->move( knob_x + 40, knob_y );
 	course3->setHintText( tr( "Osc %1 coarse detuning:" ).arg( i + 1 ) , " " + tr( "semitones" ) );
 
-	m_oscNoiseKnobs = BezierOscKnobs( vol3, course3, nullptr, nullptr, nullptr, nullptr, nullptr );
+	m_oscNoiseKnobs = BezierOscKnobs( vol3, course3, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr );
 
 
 	// SAMPLE
@@ -634,13 +724,24 @@ BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) 
 	course4->move( knob_x + 40, knob_y );
 	course4->setHintText( tr( "Osc %1 coarse detuning:" ).arg( i + 1 ) , " " + tr( "semitones" ) );
 
+
+	// setup attack-knob
+	auto attack4 = new BezierSynthKnob(this);
+	attack4->setVolumeKnob( true );
+	attack4->move(  knob_x + 70, knob_y );
+	attack4->setHintText( tr( "Attack %1 :" ).arg( i+1 ), "" );
+
+
 	btn_y = 163;
 	x = 0;
 
+	LedCheckBox * play4 = new LedCheckBox(this);
+	play4->move(230, 180);
+	play4->setToolTip("play whole sample, not a wave form");
 	// TODO default clicks
 
 	auto uwb4 = new PixmapButton(this, nullptr);
-	uwb4->move( btn_x + ( x++ * 15), btn_y );
+	uwb4->move( 199, btn_y );
 	uwb4->setActiveGraphic( PLUGIN_NAME::getIconPixmap( "usr_shape_active" ) );
 	uwb4->setInactiveGraphic( PLUGIN_NAME::getIconPixmap( "usr_shape_inactive" ) );
 	uwb4->setToolTip(tr("User-defined wave"));
@@ -653,7 +754,7 @@ BezierSynthView::BezierSynthView( Instrument * _instrument, QWidget * _parent ) 
 
 	wabg4->addButton( uwb4 );
 
-	m_oscSampleKnobs = BezierOscKnobs( vol4, course4, nullptr, nullptr, wabg4, uwb4, lrn4 );
+	m_oscSampleKnobs = BezierOscKnobs( vol4, course4, nullptr, nullptr, attack4, play4, wabg4, uwb4, lrn4 );
 
 }
 
@@ -668,6 +769,7 @@ void BezierSynthView::modelChanged()
 	m_osc1Knobs.m_coarseKnob->setModel( &t->m_osc1->m_coarseModel );
 	m_osc1Knobs.m_fineKnob->setModel( &t->m_osc1->m_fineModel );
 	m_osc1Knobs.m_mutateKnob->setModel( &t->m_osc1->m_mutateModel );
+	m_osc1Knobs.m_attackKnob->setModel( &t->m_osc1->m_attackModel );
 	m_osc1Knobs.m_waveAlgoBtnGrp->setModel( &t->m_osc1->m_waveAlgoModel );
 
 	connect( m_osc1Knobs.m_userWaveButton, SIGNAL( doubleClicked() ), t->m_osc1, SLOT( oscUserDefWaveDblClick() ) );
@@ -679,6 +781,7 @@ void BezierSynthView::modelChanged()
 	m_osc2Knobs.m_coarseKnob->setModel( &t->m_osc2->m_coarseModel );
 	m_osc2Knobs.m_fineKnob->setModel( &t->m_osc2->m_fineModel );
 	m_osc2Knobs.m_mutateKnob->setModel( &t->m_osc2->m_mutateModel );
+	m_osc2Knobs.m_attackKnob->setModel( &t->m_osc2->m_attackModel );
 	m_osc2Knobs.m_waveAlgoBtnGrp->setModel( &t->m_osc2->m_waveAlgoModel );
 
 	connect( m_osc2Knobs.m_userWaveButton, SIGNAL( doubleClicked() ), t->m_osc2, SLOT( oscUserDefWaveDblClick() ) );
@@ -692,10 +795,12 @@ void BezierSynthView::modelChanged()
 	// sample
 	m_oscSampleKnobs.m_volKnob->setModel( &t->m_osc_sample->m_volumeModel );
 	m_oscSampleKnobs.m_coarseKnob->setModel( &t->m_osc_sample->m_coarseModel );
+	m_oscSampleKnobs.m_attackKnob->setModel( &t->m_osc_sample->m_attackModel );
+	m_oscSampleKnobs.m_playLed->setModel( &t->m_osc_sample->m_playModel );
 
-	connect( m_oscSampleKnobs.m_userWaveButton, SIGNAL( doubleClicked() ), t->m_osc_sample, SLOT( oscUserDefWaveDblClick() ) );
-	connect( m_oscSampleKnobs.m_userWaveSwitcher, SIGNAL( onNavLeft() ),   t->m_osc_sample, SLOT( oscUserDefWavePrev() ));
-	connect( m_oscSampleKnobs.m_userWaveSwitcher, SIGNAL( onNavRight() ),  t->m_osc_sample, SLOT( oscUserDefWaveNext() ));
+	connect( m_oscSampleKnobs.m_userWaveButton, SIGNAL( doubleClicked() ), t->m_osc_sample, SLOT( oscUserDefSampleDblClick() ) );
+	connect( m_oscSampleKnobs.m_userWaveSwitcher, SIGNAL( onNavLeft() ),   t->m_osc_sample, SLOT( oscUserDefSamplePrev() ));
+	connect( m_oscSampleKnobs.m_userWaveSwitcher, SIGNAL( onNavRight() ),  t->m_osc_sample, SLOT( oscUserDefSampleNext() ));
 
 }
 
