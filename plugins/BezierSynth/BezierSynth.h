@@ -97,6 +97,7 @@ private slots:
 
 	void updateVolume();
 	void updateMutate();
+	void updateAttack();
 	void updateDetuning();
 } ;
 

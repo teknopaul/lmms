@@ -54,11 +54,11 @@ public:
 	BezierOsc(
 			const WaveAlgo wave_algo,
 			const ModulationAlgo mod_algo,
-			const float &freq,
-			const float &detuning_div_samplerate,
-			const float &volume,
+			const float freq,
+			const float detuning_div_samplerate,
+			const float volume,
 			FloatModel * mutateModel,
-			const float &attack,
+			const float attack,
 			BezierOsc * m_subOsc = nullptr,
 			SampleBuffer * m_userWave = nullptr
 			);
@@ -107,11 +107,12 @@ private:
 	// N.B. not a model Core/Oscillator can change model mid-note, we dont support that
 	const WaveAlgo m_waveAlgo;
 	const ModulationAlgo m_modulationAlgo;
-	const float & m_freq;
-	const float & m_detuning_div_samplerate;
-	const float & m_volume;
+	const float m_freq;
+	const float m_detuning_div_samplerate;
+	const float m_volume;
 	FloatModel * m_mutateModel;
-	const float & m_attack;
+	// duration in seconds of attack
+	const float m_attack;
 	BezierOsc * m_subOsc;
 	float m_phaseOffset;
 	float m_phase;
@@ -119,7 +120,7 @@ private:
 	OscillatorBezier * m_bezier;
 	using handleState = SampleBuffer::handleState;
 	const SampleBuffer * m_userWave;
-	fpp_t m_frames_played;
+	uint32_t m_frames_played;
 
 	void updateNoSub( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
 	void updateNoSubNoise( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
@@ -142,8 +143,8 @@ private:
 
 	float syncInit( sampleFrame * sampleArrays, const fpp_t frames, bool clean );
 	inline bool syncOk( float osc_coeff );
-	inline sample_t fadeOut(int frames_played, float seconds);
-	inline sample_t fadeIn(int frames_played, float seconds);
+	inline sample_t fadeOut(uint32_t frames_played, float seconds);
+	inline sample_t fadeIn(uint32_t frames_played, float seconds);
 	inline void recalcPhase();
 
 } ;

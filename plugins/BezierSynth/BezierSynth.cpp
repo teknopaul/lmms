@@ -91,7 +91,7 @@ BezierSynthOscillatorObject::BezierSynthOscillatorObject( Model * _parent, int _
 	m_mutateModel( 0.0f, 0.0f, 1.0f, 0.01f, this, tr("Mutate")),
 	m_coarseModel( -_idx * KeysPerOctave, -2 * KeysPerOctave, 2 * KeysPerOctave, 1.0f, this, tr( "Osc %1 coarse detuning" ).arg( _idx+1 ) ),
 	m_fineModel( 0.0f, -100.0f, 100.0f, 1.0f, this, tr( "Osc %1 fine detuning" ).arg( _idx+1 ) ),
-	m_attackModel( 0.0f, 0.0f, 1.0f, 0.01f, this, tr("Attack")),
+	m_attackModel( 0.0f, 0.0f, 2.0f, 0.01f, this, tr("Attack")),
 	m_waveAlgoModel( static_cast<int>(BezierOsc::WaveAlgo::BezierZ), 0,
 			BezierOsc::NumWaveAlgos-1, this,
 			tr( "Bezier wave algo %1" ).arg( _idx+1 ) ),
@@ -125,6 +125,8 @@ BezierSynthOscillatorObject::BezierSynthOscillatorObject( Model * _parent, int _
 		connect( &m_fineModel, SIGNAL( dataChanged() ), this, SLOT( updateDetuning() ), Qt::DirectConnection );
 		connect( &m_mutateModel, &FloatModel::dataChanged, this, &BezierSynthOscillatorObject::updateMutate , Qt::DirectConnection );
 		updateMutate();
+		connect( &m_attackModel, SIGNAL( dataChanged() ), this, SLOT( updateAttack() ), Qt::DirectConnection );
+		updateAttack();
 	}
 	updateDetuning();
 }
@@ -215,6 +217,10 @@ void BezierSynthOscillatorObject::updateVolume()
 
 
 void BezierSynthOscillatorObject::updateMutate()
+{
+}
+
+void BezierSynthOscillatorObject::updateAttack()
 {
 }
 
@@ -330,9 +336,12 @@ QString BezierSynth::nodeName() const
 
 void BezierSynth::playNote( NotePlayHandle * _n, sampleFrame * _working_buffer )
 {
+	BezierOsc * osc;
+	oscPtr * oscPtr;
 	bool playWholeSample = m_osc_sample->m_playModel.value();
 	if (!_n->m_pluginData)
 	{
+qDebug("new note");
 		// TODO no need for left and right they do the same math twice
 		auto oscs = std::array<BezierOsc*, 4>{};
 
@@ -389,11 +398,13 @@ void BezierSynth::playNote( NotePlayHandle * _n, sampleFrame * _working_buffer )
 				oscs[1],
 				nullptr );
 
-		_n->m_pluginData = new oscPtr;
-		static_cast<oscPtr *>( _n->m_pluginData )->osc = oscs[0];
+		oscPtr = new struct oscPtr;
+		_n->m_pluginData = oscPtr;
+		oscPtr->osc = oscs[0];
+		oscPtr->playState = 0;
 	}
 
-	BezierOsc * osc = static_cast<oscPtr *>( _n->m_pluginData )->osc;
+	osc = static_cast<struct oscPtr *>( _n->m_pluginData )->osc;
 
 	const fpp_t frames = _n->framesLeftForCurrentPeriod();
 	const f_cnt_t offset = _n->noteOffset();
@@ -548,7 +559,7 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 	auto vol1 = new BezierSynthKnob(this);
 	vol1->setVolumeKnob( true );
 	vol1->move( knob_x, knob_y );
-	vol1->setHintText( tr( "Volume:" ).arg( i+1 ), "%" );
+	vol1->setHintText( tr( "Volume %1:" ).arg( i+1 ), "%" );
 
 	// setup coarse-knob
 	Knob * course1 = new BezierSynthKnob(this);
@@ -570,7 +581,7 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 	auto attack1 = new BezierSynthKnob(this);
 	attack1->setVolumeKnob( true );
 	attack1->move(  knob_x + 134, knob_y );
-	attack1->setHintText( tr( "Attack %1 :" ).arg( i+1 ), "" );
+	attack1->setHintText( tr( "Attack %1:" ).arg( i+1 ), "" );
 
 
 	int btn_y = 0;
@@ -724,7 +735,6 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 	course4->move( knob_x + 40, knob_y );
 	course4->setHintText( tr( "Osc %1 coarse detuning:" ).arg( i + 1 ) , " " + tr( "semitones" ) );
 
-
 	// setup attack-knob
 	auto attack4 = new BezierSynthKnob(this);
 	attack4->setVolumeKnob( true );
@@ -733,7 +743,6 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 
 
 	btn_y = 163;
-	x = 0;
 
 	LedCheckBox * play4 = new LedCheckBox(this);
 	play4->move(230, 180);

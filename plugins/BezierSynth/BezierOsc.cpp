@@ -82,7 +82,7 @@ void BezierOsc::mutateChanged()
 /**
  * @return from 1.0 to 0.0 vol multiplier
  */
-sample_t BezierOsc::fadeOut(int frames_played, float seconds)
+sample_t BezierOsc::fadeOut(uint32_t frames_played, float seconds)
 {
 	sample_rate_t totframes = m_sample_rate * seconds;
 	if (frames_played > totframes)  return 0.0f;
@@ -91,15 +91,20 @@ sample_t BezierOsc::fadeOut(int frames_played, float seconds)
 }
 
 /**
- * @return from 0.5 to 1.0 vol multiplier
+ * @return from 0.0 to 1.0 vol multiplier
  */
-sample_t BezierOsc::fadeIn(int frames_played, float seconds)
+inline sample_t fadeInExp(float t, float k = 5.0f)
+{
+	t = std::clamp(t, 0.0f, 1.0f);
+	return 1.0f - std::exp(-k * t);        // 0 → 1
+}
+sample_t BezierOsc::fadeIn(uint32_t frames_played, float seconds)
 {
 	if (seconds < 1e-6f) return 1.0f;
-	sample_rate_t totframes = m_sample_rate * seconds;
+	uint32_t totframes = m_sample_rate * seconds;
 	if (frames_played > totframes) return 1.0f;
-	if (frames_played == 0) return 0.5f;
-	return 1.0f - (std::exp(-5.0f * (1.0f - (static_cast<float>(frames_played) / totframes))) / 2);
+	if (frames_played == 0) return 0.0f;
+	return fadeInExp(static_cast<float>(frames_played) / totframes);
 }
 
 /**
@@ -134,18 +139,17 @@ void BezierOsc::update(sampleFrame* ab, const fpp_t frames, bool clean)
 		updateNoSub(ab, frames, clean);
 	}
 	// copy channel 0 to channel 1
-	for( fpp_t frame = 0; frame < frames; ++frame )
+	for( uint32_t frame = 0; frame < frames; ++frame )
 	{
 		ab[frame][1] = ab[frame][0];
 	}
-	m_frames_played += frames;
+	m_frames_played = m_frames_played + (uint32_t)frames;
 }
 
 
 
 
-void BezierOsc::updateNoSub( sampleFrame * sampleArrays, const fpp_t frames,
-							bool clean )
+void BezierOsc::updateNoSub( sampleFrame * sampleArrays, const fpp_t frames, bool clean )
 {
 	switch( m_waveAlgo )
 	{
@@ -170,8 +174,7 @@ void BezierOsc::updateNoSub( sampleFrame * sampleArrays, const fpp_t frames,
 
 
 
-void BezierOsc::updateAM( sampleFrame * sampleArrays, const fpp_t frames,
-							bool clean )
+void BezierOsc::updateAM( sampleFrame * sampleArrays, const fpp_t frames, bool clean )
 {
 	switch( m_waveAlgo )
 	{
@@ -182,7 +185,6 @@ void BezierOsc::updateAM( sampleFrame * sampleArrays, const fpp_t frames,
 		case WaveAlgo::BezierZ:
 			updateAM<WaveAlgo::BezierZ>( sampleArrays, frames, clean );
 			break;
-			// TODO these dont exist
 		case WaveAlgo::Noise:
 			updateAM<WaveAlgo::Noise>( sampleArrays, frames, clean );
 			break;
@@ -193,8 +195,7 @@ void BezierOsc::updateAM( sampleFrame * sampleArrays, const fpp_t frames,
 }
 
 
-void BezierOsc::updateMix( sampleFrame * sampleArrays, const fpp_t frames,
-							bool clean)
+void BezierOsc::updateMix( sampleFrame * sampleArrays, const fpp_t frames, bool clean)
 {
 	switch( m_waveAlgo )
 	{
@@ -216,8 +217,7 @@ void BezierOsc::updateMix( sampleFrame * sampleArrays, const fpp_t frames,
 
 
 
-void BezierOsc::updateFM( sampleFrame * sampleArrays, const fpp_t frames,
-							bool clean )
+void BezierOsc::updateFM( sampleFrame * sampleArrays, const fpp_t frames, bool clean )
 {
 	switch( m_waveAlgo )
 	{
@@ -274,11 +274,11 @@ void BezierOsc::updateNoSub( sampleFrame * sampleArrays, const fpp_t frames, boo
 
 	const float osc_coeff = m_freq * m_detuning_div_samplerate;
 
-	for( fpp_t frame = 0; frame < frames; ++frame )
+	for( uint32_t frame = 0; frame < frames; ++frame )
 	{
 		sample_t s = getSample<W>( m_phase )
 				* m_volume
-				* fadeIn(m_frames_played + frames, m_attack);
+				* fadeIn(m_frames_played + frame + 1, m_attack);
 		if (clean) {
 			sampleArrays[frame][0] = s;
 		} else {
@@ -296,11 +296,11 @@ void BezierOsc::updateNoSubNoise( sampleFrame * sampleArrays, const fpp_t frames
 
 	const float osc_coeff = m_freq * m_detuning_div_samplerate;
 
-	for( fpp_t frame = 0; frame < frames; ++frame )
+	for( uint32_t frame = 0; frame < frames; ++frame )
 	{
 		sample_t s = noiseSample( m_phase )
 				* m_volume
-				* fadeOut(m_frames_played + frame, 2);
+				* fadeOut(m_frames_played + frame + 1, 2);
 		if (clean) {
 			sampleArrays[frame][0] = s;
 		} else {
@@ -314,18 +314,18 @@ void BezierOsc::updateNoSubNoise( sampleFrame * sampleArrays, const fpp_t frames
 
 // do am by using sub-osc as modulator
 template<BezierOsc::WaveAlgo W>
-void BezierOsc::updateAM( sampleFrame * sampleArrays, const fpp_t frames,
-							bool clean )
+void BezierOsc::updateAM( sampleFrame * sampleArrays, const fpp_t frames, bool clean )
 {
 	m_subOsc->update( sampleArrays, frames, clean );
 	recalcPhase();
 	const float osc_coeff = m_freq * m_detuning_div_samplerate;
 
-	for( fpp_t frame = 0; frame < frames; ++frame )
+	for( uint32_t frame = 0; frame < frames; ++frame )
 	{
-		sampleArrays[frame][0] *= getSample<W>( m_phase )
+		sample_t s = getSample<W>( m_phase )
 				* m_volume
-				* fadeIn(m_frames_played + frames, m_attack);
+				* fadeIn(m_frames_played + frame + 1, m_attack);
+		sampleArrays[frame][0] *= s;
 		m_phase += osc_coeff;
 	}
 }
@@ -340,28 +340,29 @@ void BezierOsc::updateMix( sampleFrame * sampleArrays, const fpp_t frames,
 	recalcPhase();
 	const float osc_coeff = m_freq * m_detuning_div_samplerate;
 
-	for( fpp_t frame = 0; frame < frames; ++frame )
+	for( uint32_t frame = 0; frame < frames; ++frame )
 	{
-		sampleArrays[frame][0] += getSample<W>( m_phase )
+		sample_t s = getSample<W>( m_phase )
 				* m_volume
-				* fadeIn(m_frames_played + frames, m_attack);
+				* fadeIn(m_frames_played + frame + 1, m_attack);
+		sampleArrays[frame][0] += s;
 		m_phase += osc_coeff;
 	}
 }
 
 // do mix by using sub-osc as mix-sample
-void BezierOsc::updateMixNoise( sampleFrame * sampleArrays, const fpp_t frames,
-							bool clean)
+void BezierOsc::updateMixNoise( sampleFrame * sampleArrays, const fpp_t frames, bool clean)
 {
 	m_subOsc->update( sampleArrays, frames, clean );
 	recalcPhase();
 	const float osc_coeff = m_freq * m_detuning_div_samplerate;
 
-	for( fpp_t frame = 0; frame < frames; ++frame )
+	for( uint32_t frame = 0; frame < frames; ++frame )
 	{
-		sampleArrays[frame][0] += noiseSample( m_phase )
+		sample_t s = noiseSample( m_phase )
 				* m_volume
-				* fadeOut(m_frames_played + frame, 2);
+				* fadeOut(m_frames_played + frame + 1, 2.0f);
+		sampleArrays[frame][0] += s;
 		m_phase += osc_coeff;
 	}
 }
@@ -375,12 +376,13 @@ void BezierOsc::updateFM( sampleFrame * sampleArrays, const fpp_t frames, bool c
 	const float osc_coeff = m_freq * m_detuning_div_samplerate;
 	const float sampleRateCorrection = 44100.0f / m_sample_rate;
 
-	for( fpp_t frame = 0; frame < frames; ++frame )
+	for( uint32_t frame = 0; frame < frames; ++frame )
 	{
 		m_phase += sampleArrays[frame][0] * sampleRateCorrection;
-		sampleArrays[frame][0] = getSample<W>( m_phase )
+		sample_t s = getSample<W>( m_phase )
 				* m_volume
-				* fadeIn(m_frames_played + frames, m_attack);
+				* fadeIn(m_frames_played + frame + 1, m_attack);
+		sampleArrays[frame][0] = s;
 		m_phase += osc_coeff;
 	}
 }
@@ -416,7 +418,7 @@ inline sample_t BezierOsc::getSample<BezierOsc::WaveAlgo::Sample>( const float s
 template<>
 inline sample_t BezierOsc::getSample<BezierOsc::WaveAlgo::BezierZ>( const float sample )
 {
-	return bezierSample( sample);
+	return bezierSample( sample );
 }
 
 
