@@ -143,6 +143,7 @@ void BezierSynthOscillatorObject::oscUserDefWaveDblClick()
 	QString fileName = m_bezierDefinition->openSvgFile();
 	if( fileName != "" )
 	{
+		m_waveAlgoModel.value(static_cast<int>(BezierOsc::WaveAlgo::BezierUser));
 		// TODO:
 		//m_usrWaveBtn->setToolTip(m_sampleBuffer->audioFile());
 		m_dirScroller.setFile(fileName);
@@ -157,7 +158,10 @@ void BezierSynthOscillatorObject::oscUserDefWaveNext()
 	{
 		qWarning("setting wave '%s'", newFile.toStdString().c_str());
 		QFileInfo fInfo(PathUtil::toAbsolute(m_bezierDefinition->getFile()));
-		m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile) );
+		int rv = m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile) );
+		if (rv == 0) {
+			m_waveAlgoModel.value(static_cast<int>(BezierOsc::WaveAlgo::BezierUser));
+		}
 	}
 }
 
@@ -170,7 +174,10 @@ void BezierSynthOscillatorObject::oscUserDefWavePrev()
 		qWarning("setting wave '%s' current='%s'", newFile.toStdString().c_str(), "todo");
 
 		QFileInfo fInfo(PathUtil::toAbsolute(m_bezierDefinition->getFile()));
-		m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile) );
+		int rv = m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile) );
+		if (rv == 0) {
+			m_waveAlgoModel.value(static_cast<int>(BezierOsc::WaveAlgo::BezierUser));
+		}
 	}
 }
 
@@ -341,7 +348,6 @@ void BezierSynth::playNote( NotePlayHandle * _n, sampleFrame * _working_buffer )
 	bool playWholeSample = m_osc_sample->m_playModel.value();
 	if (!_n->m_pluginData)
 	{
-qDebug("new note");
 		// TODO no need for left and right they do the same math twice
 		auto oscs = std::array<BezierOsc*, 4>{};
 
@@ -384,7 +390,8 @@ qDebug("new note");
 				&m_osc2->m_mutateModel,
 				m_osc2->m_attackModel.value(),
 				oscs[2],
-				nullptr);
+				nullptr,
+				m_osc2->m_bezierDefinition);
 
 		// osc1
 		oscs[0] = new BezierOsc(
@@ -396,7 +403,8 @@ qDebug("new note");
 				&m_osc1->m_mutateModel,
 				m_osc1->m_attackModel.value(),
 				oscs[1],
-				nullptr );
+				nullptr,
+				m_osc1->m_bezierDefinition);
 
 		oscPtr = new struct oscPtr;
 		_n->m_pluginData = oscPtr;
@@ -585,7 +593,7 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 
 
 	int btn_y = 0;
-	int btn_x = 135;
+	int btn_x = 65;
 	int x = 0;
 	auto sin_wave_btn1 = new PixmapButton(this, nullptr);
 	sin_wave_btn1->move( btn_x + ( x++ * 15), btn_y );
@@ -598,6 +606,12 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 	noise_btn1->setActiveGraphic( PLUGIN_NAME::getIconPixmap( "white_noise_shape_active" ) );
 	noise_btn1->setInactiveGraphic( PLUGIN_NAME::getIconPixmap( "white_noise_shape_inactive" ) );
 	noise_btn1->setToolTip( tr( "White noise" ) );
+
+	auto beziersin_btn1 = new PixmapButton(this, nullptr);
+	beziersin_btn1->move( btn_x + ( x++ * 15), btn_y );
+	beziersin_btn1->setActiveGraphic( PLUGIN_NAME::getIconPixmap( "beziersin_wave_active" ) );
+	beziersin_btn1->setInactiveGraphic( PLUGIN_NAME::getIconPixmap( "beziersin_wave_inactive" ) );
+	beziersin_btn1->setToolTip(tr("BezierSin wave"));
 
 	auto bezierz_btn1 = new PixmapButton(this, nullptr);
 	bezierz_btn1->move( btn_x + ( x++ * 15), btn_y );
@@ -619,6 +633,7 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 
 	wabg1->addButton( sin_wave_btn1 );
 	wabg1->addButton( noise_btn1 );
+	wabg1->addButton( beziersin_btn1 );
 	wabg1->addButton( bezierz_btn1 );
 	wabg1->addButton( uwb1 );
 
@@ -673,6 +688,12 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 	noise_btn2->setInactiveGraphic( PLUGIN_NAME::getIconPixmap( "white_noise_shape_inactive" ) );
 	noise_btn2->setToolTip( tr( "White noise" ) );
 
+	auto beziersin_btn2 = new PixmapButton(this, nullptr);
+	beziersin_btn2->move( btn_x + ( x++ * 15), btn_y );
+	beziersin_btn2->setActiveGraphic( PLUGIN_NAME::getIconPixmap( "beziersin_wave_active" ) );
+	beziersin_btn2->setInactiveGraphic( PLUGIN_NAME::getIconPixmap( "beziersin_wave_inactive" ) );
+	beziersin_btn2->setToolTip(tr("BezierSin wave"));
+
 	auto bezierz_btn2 = new PixmapButton(this, nullptr);
 	bezierz_btn2->move( btn_x + ( x++ * 15), btn_y );
 	bezierz_btn2->setActiveGraphic( PLUGIN_NAME::getIconPixmap( "bezierz_wave_active" ) );
@@ -693,6 +714,7 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 
 	wabg2->addButton( sin_wave_btn2 );
 	wabg2->addButton( noise_btn2 );
+	wabg2->addButton( beziersin_btn2 );
 	wabg2->addButton( bezierz_btn2 );
 	wabg2->addButton( uwb2 );
 

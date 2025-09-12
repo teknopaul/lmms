@@ -35,13 +35,16 @@ public:
 	OscillatorBezierDefinition();
 	virtual ~OscillatorBezierDefinition()
 	{
-
+		for (int m = 0;  m < m_mod_count; m++) {
+			delete m_modulation_defs[m];
+		}
 	}
 	QString m_svgFile;
 	int m_number_of_segments;
 	Point m_segments[MAX_BEZIER_SEGMENTS][BEZIER_POINTS];
 	int m_mod_count;
-	ModulationDef m_modulation_defs[MAX_MODULATIONS];
+	ModulationDef * m_modulation_defs[MAX_MODULATIONS];
+	QString m_name;
 
 	void setModulations(OscillatorBezierUser * osc);
 
@@ -49,14 +52,20 @@ public:
 	QString getFile();
 	int loadFromSVG(QString path);
 
+	QString getName()
+	{
+		return m_name;
+	}
+
 private:
 	bool parseBezierPath(const QString &d);
+	bool parseModulations(const QString &desc);
 };
 
 class OscillatorBezierUser : public OscillatorBezierBase
 {
 public:
-	OscillatorBezierUser(OscillatorBezierDefinition * oscDef);
+	OscillatorBezierUser(OscillatorBezierDefinition * oscDef, float mod);
 	virtual ~OscillatorBezierUser()
 	{
 	}
@@ -66,7 +75,7 @@ public:
 	void applyModulations() override;
 
 private:
-	void loadModulations(OscillatorBezierDefinition * oscDef);
+	void initModulations(OscillatorBezierDefinition * oscDef);
 
 	Modulation m_modulations[MAX_MODULATIONS];
 	int m_mod_count;

@@ -38,7 +38,7 @@ OscillatorBezierZ::OscillatorBezierZ(float mod) :
 		{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} },
 		{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} }
 	});
-	if (mod >= 0.0 && mod <= 1.0 ) {
+	if (mod >= 0.0f && mod <= 1.0f ) {
 		modulate(mod);
 		applyModulations();
 	}

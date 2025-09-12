@@ -15,7 +15,9 @@
 #include "AutomatableModel.h"
 #include "OscillatorConstants.h"
 #include "OscillatorBezier.h"
+#include "OscillatorBezierSin.h"
 #include "OscillatorBezierZ.h"
+#include "OscillatorBezierUser.h"
 #include "SampleBuffer.h"
 // #include "MemoryManager.h"
 
@@ -37,11 +39,13 @@ public:
 	{
 		Sine,
 		Noise,
+		BezierSin,
 		BezierZ,
+		BezierUser,
 		Sample
 		// TODO, many more
 	};
-	constexpr static auto NumWaveAlgos = 4;
+	constexpr static auto NumWaveAlgos = 6;
 
 	enum class ModulationAlgo
 	{
@@ -60,7 +64,8 @@ public:
 			FloatModel * mutateModel,
 			const float attack,
 			BezierOsc * m_subOsc = nullptr,
-			SampleBuffer * m_userWave = nullptr
+			SampleBuffer * m_userWave = nullptr,
+			OscillatorBezierDefinition * bezierDef = nullptr
 			);
 
 	virtual ~BezierOsc()

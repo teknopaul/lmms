@@ -57,6 +57,7 @@ set(LMMS_SRCS
 	core/NotePlayHandle.cpp
 	core/Oscillator.cpp
 	core/OscillatorBezierBase.cpp
+	core/OscillatorBezierSin.cpp
 	core/OscillatorBezierU.cpp
 	core/OscillatorBezierUser.cpp
 	core/OscillatorBezierZ.cpp

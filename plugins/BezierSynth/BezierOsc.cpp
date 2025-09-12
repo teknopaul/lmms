@@ -41,13 +41,14 @@ namespace lmms
 BezierOsc::BezierOsc(
 			const WaveAlgo wave_algo,
 			const ModulationAlgo mod_algo,
-			const float &freq,
-			const float &detuning_div_samplerate,
-			const float &volume,
+			const float freq,
+			const float detuning_div_samplerate,
+			const float volume,
 			FloatModel * mutateModel,
-			const float &attack,
+			const float attack,
 			BezierOsc * sub_osc,
-			SampleBuffer * user_wave) :
+			SampleBuffer * user_wave,
+			OscillatorBezierDefinition * bezierDef) :
 	QObject(),
 	m_waveAlgo(wave_algo),
 	m_modulationAlgo(mod_algo),
@@ -64,8 +65,20 @@ BezierOsc::BezierOsc(
 	m_userWave(user_wave),
 	m_frames_played(0)
 {
-	if (m_waveAlgo == WaveAlgo::BezierZ) {
+	if (m_waveAlgo == WaveAlgo::BezierSin) {
+		m_bezier = new OscillatorBezierSin(mutateModel->value());
+		// TODO broken why?
+		auto ok = connect(m_mutateModel, &FloatModel::dataChanged, this, &BezierOsc::mutateChanged);
+		if (!ok) qWarning("connect bug");
+	}
+	else if (m_waveAlgo == WaveAlgo::BezierZ) {
 		m_bezier = new OscillatorBezierZ(mutateModel->value());
+		// TODO broken why?
+		auto ok = connect(m_mutateModel, &FloatModel::dataChanged, this, &BezierOsc::mutateChanged);
+		if (!ok) qWarning("connect bug");
+	}
+	else if (m_waveAlgo == WaveAlgo::BezierUser) {
+		m_bezier = new OscillatorBezierUser(bezierDef, mutateModel->value());
 		auto ok = connect(m_mutateModel, &FloatModel::dataChanged, this, &BezierOsc::mutateChanged);
 		if (!ok) qWarning("connect bug");
 	}
@@ -160,6 +173,9 @@ void BezierOsc::updateNoSub( sampleFrame * sampleArrays, const fpp_t frames, boo
 		case WaveAlgo::Noise:
 			updateNoSub<WaveAlgo::Noise>( sampleArrays, frames, clean );
 			break;
+		case WaveAlgo::BezierSin:
+			updateNoSub<WaveAlgo::BezierSin>( sampleArrays, frames, clean );
+			break;
 		case WaveAlgo::BezierZ:
 			updateNoSub<WaveAlgo::BezierZ>( sampleArrays, frames, clean );
 			break;
@@ -184,6 +200,9 @@ void BezierOsc::updateAM( sampleFrame * sampleArrays, const fpp_t frames, bool c
 			break;
 		case WaveAlgo::BezierZ:
 			updateAM<WaveAlgo::BezierZ>( sampleArrays, frames, clean );
+			break;
+		case WaveAlgo::BezierSin:
+			updateAM<WaveAlgo::BezierSin>( sampleArrays, frames, clean );
 			break;
 		case WaveAlgo::Noise:
 			updateAM<WaveAlgo::Noise>( sampleArrays, frames, clean );
@@ -212,6 +231,9 @@ void BezierOsc::updateMix( sampleFrame * sampleArrays, const fpp_t frames, bool 
 		case WaveAlgo::BezierZ:
 			updateMix<WaveAlgo::BezierZ>( sampleArrays, frames, clean );
 			break;
+		case WaveAlgo::BezierSin:
+			updateMix<WaveAlgo::BezierSin>( sampleArrays, frames, clean );
+			break;
 	}
 }
 
@@ -227,6 +249,9 @@ void BezierOsc::updateFM( sampleFrame * sampleArrays, const fpp_t frames, bool c
 			break;
 		case WaveAlgo::BezierZ:
 			updateFM<WaveAlgo::BezierZ>( sampleArrays, frames, clean );
+			break;
+		case WaveAlgo::BezierSin:
+			updateFM<WaveAlgo::BezierSin>( sampleArrays, frames, clean );
 			break;
 		case WaveAlgo::Noise:
 			updateFM<WaveAlgo::Noise>( sampleArrays, frames,  clean );
@@ -417,6 +442,18 @@ inline sample_t BezierOsc::getSample<BezierOsc::WaveAlgo::Sample>( const float s
 
 template<>
 inline sample_t BezierOsc::getSample<BezierOsc::WaveAlgo::BezierZ>( const float sample )
+{
+	return bezierSample( sample );
+}
+
+template<>
+inline sample_t BezierOsc::getSample<BezierOsc::WaveAlgo::BezierSin>( const float sample )
+{
+	return bezierSample( sample );
+}
+
+template<>
+inline sample_t BezierOsc::getSample<BezierOsc::WaveAlgo::BezierUser>( const float sample )
 {
 	return bezierSample( sample );
 }

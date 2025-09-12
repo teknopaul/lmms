@@ -29,8 +29,8 @@
      showgrid="false"
      units="px"
      inkscape:zoom="3.336"
-     inkscape:cx="124.85012"
-     inkscape:cy="125"
+     inkscape:cx="147.03237"
+     inkscape:cy="175.05995"
      inkscape:window-width="1920"
      inkscape:window-height="1043"
      inkscape:window-x="0"
@@ -77,7 +77,7 @@
        x2="66.145836"
        y2="15.742708"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(0.09717421,3.4395831)" />
+       gradientTransform="matrix(1,0,0,1.2564102,0.09717421,3.3717412)" />
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient4915"
@@ -87,7 +87,7 @@
        x2="66.145836"
        y2="26.32604"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(0.09717421,3.4395831)" />
+       gradientTransform="matrix(1,0,0,1.2564102,0.09717421,3.3039022)" />
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient4915"
@@ -97,7 +97,7 @@
        x2="66.145836"
        y2="36.909374"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="translate(0.09717421,3.4395831)" />
+       gradientTransform="matrix(1,0,0,1.2564102,0.09717421,3.2360642)" />
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient4915"
@@ -107,7 +107,7 @@
        y1="15.742708"
        x2="66.145836"
        y2="15.742708"
-       gradientTransform="translate(1.1448364e-7,-10.583334)" />
+       gradientTransform="matrix(1,0,0,1.2564102,1.1448364e-7,-13.297009)" />
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient4915"
@@ -117,7 +117,7 @@
        y1="36.909374"
        x2="66.145836"
        y2="36.909374"
-       gradientTransform="matrix(1,0,0,2.3076921,-4.5263672e-8,-32.631338)" />
+       gradientTransform="matrix(0.99999992,0,0,0.92307692,-4.5263668e-8,27.313146)" />
     <linearGradient
        inkscape:collect="always"
        xlink:href="#linearGradient64838"
@@ -127,47 +127,103 @@
        x2="15.070397"
        y2="11.739711"
        gradientUnits="userSpaceOnUse"
-       gradientTransform="matrix(0.97787978,0,0,0.97787978,0,0.44669796)" />
+       gradientTransform="matrix(0.97787979,0,0,0.97787979,0,3.0359894)" />
+    <marker
+       style="overflow:visible"
+       id="DotM"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="DotM"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.4) translate(7.4, 1)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt"
+         d="M -2.5,-1.0 C -2.5,1.7600000 -4.7400000,4.0 -7.5,4.0 C -10.260000,4.0 -12.5,1.7600000 -12.5,-1.0 C -12.5,-3.7600000 -10.260000,-6.0 -7.5,-6.0 C -4.7400000,-6.0 -2.5,-3.7600000 -2.5,-1.0 z "
+         id="path35056" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="DotL"
+       refX="0.0"
+       refY="0.0"
+       orient="auto"
+       inkscape:stockid="DotL"
+       inkscape:isstock="true">
+      <path
+         transform="scale(0.8) translate(7.4, 1)"
+         style="fill-rule:evenodd;fill:context-stroke;stroke:context-stroke;stroke-width:1.0pt"
+         d="M -2.5,-1.0 C -2.5,1.7600000 -4.7400000,4.0 -7.5,4.0 C -10.260000,4.0 -12.5,1.7600000 -12.5,-1.0 C -12.5,-3.7600000 -10.260000,-6.0 -7.5,-6.0 C -4.7400000,-6.0 -2.5,-3.7600000 -2.5,-1.0 z "
+         id="path35053" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="DotM-2"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotM"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path35056-0" />
+    </marker>
+    <marker
+       style="overflow:visible"
+       id="marker35913"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="DotM"
+       inkscape:isstock="true">
+      <path
+         transform="matrix(0.4,0,0,0.4,2.96,0.4)"
+         style="fill:context-stroke;fill-rule:evenodd;stroke:context-stroke;stroke-width:1pt"
+         d="m -2.5,-1 c 0,2.76 -2.24,5 -5,5 -2.76,0 -5,-2.24 -5,-5 0,-2.76 2.24,-5 5,-5 2.76,0 5,2.24 5,5 z"
+         id="path35911" />
+    </marker>
   </defs>
   <g
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1">
     <rect
-       style="fill:url(#linearGradient6427);fill-opacity:1;stroke-width:0.00928707"
+       style="fill:url(#linearGradient6427);fill-opacity:1;stroke-width:0.0104098"
        id="rect4590-8"
        width="66.145836"
-       height="10.31875"
+       height="12.964583"
        x="0.097174212"
-       y="14.022917" />
+       y="16.668751" />
     <rect
-       style="fill:url(#linearGradient6571);fill-opacity:1;stroke-width:0.00928707"
+       style="fill:url(#linearGradient6571);fill-opacity:1;stroke-width:0.0104098"
        id="rect4590-8-6"
        width="66.145836"
-       height="10.31875"
+       height="12.964583"
        x="8.8817842e-16"
        y="0" />
     <rect
-       style="fill:url(#linearGradient6435);fill-opacity:1;stroke-width:0.00928707"
+       style="fill:url(#linearGradient6435);fill-opacity:1;stroke-width:0.0104098"
        id="rect4590-8-4"
        width="66.145836"
-       height="10.31875"
+       height="12.964583"
        x="0.097174212"
-       y="24.606249" />
+       y="29.897917" />
     <rect
-       style="fill:url(#linearGradient6443);fill-opacity:1;stroke-width:0.00928707"
+       style="fill:url(#linearGradient6443);fill-opacity:1;stroke-width:0.0104098"
        id="rect4590-8-4-7"
        width="66.145836"
-       height="10.31875"
+       height="12.964583"
        x="0.097174212"
-       y="35.189583" />
+       y="43.127083" />
     <rect
-       style="fill:url(#linearGradient32770);fill-opacity:1;stroke-width:0.014108"
+       style="fill:url(#linearGradient32770);fill-opacity:1;stroke-width:0.00892267"
        id="rect4590-8-4-7-2"
        width="66.145836"
-       height="23.8125"
+       height="9.5249996"
        x="0"
-       y="40.63789" />
+       y="56.620834" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#1b3a26;fill-opacity:1;stroke:none;stroke-width:0.264583"
@@ -183,40 +239,40 @@
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#1b3a26;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="0.86979967"
-       y="17.74925"
+       y="20.39514"
        id="text7456-1"><tspan
          sodipodi:role="line"
          id="tspan7454-7"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Hack;-inkscape-font-specification:'Hack, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#1b3a26;fill-opacity:1;stroke-width:0.264583"
          x="0.86979967"
-         y="17.74925">wave2</tspan><tspan
+         y="20.39514">wave2</tspan><tspan
          sodipodi:role="line"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Hack;-inkscape-font-specification:'Hack, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#1b3a26;fill-opacity:1;stroke-width:0.264583"
          x="0.86979967"
-         y="30.978374"
+         y="33.624264"
          id="tspan25306" /></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#1b3a26;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="0.51426607"
-       y="28.137249"
+       y="33.428917"
        id="text7456-1-4"><tspan
          sodipodi:role="line"
          id="tspan7454-7-6"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Hack;-inkscape-font-specification:'Hack, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#1b3a26;fill-opacity:1;stroke-width:0.264583"
          x="0.51426607"
-         y="28.137249">noise</tspan></text>
+         y="33.428917">noise</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#1b3a26;fill-opacity:1;stroke:none;stroke-width:0.264583"
        x="0.51426607"
-       y="38.880192"
+       y="46.817692"
        id="text7456-1-4-9"><tspan
          sodipodi:role="line"
          id="tspan7454-7-6-4"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.23333px;font-family:Hack;-inkscape-font-specification:'Hack, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#1b3a26;fill-opacity:1;stroke-width:0.264583"
          x="0.51426607"
-         y="38.880192">sample</tspan></text>
+         y="46.817692">sample</tspan></text>
     <rect
        style="fill:#148000;fill-opacity:1;stroke-width:0.0105495"
        id="rect37402"
@@ -239,23 +295,115 @@
        x="62.17709"
        y="-6.3499999" />
     <rect
+       style="fill:#550000;fill-opacity:1;stroke-width:0.0105495"
+       id="rect37402-2-4"
+       width="3.96875"
+       height="3.96875"
+       x="66.145844"
+       y="-6.3499999" />
+    <rect
        style="fill:#429600;fill-opacity:1;stroke-width:0.0079754"
        id="rect38094"
        width="66.145836"
        height="3.4395826"
        x="8.8817842e-16"
-       y="10.31875" />
+       y="12.964583" />
     <text
        xml:space="preserve"
        style="font-style:normal;font-weight:normal;font-size:10.8144px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:url(#linearGradient64840);fill-opacity:1;stroke:none;stroke-width:0.270361"
        x="0.18115857"
-       y="13.496552"
+       y="16.085844"
        id="text39814"
-       transform="scale(0.97862997,1.0218367)"><tspan
+       transform="scale(0.97862996,1.0218367)"><tspan
          sodipodi:role="line"
          id="tspan39812"
          style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:4.32577px;font-family:Hack;-inkscape-font-specification:'Hack, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:url(#linearGradient64840);fill-opacity:1;stroke-width:0.270361"
          x="0.18115857"
-         y="13.496552">mods</tspan></text>
+         y="16.085844">mods</tspan></text>
+    <rect
+       style="fill:#550000;fill-opacity:1;stroke-width:0.00906752"
+       id="rect158836"
+       width="3.96875"
+       height="3.96875"
+       x="17.197916"
+       y="-6.6145835" />
+    <g
+       id="g159154"
+       transform="matrix(1.2165668,0,0,1.2165668,-8.8034987,-11.614966)">
+      <path
+         style="fill:none;stroke:#f3f3f3;stroke-width:0.590241;stroke-linecap:round;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 53.806861,60.615934 c 0,0 1.184182,2.747671 2.306348,2.585953 1.81152,-0.261063 0.677145,-4.758703 2.481463,-5.06869 1.129105,-0.193983 2.458416,2.482737 2.458416,2.482737"
+         id="path33238"
+         sodipodi:nodetypes="cssc" />
+      <path
+         style="fill:#e02f2f;fill-opacity:1;stroke:#fb1717;stroke-width:0.0958119;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#DotM);marker-end:url(#DotM)"
+         d="m 56.932445,58.535299 3.170288,-0.691753"
+         id="path34132" />
+      <path
+         style="fill:#e02f2f;fill-opacity:1;stroke:#fb1717;stroke-width:0.0958119;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#DotM-2);marker-end:url(#DotM-2)"
+         d="m 54.864605,63.484749 3.170289,-0.691753"
+         id="path34132-1" />
+      <rect
+         style="fill:#000080;fill-opacity:1;stroke:none;stroke-width:0.421036;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect37193"
+         width="0.33016488"
+         height="0.33016488"
+         x="53.66531"
+         y="60.457764" />
+      <rect
+         style="fill:#000080;fill-opacity:1;stroke:none;stroke-width:0.421036;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect37193-2"
+         width="0.33016488"
+         height="0.33016488"
+         x="56.056477"
+         y="63.024467" />
+      <rect
+         style="fill:#000080;fill-opacity:1;stroke:none;stroke-width:0.421036;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect37193-1"
+         width="0.33016488"
+         height="0.33016488"
+         x="58.353321"
+         y="58.011627" />
+      <rect
+         style="fill:#000080;fill-opacity:1;stroke:none;stroke-width:0.421036;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         id="rect37193-6"
+         width="0.33016488"
+         height="0.33016488"
+         x="60.886414"
+         y="60.429398" />
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="0.48671269"
+       y="65.43454"
+       id="text160676"><tspan
+         sodipodi:role="line"
+         id="tspan160674"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#1b3a26;fill-opacity:1;stroke-width:0.264583"
+         x="0.48671269"
+         y="65.43454">here there be maths</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="0.5283916"
+       y="59.294846"
+       id="text160676-7"><tspan
+         sodipodi:role="line"
+         id="tspan160674-4"
+         style="font-style:normal;font-variant:normal;font-weight:bold;font-stretch:normal;font-size:2.46944px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#1b3a26;fill-opacity:1;stroke-width:0.264583"
+         x="0.5283916"
+         y="59.294846" /></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.5833px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       x="0.525729"
+       y="58.725567"
+       id="text172490"><tspan
+         sodipodi:role="line"
+         id="tspan172488"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:1.76389px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#2d6241;fill-opacity:1;stroke-width:0.264583"
+         x="0.525729"
+         y="58.725567">(uu * u) * p0 + 3.0f * (uu * t) * p1 + 3.0f * (u * tt) * p2 + (tt * t) * p3</tspan></text>
   </g>
 </svg>
