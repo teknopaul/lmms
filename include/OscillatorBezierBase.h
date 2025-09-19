@@ -17,7 +17,7 @@ namespace lmms
 
 const int MAX_BEZIER_SEGMENTS = 6;
 const int BEZIER_POINTS = 4;
-const int DEFAULT_NEWTON_STEPS = 4;
+const int DEFAULT_BISECTION_STEPS = 4;
 
 class LMMS_EXPORT OscillatorBezierBase : public OscillatorBezier
 {
@@ -29,9 +29,9 @@ public:
 	}
 
 	// precision / perf tradeoff
-	inline void setNewtonStep( float newton_steps )
+	inline void setBisectionSteps( float bisection_steps )
 	{
-		m_newton_steps = newton_steps;
+		m_bisection_steps = bisection_steps;
 	}
 
 	sample_t oscSample(const float sample) override;
@@ -68,6 +68,8 @@ private:
 	float m_last_t;
 	// "i" index in to which bezier curve we use
 	int m_last_i;
+	// last difference between t no and prev t
+	float m_t_diff;
 
 	sample_t bezierSample(float sample);
 };

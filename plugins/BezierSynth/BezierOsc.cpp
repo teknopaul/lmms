@@ -67,13 +67,11 @@ BezierOsc::BezierOsc(
 {
 	if (m_waveAlgo == WaveAlgo::BezierSin) {
 		m_bezier = new OscillatorBezierSin(mutateModel->value());
-		// TODO broken why?
 		auto ok = connect(m_mutateModel, &FloatModel::dataChanged, this, &BezierOsc::mutateChanged);
 		if (!ok) qWarning("connect bug");
 	}
 	else if (m_waveAlgo == WaveAlgo::BezierZ) {
 		m_bezier = new OscillatorBezierZ(mutateModel->value());
-		// TODO broken why?
 		auto ok = connect(m_mutateModel, &FloatModel::dataChanged, this, &BezierOsc::mutateChanged);
 		if (!ok) qWarning("connect bug");
 	}
@@ -86,7 +84,6 @@ BezierOsc::BezierOsc(
 
 void BezierOsc::mutateChanged()
 {
-	qDebug("BezierOsc::mutateChanged()");
 	if (m_bezier != nullptr) {
 		m_bezier->modulate(m_mutateModel->value());
 	}

@@ -276,7 +276,7 @@ void BezierSynth::saveSettings( QDomDocument & _doc, QDomElement & _this )
 	m_osc2->m_volumeModel.saveSettings( _doc, _this, "vol" + is );
 	m_osc2->m_coarseModel.saveSettings( _doc, _this, "coarse" + is );
 	m_osc2->m_fineModel.saveSettings( _doc, _this, "fine" + is );
-	m_osc1->m_mutateModel.saveSettings( _doc, _this, "mutate" + is );
+	m_osc2->m_mutateModel.saveSettings( _doc, _this, "mutate" + is );
 	m_osc2->m_attackModel.saveSettings( _doc, _this, "attack" + is );
 	m_osc2->m_waveAlgoModel.saveSettings( _doc, _this, "wavealgo" + is );
 
@@ -284,7 +284,6 @@ void BezierSynth::saveSettings( QDomDocument & _doc, QDomElement & _this )
 	i = 2;
 	is = QString::number( i );
 	m_osc_noise->m_volumeModel.saveSettings( _doc, _this, "vol" + is );
-	m_osc_noise->m_coarseModel.saveSettings( _doc, _this, "coarse" + is );
 
 	// osc_sample
 	i = 3;
@@ -323,7 +322,6 @@ void BezierSynth::loadSettings( const QDomElement & _this )
 	i = 2;
 	is = QString::number( i );
 	m_osc_noise->m_volumeModel.loadSettings( _this, "vol" + is );
-	m_osc_noise->m_coarseModel.loadSettings( _this, "coarse" + is );
 
 	i = 3;
 	is = QString::number( i );
@@ -372,7 +370,7 @@ void BezierSynth::playNote( NotePlayHandle * _n, sampleFrame * _working_buffer )
 				BezierOsc::WaveAlgo::Noise,
 				BezierOsc::ModulationAlgo::SignalMix,
 				_n->frequency(),
-				m_osc_noise->m_detuning,
+				0.f,
 				m_osc_noise->m_volume,
 				nullptr,
 				0.0f,
@@ -479,7 +477,7 @@ gui::PluginView* BezierSynth::instantiateView( QWidget * parent )
 
 void BezierSynth::updateAllDetuning()
 {
-	m_osc2->updateDetuning();
+	m_osc1->updateDetuning();
 	m_osc2->updateDetuning();
 	m_osc_noise->updateDetuning();
 	m_osc_sample->updateDetuning();
@@ -732,12 +730,7 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 	vol3->move( knob_x, knob_y );
 	vol3->setHintText( tr( "Osc %1 volume:" ).arg( i+1 ), "%" );
 
-	// setup coarse-knob
-	Knob * course3 = new BezierSynthKnob(this);
-	course3->move( knob_x + 40, knob_y );
-	course3->setHintText( tr( "Osc %1 coarse detuning:" ).arg( i + 1 ) , " " + tr( "semitones" ) );
-
-	m_oscNoiseKnobs = BezierOscKnobs( vol3, course3, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr );
+	m_oscNoiseKnobs = BezierOscKnobs( vol3, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr );
 
 
 	// SAMPLE
@@ -821,7 +814,6 @@ void BezierSynthView::modelChanged()
 
 	// noise
 	m_oscNoiseKnobs.m_volKnob->setModel( &t->m_osc_noise->m_volumeModel );
-	m_oscNoiseKnobs.m_coarseKnob->setModel( &t->m_osc_noise->m_coarseModel );
 
 	// sample
 	m_oscSampleKnobs.m_volKnob->setModel( &t->m_osc_sample->m_volumeModel );

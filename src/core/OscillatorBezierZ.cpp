@@ -33,8 +33,8 @@ OscillatorBezierZ::OscillatorBezierZ(float mod) :
 		// Despite being only 2 bezier curves, this produces 2 cycles over x=1 which is to say its apparent frequncey
 		// will be one octave above, but each cycle is not identical, so it cant be optimized
 		// in compressor terms there are two "hard knees" and two "soft knees" in the same wave form
-		{ {0.000f, 0.000f}, {0.250f,  0.100f}, {0.000f, -1.000f}, {0.500f, 0.0f} },
-		{ {0.500f, 0.000f}, {1.000f, -1.000f}, {0.750f, -1.000f}, {1.0f, 0.0f} },
+		{ {0.000f, 0.000f}, {0.250f, -1.000f}, {0.000f, 1.000f}, {0.500f, 0.000f} },
+		{ {0.500f, 0.000f}, {1.000f, -1.000f}, {0.750f, 1.000f}, {1.000f, 0.000f} },
 		{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} },
 		{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} }
 	});

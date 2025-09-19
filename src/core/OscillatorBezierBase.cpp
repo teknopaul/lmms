@@ -45,10 +45,10 @@ OscillatorBezierBase::OscillatorBezierBase() :
 		{ {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f}, {0.0f, 0.0f} }
 	},
 	m_number_of_segments(MAX_BEZIER_SEGMENTS),
-	m_newton_steps(DEFAULT_NEWTON_STEPS),
-	m_bisection_steps(4),
-	m_last_t(0),
-	m_last_i(0)
+	m_bisection_steps(DEFAULT_BISECTION_STEPS),
+	m_last_t(0.0f),
+	m_last_i(0),
+	m_t_diff(0.0f)
 {
 	applyModulations();
 }
@@ -67,59 +67,30 @@ static inline float bezier_comp(float p0, float p1, float p2, float p3, float t)
 	return (uu * u) * p0 + 3.0f * (uu * t) * p1 + 3.0f * (u * tt) * p2 + (tt * t) * p3;
 }
 
-// Derivative (for Newton step)
-static inline float bezier_comp_d1(const float p0, const float p1, const float p2, const float p3, const float t)
-{
-	const float u = 1.0f - t;
-	// 3*( (1-t)^2*(p1-p0) + 2*(1-t)*t*(p2-p1) + t^2*(p3-p2) )
-	return 3.0f * (u*u * (p1 - p0) + 2.0f * u * t * (p2 - p1) + t*t * (p3 - p2));
-}
-
-// Solve x(t)=x_target on [0,1] using a few Newton iterations with bisection fallback.
+// Solve x(t)=x_target on [0,1] using a few simple bisections.
 // Assumes the segment is forward in x overall (P0.x <= P3.x).
-static inline float solve_t_for_x(float x0, float x1, float x2, float x3, float x_last, float x_target,
+static inline float solve_t_for_x(float x0, float x1, float x2, float x3, float last_t, float x_diff, float x_target,
 								  int newton_steps, int bisection_steps)
 {
 	// Initial guess, t from last iteration, theoretically, t must be greater than x_last (or we have a square wave)
-	// std::nextafter(x_last, 1.0f) is technically better, may not be necessary
-	float t = std::nextafter(x_last, 1.0f);
-	float lo = t;  // bounding on next after t prevents interations producing the same value
-	float hi = 1.0f; // calculating a closer bound not worth it
+	// std::nextafter(x_last, 1.0f) is technically better guess
+	float t = last_t;
+	float lo = t;
+	float hi = t + (x_diff * 10.0f); // this magic number comes from trial and error, annoying high freqs will hit 1.0f
+	if (hi > 1.0f) hi = 1.0f;
 
-	// Hybrid: a few Newton steps, clamped; if it stalls, use bisection refinement.
-	for (int iter = 0; newton_steps < 4; ++iter) {
-		const float x  = bezier_comp(x0, x1, x2, x3, t);
-		const float dx = x - x_target;
-		const float d1 = bezier_comp_d1(x0, x1, x2, x3, t);
-		if (std::fabs(dx) < 1e-6f) break; // 1e-6f is idiomatic C++ for "very small sample", per ChatGPT, but is it in LMMS?
-
-		// Maintain bracket
-		if (dx > 0.0f) {
-			hi = t;
-		} else {
-			lo = t;
-		}
-
-		if (std::fabs(d1) > 1e-9f) { // 1e-9f is idiomatic C++ for "very small float" (i.e. close to epsilon())
-			float t_new = t - dx / d1;
-			// If Newton left [lo,hi], do a bisection step instead
-			if (t_new < lo || t_new > hi) {
-				t = 0.5f * (lo + hi);
-			}
-			else {
-				t = t_new;
-			}
-		} else {
-			t = 0.5f * (lo + hi); // derivative too small; bisect
-		}
-		t = clampf(t, 0.0f, 1.0f);
+	if (x_diff == 0.0f) {
+		hi = 1.0f;
+		bisection_steps += 4; // theoretical inital step of 0.0078125 * your curve
 	}
 
-	// TODO experimentation to see if this is necessary after caching "t" fix
-	// with accurate "t" perhaps even 4 newton steps is excessive?  Hence configurable
-	// A couple of bisection cleanups for robustness
+	// guess x, then try again, only 4 steps seems OK, presumably because we have a pretty good hi and lo estimate
+	// theoretically there are more preceise methods, in practice this works fine
 	for (int i = 0; i < bisection_steps; ++i) {
 		const float x = bezier_comp(x0, x1, x2, x3, t);
+		// exit loop when we have a good x,  1e-6f is sample precise(ish)
+		if (std::fabs(x - x_target) < 1e-6f) break;
+
 		if (x > x_target) hi = t; else lo = t;
 		t = 0.5f * (lo + hi);
 	}
@@ -144,6 +115,7 @@ sample_t OscillatorBezierBase::oscSample(const float sample)
  */
 sample_t OscillatorBezierBase::bezierSample(const float sample)
 {
+
 	// find segment the sample is inside
 	int segment_index;
 	for (segment_index = 0; segment_index < m_number_of_segments ; segment_index++) {
@@ -153,7 +125,7 @@ sample_t OscillatorBezierBase::bezierSample(const float sample)
 	}
 	// when we change segments
 	if (m_last_i != segment_index) {
-		m_last_t = 0;
+		m_last_t = 0.0f;
 		if (segment_index == 0) {
 			// at a Z crossing
 			applyModulations();
@@ -174,10 +146,15 @@ sample_t OscillatorBezierBase::bezierSample(const float sample)
 	const Point& p3 = m_segments[segment_index][3];
 
 	// Solve x(t) = s for this segment
-	const float t = solve_t_for_x(p0.x, p1.x, p2.x, p3.x, m_last_t, sample, m_newton_steps, m_bisection_steps);
+	const float t = solve_t_for_x(p0.x, p1.x, p2.x, p3.x, m_last_t, m_t_diff, sample, m_newton_steps, m_bisection_steps);
 
 	// Return y(t) in [-1,1]
 	const float y = bezier_comp(p0.y, p1.y, p2.y, p3.y, t);
+
+	// save first t we calculate to use as a good estimate for hi
+	if (sample > 1e-6f && m_t_diff == 0.0f) {
+		m_t_diff = std::nextafter(t, 1.0f);
+	}
 
 	// save t because its the input to our next iteration as the best starting point for solve_t_for_x
 	m_last_t = t;
