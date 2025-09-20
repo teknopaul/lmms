@@ -39,14 +39,11 @@ ControllerDialog::ControllerDialog( Controller * _controller,
 {
 }
 
-
-
 void ControllerDialog::closeEvent( QCloseEvent * _ce )
 {
 	_ce->ignore();
 	emit closed();
 }
-
 
 
 } // namespace lmms::gui

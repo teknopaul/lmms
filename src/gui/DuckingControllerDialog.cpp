@@ -50,6 +50,7 @@ const int CD_LFO_AMOUNT_CD_KNOB_X = CD_LFO_SPEED_CD_KNOB_X+CD_KNOB_X_SPACING;
 const int CD_LFO_PHASE_CD_KNOB_X = CD_LFO_AMOUNT_CD_KNOB_X+CD_KNOB_X_SPACING;
 const int CD_LFO_MULTIPLIER_X = CD_LFO_PHASE_CD_KNOB_X+CD_KNOB_X_SPACING+3;
 
+
 DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget * _parent ) :
 	ControllerDialog( _model, _parent )
 {
@@ -59,22 +60,22 @@ DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget *
 	title.append( ")" );
 	setWindowTitle( title );
 	setWindowIcon( embed::getIconPixmap( "controller" ) );
-	setFixedSize( 240, 58 );
+	setFixedSize( 240, 78 );
 	
 	m_baseKnob = new Knob( KnobType::Bright26, this );
-	m_baseKnob->setLabel( tr( "BASE" ) );
+	m_baseKnob->setLabel( tr( "VOL" ) );
 	m_baseKnob->move( CD_LFO_BASE_CD_KNOB_X, CD_LFO_CD_KNOB_Y );
 	m_baseKnob->setHintText( tr( "Base:" ), "" );
 
 	m_speedKnob = new TempoSyncKnob( KnobType::Bright26, this );
-	m_speedKnob->setLabel( tr( "FREQ" ) );
+	m_speedKnob->setLabel( tr( "D/S" ) );
 	m_speedKnob->move( CD_LFO_SPEED_CD_KNOB_X, CD_LFO_CD_KNOB_Y );
-	m_speedKnob->setHintText( tr( "LFO frequency:" ), "" );
+	m_speedKnob->setHintText( tr( "Tempo / beat sync:" ), "" );
 
 	m_amountKnob = new Knob( KnobType::Bright26, this );
 	m_amountKnob->setLabel( tr( "AMNT" ) );
 	m_amountKnob->move( CD_LFO_AMOUNT_CD_KNOB_X, CD_LFO_CD_KNOB_Y );
-	m_amountKnob->setHintText( tr( "Modulation amount:" ), "" );
+	m_amountKnob->setHintText( tr( "Ducking depth:" ), "" );
 
 	m_phaseKnob = new Knob( KnobType::Bright26, this );
 	m_phaseKnob->setLabel( tr( "PHS" ) );
@@ -87,8 +88,7 @@ DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget *
 						"sin_wave_active" ) );
 	sin_wave_btn->setInactiveGraphic( embed::getIconPixmap(
 						"sin_wave_inactive" ) );
-	sin_wave_btn->setToolTip(
-			tr( "Sine wave" ) );
+	sin_wave_btn->setToolTip( tr( "Sine wave" ) );
 
 	auto triangle_wave_btn = new PixmapButton(this, nullptr);
 	triangle_wave_btn->move( CD_LFO_SHAPES_X + 15, CD_LFO_SHAPES_Y );
@@ -97,7 +97,7 @@ DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget *
 	triangle_wave_btn->setInactiveGraphic(
 		embed::getIconPixmap( "triangle_wave_inactive" ) );
 	triangle_wave_btn->setToolTip(
-			tr( "Triangle wave" ) );
+			tr( "Mid beat" ) );
 
 	auto saw_wave_btn = new PixmapButton(this, nullptr);
 	saw_wave_btn->move( CD_LFO_SHAPES_X + 30, CD_LFO_SHAPES_Y );
@@ -106,7 +106,7 @@ DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget *
 	saw_wave_btn->setInactiveGraphic( embed::getIconPixmap(
 						"saw_wave_inactive" ) );
 	saw_wave_btn->setToolTip(
-			tr( "Saw wave" ) );
+			tr( "Saw Riser" ) );
 
 	auto sqr_wave_btn = new PixmapButton(this, nullptr);
 	sqr_wave_btn->move( CD_LFO_SHAPES_X + 45, CD_LFO_SHAPES_Y );
@@ -114,13 +114,25 @@ DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget *
 					"square_wave_active" ) );
 	sqr_wave_btn->setInactiveGraphic( embed::getIconPixmap(
 					"square_wave_inactive" ) );
-	sqr_wave_btn->setToolTip( tr( "Square wave" ) );
+	sqr_wave_btn->setToolTip( tr( "on / off" ) );
 
 	auto bezieru_wave_btn = new PixmapButton(this, nullptr);
 	bezieru_wave_btn->move( CD_LFO_SHAPES_X, CD_LFO_SHAPES_Y + 15 );
 	bezieru_wave_btn->setActiveGraphic( embed::getIconPixmap( "bezieru_wave_active" ) );
 	bezieru_wave_btn->setInactiveGraphic( embed::getIconPixmap( "bezieru_wave_inactive" ) );
-	bezieru_wave_btn->setToolTip( tr( "BezierU wave" ) );
+	bezieru_wave_btn->setToolTip( tr( "Beat Punch" ) );
+
+	auto bezierv_wave_btn = new PixmapButton(this, nullptr);
+	bezierv_wave_btn->move( CD_LFO_SHAPES_X + 15, CD_LFO_SHAPES_Y + 15 );
+	bezierv_wave_btn->setActiveGraphic( embed::getIconPixmap( "bezierphatu_active" ) );
+	bezierv_wave_btn->setInactiveGraphic( embed::getIconPixmap( "bezierphatu_inactive" ) );
+	bezierv_wave_btn->setToolTip( tr( "Beat Pump" ) );
+
+	auto bezierhhride_wave_btn = new PixmapButton(this, nullptr);
+	bezierhhride_wave_btn->move( CD_LFO_SHAPES_X + 30, CD_LFO_SHAPES_Y + 15 );
+	bezierhhride_wave_btn->setActiveGraphic( embed::getIconPixmap( "bezierhhride_active" ) );
+	bezierhhride_wave_btn->setInactiveGraphic( embed::getIconPixmap( "bezierhhride_inactive" ) );
+	bezierhhride_wave_btn->setToolTip( tr( "HH Rides" ) );
 
 	m_userWaveBtn = new PixmapButton( this, nullptr );
 	m_userWaveBtn->move( CD_LFO_SHAPES_X + 45, CD_LFO_SHAPES_Y + 15 );
@@ -140,6 +152,8 @@ DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget *
 	m_waveBtnGrp->addButton( saw_wave_btn );
 	m_waveBtnGrp->addButton( sqr_wave_btn );
 	m_waveBtnGrp->addButton( bezieru_wave_btn );
+	m_waveBtnGrp->addButton( bezierv_wave_btn );
+	m_waveBtnGrp->addButton( bezierhhride_wave_btn );
 	m_waveBtnGrp->addButton( m_userWaveBtn );
 
 	auto x1 = new PixmapButton(this, nullptr);
@@ -150,14 +164,14 @@ DuckingControllerDialog::DuckingControllerDialog( Controller * _model, QWidget *
 
 	auto x100 = new PixmapButton(this, nullptr);
 	x100->move(CD_LFO_MULTIPLIER_X, CD_LFO_SHAPES_Y - 8);
-	x100->setActiveGraphic(embed::getIconPixmap("lfo_x100_active"));
-	x100->setInactiveGraphic(embed::getIconPixmap("lfo_x100_inactive"));
+	x100->setActiveGraphic(embed::getIconPixmap("ducking_x2_active"));
+	x100->setInactiveGraphic(embed::getIconPixmap("ducking_x2_inactive"));
 	x100->setToolTip(tr("Multiply modulation frequency by 100"));
 
 	auto d100 = new PixmapButton(this, nullptr);
 	d100->move(CD_LFO_MULTIPLIER_X, CD_LFO_SHAPES_Y + 22);
-	d100->setActiveGraphic(embed::getIconPixmap("lfo_d100_active"));
-	d100->setInactiveGraphic(embed::getIconPixmap("lfo_d100_inactive"));
+	d100->setActiveGraphic(embed::getIconPixmap("ducking_d2_active"));
+	d100->setInactiveGraphic(embed::getIconPixmap("ducking_d2_inactive"));
 	d100->setToolTip(tr("Divide modulation frequency by 100"));
 
 	m_multiplierBtnGrp = new automatableButtonGroup( this );

@@ -176,6 +176,9 @@ void BezierOsc::updateNoSub( sampleFrame * sampleArrays, const fpp_t frames, boo
 		case WaveAlgo::BezierZ:
 			updateNoSub<WaveAlgo::BezierZ>( sampleArrays, frames, clean );
 			break;
+		case WaveAlgo::BezierUser:
+			updateNoSub<WaveAlgo::BezierUser>( sampleArrays, frames, clean );
+			break;
 		case WaveAlgo::Sample:
 			updateNoSub<WaveAlgo::Sample>( sampleArrays, frames, clean );
 			break;
@@ -200,6 +203,9 @@ void BezierOsc::updateAM( sampleFrame * sampleArrays, const fpp_t frames, bool c
 			break;
 		case WaveAlgo::BezierSin:
 			updateAM<WaveAlgo::BezierSin>( sampleArrays, frames, clean );
+			break;
+		case WaveAlgo::BezierUser:
+			updateAM<WaveAlgo::BezierUser>( sampleArrays, frames, clean );
 			break;
 		case WaveAlgo::Noise:
 			updateAM<WaveAlgo::Noise>( sampleArrays, frames, clean );
@@ -231,6 +237,9 @@ void BezierOsc::updateMix( sampleFrame * sampleArrays, const fpp_t frames, bool 
 		case WaveAlgo::BezierSin:
 			updateMix<WaveAlgo::BezierSin>( sampleArrays, frames, clean );
 			break;
+		case WaveAlgo::BezierUser:
+			updateMix<WaveAlgo::BezierUser>( sampleArrays, frames, clean );
+			break;
 	}
 }
 
@@ -249,6 +258,9 @@ void BezierOsc::updateFM( sampleFrame * sampleArrays, const fpp_t frames, bool c
 			break;
 		case WaveAlgo::BezierSin:
 			updateFM<WaveAlgo::BezierSin>( sampleArrays, frames, clean );
+			break;
+		case WaveAlgo::BezierUser:
+			updateFM<WaveAlgo::BezierUser>( sampleArrays, frames, clean );
 			break;
 		case WaveAlgo::Noise:
 			updateFM<WaveAlgo::Noise>( sampleArrays, frames,  clean );

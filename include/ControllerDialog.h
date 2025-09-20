@@ -46,14 +46,12 @@ public:
 
 	~ControllerDialog() override = default;
 
-
 signals:
 	void closed();
 
 
 protected:
 	void closeEvent( QCloseEvent * _ce ) override;
-
 } ;
 
 

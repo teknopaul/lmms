@@ -79,8 +79,7 @@ private:
 
 	Modulation m_modulations[MAX_MODULATIONS];
 	int m_mod_count;
-	float m_last_mod;
-	float m_mod;
+	float m_next_mod;
 };
 
 } // end namespace lmms

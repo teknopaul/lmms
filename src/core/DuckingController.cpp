@@ -28,6 +28,8 @@
 
 #include "DuckingController.h"
 #include "OscillatorBezierU.h"
+#include "OscillatorBezierV.h"
+#include "OscillatorBezierHhRide.h"
 #include "AudioEngine.h"
 #include "Song.h"
 
@@ -35,12 +37,20 @@
 namespace lmms
 {
 
+// Essentially this in an LFO that instead of getting out of sync due to wierdness of float math in C++
+// and the fact that sample rate / beats per second may not be an exact integer
+// calls syncToSong(); every time its asked for samples.
+// LFO precision over the song is Engine::getSong()->getFrames() ) / m_duration where m_duration is a float.
+// TODO UI should be in whole beats
+// TODO beat math should be sane
+// TODO UI should go 1 2 4 8 16 32 in a little digital display
+// TODO x2 button works for all my usecases but is fugly
 
 DuckingController::DuckingController( Model * _parent ) :
 	Controller( ControllerType::Ducking, _parent, tr( "Ducking Controller" ) ),
-	m_baseModel( 0.33, 0.0, 1.0, 0.001, this, tr( "Base value" ) ),
+	m_baseModel( 0.333, 0.0, 1.0, 0.001, this, tr( "Base value" ) ),
 	m_speedModel( 2.0, 0.01, 20.0, 0.0001, 20000.0, this, tr( "Oscillator speed" ) ),
-	m_amountModel( 0.35, -1.0, 1.0, 0.005, this, tr( "Oscillator amount" ) ),
+	m_amountModel( 0.333, -1.0, 1.0, 0.005, this, tr( "Oscillator amount" ) ),
 	m_phaseModel( 0.0, 0.0, 360.0, 4.0, this, tr( "Oscillator phase" ) ),
 	m_waveModel( static_cast<int>(DuckingController::DuckShape::BezierU), 0, DuckingController::NumDuckShapes,
 			this, tr( "Oscillator waveform" ) ),
@@ -50,8 +60,15 @@ DuckingController::DuckingController( Model * _parent ) :
 	m_currentPhase( 0 ),
 	m_sampleFunction( &Oscillator::sinSample ),
 	m_userDefSampleBuffer( new SampleBuffer ),
-	m_oscillatorBezier(new OscillatorBezierU() )
+	m_oscillatorBezier( nullptr )
 {
+	if (m_waveModel.value() == static_cast<int>(DuckingController::DuckShape::BezierU)) {
+		m_oscillatorBezier = new OscillatorBezierU();
+	} else	if (m_waveModel.value() == static_cast<int>(DuckingController::DuckShape::BezierHhRide)) {
+		m_oscillatorBezier = new OscillatorBezierHhRide();
+	} else	if (m_waveModel.value() == static_cast<int>(DuckingController::DuckShape::BezierV)) {
+		m_oscillatorBezier = new OscillatorBezierV();
+	}
 	setSampleExact( true );
 	connect( &m_waveModel, SIGNAL(dataChanged()),
 			this, SLOT(updateSampleFunction()), Qt::DirectConnection );
@@ -67,9 +84,6 @@ DuckingController::DuckingController( Model * _parent ) :
 			this, SLOT(updatePhase()));
 	connect( Engine::getSong(), SIGNAL(playbackPositionChanged()),
 			this, SLOT(updatePhase()));
-
-	float oneUnit = 60000.0 / ( Engine::getSong()->getTempo() * 20000.0 );
-	m_speedModel.setValue( oneUnit * 20.0 );
 
 	updateDuration();
 }
@@ -89,11 +103,25 @@ DuckingController::~DuckingController()
 
 void DuckingController::updateValueBuffer()
 {
+	// dont move if not playing, sit at full vol
+	if ( Engine::getSong()->isPaused() || Engine::getSong()->isStopped() ) {
+		float amount = m_amountModel.value();
+		for( float& f : m_valueBuffer )
+		{
+			f = std::clamp(m_baseModel.value() + (amount * 1.0f / 2.0f), 0.0f, 1.0f);
+		}
+		return;
+	}
+
+	// sync to song every time, N.B only works for fixed bpm songs
+	syncToSong();
+
+	// support phase since sin is useless without it, sould set m_phaseOffset = 270.0f for sin?
 	m_phaseOffset = m_phaseModel.value() / 360.0;
 	float phase = m_currentPhase + m_phaseOffset;
-	float phasePrev = 0.0f;
 
 	// roll phase up until we're in sync with period counter
+	// TODO necessary anymore?
 	m_bufferLastUpdated++;
 	if( m_bufferLastUpdated < s_periods )
 	{
@@ -102,6 +130,7 @@ void DuckingController::updateValueBuffer()
 		m_bufferLastUpdated += diff;
 	}
 
+	// Seems to be support for varying amount over the duration of this sample fill (unnesessary for ducking?)
 	float amount = m_amountModel.value();
 	ValueBuffer *amountBuffer = m_amountModel.valueBuffer();
 	int amountInc = amountBuffer ? 1 : 0;
@@ -113,29 +142,41 @@ void DuckingController::updateValueBuffer()
 		float currentSample = 0;
 		switch (waveshape)
 		{
-		case DuckingController::DuckShape::UserDefined:
-		{
-			currentSample = m_userDefSampleBuffer->userWaveSample(phase);
-			break;
-		}
-		case DuckingController::DuckShape::BezierU:
-		{
-			currentSample = m_oscillatorBezier->oscSample(phase);
-			break;
-		}
-		default:
-		{
-			if (m_sampleFunction != nullptr)
+			case DuckingController::DuckShape::UserDefined:
 			{
-				currentSample = m_sampleFunction(phase);
+				currentSample = m_userDefSampleBuffer->userWaveSample(phase);
+				break;
+			}
+			case DuckingController::DuckShape::BezierU:
+			{
+				currentSample = m_oscillatorBezier->oscSample(phase);
+				break;
+			}
+			case DuckingController::DuckShape::BezierHhRide:
+			{
+				currentSample = m_oscillatorBezier->oscSample(phase);
+				break;
+			}
+			case DuckingController::DuckShape::BezierV:
+			{
+				currentSample = m_oscillatorBezier->oscSample(phase);
+				break;
+			}
+			default:
+			{
+				if (m_sampleFunction != nullptr)
+				{
+					currentSample = m_sampleFunction(phase);
+				}
 			}
 		}
-	}
 
 		f = std::clamp(m_baseModel.value() + (*amountPtr * currentSample / 2.0f), 0.0f, 1.0f);
 
-		phasePrev = phase;
-		phase += 1.0 / m_duration;
+		phase += 1.0f / m_duration;
+		// since LFO does get out of sync, this check ensures that at the end of one phase we dont start another
+		// seems to work
+		if ( phase >= 1.0f ) phase = 1.0f;
 		amountPtr += amountInc;
 	}
 
@@ -149,6 +190,29 @@ void DuckingController::updatePhase()
 	m_bufferLastUpdated = s_periods - 1;
 }
 
+void DuckingController::syncToSong()
+{
+	// TODO lazy, function presumes fixed bpm
+	m_currentPhase = absFraction(( Engine::getSong()->getFrames() ) / m_duration);
+	m_bufferLastUpdated = s_periods - 1;
+}
+
+void DuckingController::tempoToBeat()
+{
+	// default to one beat at current bpm (I dont understand the math)
+	float oneUnit = 60000.0f / ( Engine::getSong()->getTempo() * 20000.0f );
+	m_speedModel.setValue( oneUnit * 20.0f );
+	m_multiplierModel.setValue(0);
+}
+
+void DuckingController::tempoToPhrase()
+{
+	// default to 32 beats at current bpm (I dont understand the math)
+	float oneUnit = 60000.0f / ( Engine::getSong()->getTempo() * 20000.0f );
+	m_speedModel.setValue( oneUnit * 20.0f * 16.0f );
+	m_multiplierModel.setValue(2);
+}
+
 
 void DuckingController::updateDuration()
 {
@@ -157,11 +221,11 @@ void DuckingController::updateDuration()
 	switch(m_multiplierModel.value() )
 	{
 		case 1:
-			newDurationF /= 100.0;
+			newDurationF /= 2.0;
 			break;
 
 		case 2:
-			newDurationF *= 100.0;
+			newDurationF *= 2.0;
 			break;
 
 		default:
@@ -190,6 +254,24 @@ void DuckingController::updateSampleFunction()
 			break;
 		case DuckingController::DuckShape::BezierU:
 			m_sampleFunction = nullptr;
+			// TODO memory leak vs crash are we synced?
+			delete m_oscillatorBezier;
+			m_oscillatorBezier = new OscillatorBezierU();
+			tempoToBeat();
+			break;
+		case DuckingController::DuckShape::BezierV:
+			m_sampleFunction = nullptr;
+			// TODO memory leak vs crash are we synced?
+			delete m_oscillatorBezier;
+			m_oscillatorBezier = new OscillatorBezierV();
+			tempoToBeat();
+			break;
+		case DuckingController::DuckShape::BezierHhRide:
+			m_sampleFunction = nullptr;
+			// TODO memory leak vs crash are we synced?
+			delete m_oscillatorBezier;
+			m_oscillatorBezier = new OscillatorBezierHhRide();
+			tempoToPhrase();
 			break;
 		case DuckingController::DuckShape::UserDefined:
 			m_sampleFunction = nullptr;

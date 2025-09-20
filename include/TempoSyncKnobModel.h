@@ -56,7 +56,11 @@ public:
 		EighthNote,
 		SixteenthNote,
 		ThirtysecondNote,
-		Custom
+		Custom,
+		// teknopaul extesions for Ducking controller
+		// larger than DoubleWholeNote but added at the end so not to break existing projects
+		// terms presume 4/4
+		FourBars
 	} ;
 
 	TempoSyncKnobModel( const float _val, const float _min,

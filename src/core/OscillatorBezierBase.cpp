@@ -161,8 +161,8 @@ sample_t OscillatorBezierBase::bezierSample(const float sample)
 	// save segment_index because when it changes is when we need to reset t
 	m_last_i = segment_index;
 
-	// tiny DC guard / clamp + invert phase
-	return -1.0f * clampf(y, -1.0f, 1.0f);
+	// tiny DC guard / clamp
+	return clampf(y, -1.0f, 1.0f);
 
 }
 

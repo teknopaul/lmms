@@ -302,7 +302,6 @@ QString Controller::nodeName() const
 gui::ControllerDialog * Controller::createDialog( QWidget * _parent )
 {
 	auto d = new gui::ControllerDialog(this, _parent);
-
 	return d;
 }
 

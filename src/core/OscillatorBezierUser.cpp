@@ -20,9 +20,10 @@ namespace lmms
  * Reusable specification of a OscillatorBezier loaded from a file.
  * File is laoded and parsed once, many Oscs are made from it, (one per note play)
  *
- * TODO plenty of opportuynity for the user to crash LMMS here.
+ * TODO plenty of opportunity for the user to crash LMMS here.
  * TODO sane limits at least
  * TODO guards on all array indexing
+ * TODO guards on sanity of the modulation numbers
  */
 OscillatorBezierDefinition::OscillatorBezierDefinition() :
 	m_number_of_segments(6),
@@ -139,10 +140,12 @@ bool OscillatorBezierDefinition::parseBezierPath(const QString &d)
 			m_segments[segmentIdx][i] = nomalize(p, i);
 		}
 	}
+	m_number_of_segments = segmentIdx + 1;
 
 	// 4. Validate final point == (1.0, 0.0)
 	Point last = m_segments[segmentIdx][3];
 	if (qFuzzyCompare(last.x, 1.0f) && qFuzzyCompare(last.y , 0.0f)) {
+		qDebug("loaded %i segments ", m_number_of_segments);
 		return true;
 	} else {
 		showError("Wave must end at 0,0");
@@ -268,6 +271,7 @@ bool OscillatorBezierDefinition::parseModulations(const QString &desc)
 			qWarning("unparseable line @ %d", lineNumber);
 		}
 	}
+	qWarning("parse modulations: %i " , m_mod_count);
 	return true;
 }
 
@@ -290,42 +294,42 @@ int OscillatorBezierDefinition::loadFromSVG(QString path)
 	}
 	QDomElement svg = doc.documentElement();
 
-	// Find <g id="audiolayer">
-	QDomNodeList groups = svg.elementsByTagName("g");
-	for (int i = 0; i < groups.count(); ++i) {
-		QDomElement g = groups.at(i).toElement();
-		if (g.attribute("id") == "audiolayer") {
-			// Get <desc>
-			QDomNodeList descNodes = g.elementsByTagName("desc");
-			if (!descNodes.isEmpty()) {
-				QDomElement desc = descNodes.at(0).toElement();
-				QString descText = desc.text();
-				qDebug() << "Desc text:\n" << descText;
-				// TODO parse modulations from C like string to a function
-			}
-
-			// Get <path>
-			QDomNodeList paths = g.elementsByTagName("path");
-			for (int j = 0; j < paths.count(); ++j) {
-				QDomElement path = paths.at(j).toElement();
-				if (path.attribute("id") == "wave") {
-					QString d = path.attribute("d");
-					qDebug() << "Found 'd' sound wave path";
-					if ( parseBezierPath(d) ) {
-						return 0;
-					}
-				}
-			}
-		}
-	}
 	QDomNodeList tspans = svg.elementsByTagName("tspan");
 	for (int i = 0; i < tspans.count(); ++i) {
 		QDomElement tspan = tspans.at(i).toElement();
 		if (tspan.attribute("tspan") == "wavename") {
 			m_name = tspan.text();
+			qDebug() << "svg sound name: " << m_name;
 		}
 	}
-	return 0;
+	QDomNodeList paths = svg.elementsByTagName("path");
+	for (int i = 0; i < paths.count(); ++i) {
+		QDomElement path = paths.at(i).toElement();
+		if (path.attribute("id") == "wave") {
+			QString d = path.attribute("d");
+			qDebug() << "Found 'd' sound wave path";
+			if ( parseBezierPath(d) ) {
+				// Find <g id="audiolayer">
+				QDomNodeList groups = svg.elementsByTagName("g");
+				for (int i = 0; i < groups.count(); ++i) {
+					QDomElement g = groups.at(i).toElement();
+					if (g.attribute("id") == "audiolayer") {
+						// Get <desc>
+						QDomNodeList descNodes = g.elementsByTagName("desc");
+						if (!descNodes.isEmpty()) {
+							QDomElement desc = descNodes.at(0).toElement();
+							QString descText = desc.text();
+							qDebug() << "Desc text:\n" << descText;
+							parseModulations(descText);
+						}
+					}
+				}
+				return 0;
+			}
+		}
+	}
+
+	return -3;
 }
 
 
@@ -386,13 +390,16 @@ QString OscillatorBezierDefinition::openSvgFile()
  * A bezier oscillator made from data loaded from and SVG file generated in Inkscape
  */
 OscillatorBezierUser::OscillatorBezierUser(OscillatorBezierDefinition * oscDef, float mod) :
-	OscillatorBezierBase()
+	OscillatorBezierBase(),
+	m_next_mod(-1.0f)
 {
 	overrideNumOfSegment(oscDef->m_number_of_segments);
 	overrideSegments(oscDef->m_segments);
 	initModulations(oscDef);
-	modulate(mod);
-	applyModulations();
+	if (mod >= 0.0f && mod <= 1.0f ) {
+		modulate(mod);
+		applyModulations();
+	}
 }
 
 /**
@@ -403,11 +410,11 @@ void OscillatorBezierUser::initModulations(OscillatorBezierDefinition * oscDef)
 {
 	for (int i = 0; i < oscDef->m_mod_count; i++ ) {
 		ModulationDef * modDef = oscDef->m_modulation_defs[i];
-		Point toMod = m_segments[modDef->segment][modDef->item];
+		Point * toMod = &m_segments[modDef->segment][modDef->item];
 		m_modulations[i] = {
 			modDef->range,
 			modDef->start,
-			modDef->x ? &toMod.x : &toMod.y
+			modDef->x ? &toMod->x : &toMod->y
 		};
 	}
 	m_mod_count = oscDef->m_mod_count;
@@ -415,15 +422,15 @@ void OscillatorBezierUser::initModulations(OscillatorBezierDefinition * oscDef)
 
 void OscillatorBezierUser::modulate(float mod)
 {
-	m_mod = mod;
+	m_next_mod = mod;
 }
 
 void OscillatorBezierUser::applyModulations()
 {
-	if (m_mod != m_last_mod) {
-		for (int i = 0; i < m_mod_count; i++ ) {
-			*m_modulations[i].coord = m_modulations[i].start + (m_mod * m_modulations[i].range);
-		}
+	if (m_next_mod < 0.0f) return;
+
+	for (int i = 0; i < m_mod_count; i++ ) {
+		*m_modulations[i].coord = m_modulations[i].start + (m_next_mod * m_modulations[i].range);
 	}
 }
 

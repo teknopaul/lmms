@@ -32,6 +32,7 @@
 #include "Controller.h"
 #include "ControllerDialog.h"
 #include "TempoSyncKnobModel.h"
+#include "TempoSyncKnob.h"
 #include "Oscillator.h"
 #include "OscillatorBezier.h"
 
@@ -48,6 +49,7 @@ class Knob;
 class TempoSyncKnob;
 
 class DuckingControllerDialog;
+class DuckingTempoSyncKnob;
 
 }
 
@@ -64,6 +66,8 @@ public:
 		Saw,
 		Square,
 		BezierU,
+		BezierV,
+		BezierHhRide,
 		UserDefined,
 		Count //!< Number of all available wave shapes
 	};
@@ -81,12 +85,12 @@ public:
 public slots:
 	gui::ControllerDialog * createDialog( QWidget * _parent ) override;
 
-
 protected:
 	// The internal per-controller value updating function
 	void updateValueBuffer() override;
 
 	FloatModel m_baseModel;
+	// float from 0.01 to 20.0 (maybe seconds? which means nothing anyone! we want fractions of a beat)
 	TempoSyncKnobModel m_speedModel;
 	FloatModel m_amountModel;
 	FloatModel m_phaseModel;
@@ -104,6 +108,10 @@ private:
 	SampleBuffer * m_userDefSampleBuffer;
 	OscillatorBezier * m_oscillatorBezier;
 
+	void syncToSong();
+	void tempoToBeat();
+	void tempoToPhrase();
+
 protected slots:
 	void updatePhase();
 	void updateSampleFunction();
@@ -111,7 +119,7 @@ protected slots:
 
 	friend class gui::DuckingControllerDialog;
 
-} ;
+};
 
 
 namespace gui

@@ -99,11 +99,19 @@ void TempoSyncKnob::contextMenuEvent( QContextMenuEvent * )
 						m_tempoSyncDescription );
 	if( limit / 8.0f <= model()->maxValue() )
 	{
-
 	connect( syncMenu, SIGNAL(triggered(QAction*)),
 			model(), SLOT(setTempoSync(QAction*)));
 	syncMenu->addAction( embed::getIconPixmap( "note_none" ),
 		tr( "No Sync" ) )->setData( (int) TempoSyncKnobModel::SyncMode::None );
+
+	// TODO are these changes specific to DuckingController, should we do the UI differently
+	if( limit / 0.0625F <= model()->maxValue() )
+	{
+		syncMenu->addAction(
+				tr( "16 beats" ) )->setData(
+				(int) TempoSyncKnobModel::SyncMode::FourBars );
+	}
+
 	if( limit / 0.125f <= model()->maxValue() )
 	{
 		syncMenu->addAction( embed::getIconPixmap( "note_double_whole" ),
@@ -172,6 +180,10 @@ void TempoSyncKnob::updateDescAndIcon()
 						"/" +
 			QString::number( model()->m_custom.denominatorModel().value() ) +
 						")";
+				break;
+			case TempoSyncKnobModel::SyncMode::FourBars:
+				m_tempoSyncDescription = tr(
+						"Synced to 4 bars" );
 				break;
 			case TempoSyncKnobModel::SyncMode::DoubleWholeNote:
 				m_tempoSyncDescription = tr(

@@ -25,6 +25,8 @@
 #ifndef _BEZIER_SYNTH_H
 #define _BEZIER_SYNTH_H
 
+#include <QLabel>
+
 #include "Instrument.h"
 #include "InstrumentView.h"
 #include "AutomatableModel.h"
@@ -77,6 +79,7 @@ private:
 	SampleBuffer * m_sampleBuffer;  // only oscSample
 	BoolModel m_playModel;
 	OscillatorBezierDefinition * m_bezierDefinition;
+	QString *m_waveName;
 
 	float m_volume;
 
@@ -208,6 +211,8 @@ private:
 	BezierOscKnobs m_osc2Knobs;
 	BezierOscKnobs m_oscNoiseKnobs;
 	BezierOscKnobs m_oscSampleKnobs;
+	QLabel m_osc1WaveName;
+	QLabel m_osc2WaveName;
 };
 
 

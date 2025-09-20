@@ -13,6 +13,7 @@ namespace lmms
 /**
  * 2 point bezier curves that draw a sin-like sound wave, 
  * and supports mutation to triangle-like wave.
+ * Sin to Tri,  from nice to nasty
  */
 OscillatorBezierSin::OscillatorBezierSin(float mod) :
 	OscillatorBezierBase(),

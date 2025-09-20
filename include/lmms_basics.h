@@ -49,7 +49,14 @@ using sample_rate_t = uint32_t; // sample-rate
 using fpp_t = int16_t;			// frames per period (0-16384)
 using f_cnt_t = int32_t;		// standard frame-count
 using ch_cnt_t = uint8_t;		// channel-count (0-SURROUND_CHANNELS)
-using bpm_t = uint16_t;			// tempo (MIN_BPM to MAX_BPM)
+// integer BPM, in other words LMMS will never sync to anything else!
+// 127 = 127 beats per minute, not precise enough to mix, human DJs can sync to <5ms
+// samples per beat (20787) is a nicer way to do things since then all your beats, bars, phrases, song length & LFOs are an
+// integer number of samples, this is how lots of professional software works. N.B not CDJs which use an int 12700 meaning
+// 127 BPM
+// TODO remove BPM in code, do a tempo math in samples/second which matches sound card sample rates,
+// and present BPM to humans with 2 decimal places as a curtesy.
+using bpm_t = uint16_t;			// tempo (MIN_BPM to MAX_BPM) (10 - 999)
 using bitrate_t = uint16_t;		// bitrate in kbps
 using mix_ch_t = uint16_t;		// Mixer-channel (0 to MAX_CHANNEL)
 
