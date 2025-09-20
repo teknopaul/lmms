@@ -204,7 +204,7 @@ static inline bool saneCheck(ModulationDef * modDef, int idx)
 bool OscillatorBezierDefinition::parseModulations(const QString &desc)
 {
 	// 1. Tokenize on whitespace
-	QStringList tokens = desc.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+	QStringList tokens = desc.split('\n', Qt::SkipEmptyParts);
 	if (tokens.isEmpty()) {
 		showError("Empty mutations string in SVG");
 		// TODO default mutations
@@ -297,7 +297,7 @@ int OscillatorBezierDefinition::loadFromSVG(QString path)
 	QDomNodeList tspans = svg.elementsByTagName("tspan");
 	for (int i = 0; i < tspans.count(); ++i) {
 		QDomElement tspan = tspans.at(i).toElement();
-		if (tspan.attribute("tspan") == "wavename") {
+		if (tspan.attribute("id") == "wavename") {
 			m_name = tspan.text();
 			qDebug() << "svg sound name: " << m_name;
 		}

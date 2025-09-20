@@ -79,7 +79,8 @@ private:
 	SampleBuffer * m_sampleBuffer;  // only oscSample
 	BoolModel m_playModel;
 	OscillatorBezierDefinition * m_bezierDefinition;
-	QString *m_waveName;
+	QString m_waveName;
+	QString m_waveFile;
 
 	float m_volume;
 

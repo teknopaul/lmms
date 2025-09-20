@@ -101,7 +101,7 @@ BezierSynthOscillatorObject::BezierSynthOscillatorObject( Model * _parent, int _
 				tr( "Modulation type %1" ).arg( _idx+1 ) ),
 	m_sampleBuffer( new SampleBuffer ),
 	m_bezierDefinition( new OscillatorBezierDefinition ),
-	m_waveName(nullptr),
+	m_waveName(""),
 	m_volume( 0.0f ),
 	m_detuning( 0.0f ),
 	m_dirScroller()
@@ -150,7 +150,8 @@ void BezierSynthOscillatorObject::oscUserDefWaveDblClick()
 		// wire up m_waveName to UI
 		m_dirScroller.setFile(fileName);
 		qWarning("set wave '%s'", PathUtil::toAbsolute(fileName).toStdString().c_str());
-		m_waveName = new QString(m_bezierDefinition->getName());
+		m_waveName = m_bezierDefinition->getName();
+		m_waveFile = fileName;
 		qDebug() << "loaded: " << m_bezierDefinition->getName();
 	}
 }
@@ -165,7 +166,8 @@ void BezierSynthOscillatorObject::oscUserDefWaveNext()
 		int rv = m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile) );
 		if (rv == 0) {
 			m_waveAlgoModel.value(static_cast<int>(BezierOsc::WaveAlgo::BezierUser));
-			m_waveName = new QString(m_bezierDefinition->getName());
+			m_waveName = m_bezierDefinition->getName();
+			m_waveFile = newFile;
 			qDebug() << "loaded: " << m_bezierDefinition->getName();
 		}
 	}
@@ -183,7 +185,8 @@ void BezierSynthOscillatorObject::oscUserDefWavePrev()
 		int rv = m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(fInfo.absolutePath() + QDir::separator() + newFile) );
 		if (rv == 0) {
 			m_waveAlgoModel.value(static_cast<int>(BezierOsc::WaveAlgo::BezierUser));
-			m_waveName = new QString(m_bezierDefinition->getName());
+			m_waveName = m_bezierDefinition->getName();
+			m_waveFile = newFile;
 			qDebug() << "loaded: " << m_waveName;
 		}
 	}
@@ -275,8 +278,10 @@ void BezierSynth::saveSettings( QDomDocument & _doc, QDomElement & _this )
 	m_osc1->m_mutateModel.saveSettings( _doc, _this, "mutate" + is );
 	m_osc1->m_attackModel.saveSettings( _doc, _this, "attack" + is );
 	m_osc1->m_waveAlgoModel.saveSettings( _doc, _this, "wavealgo" + is );
-
-	m_osc1->m_modulationAlgoModel.saveSettings( _doc, _this, "modalgo" + QString::number( i+1 ) );
+	if (BezierOsc::WaveAlgo::BezierUser == static_cast<BezierOsc::WaveAlgo>(m_osc1->m_waveAlgoModel.value())) {
+		_this.setAttribute("waveFile" + is, m_osc1->m_waveFile);
+	}
+	m_osc1->m_modulationAlgoModel.saveSettings( _doc, _this, "modalgo" + is );
 
 	// osc2
 	i = 1;
@@ -287,6 +292,9 @@ void BezierSynth::saveSettings( QDomDocument & _doc, QDomElement & _this )
 	m_osc2->m_mutateModel.saveSettings( _doc, _this, "mutate" + is );
 	m_osc2->m_attackModel.saveSettings( _doc, _this, "attack" + is );
 	m_osc2->m_waveAlgoModel.saveSettings( _doc, _this, "wavealgo" + is );
+	if (BezierOsc::WaveAlgo::BezierUser == static_cast<BezierOsc::WaveAlgo>(m_osc2->m_waveAlgoModel.value())) {
+		_this.setAttribute("waveFile" + is, m_osc2->m_waveFile);
+	}
 
 	// osc_noise
 	i = 2;
@@ -316,7 +324,15 @@ void BezierSynth::loadSettings( const QDomElement & _this )
 	m_osc1->m_mutateModel.loadSettings( _this, "mutate" + is );
 	m_osc1->m_attackModel.loadSettings( _this, "attack" + is );
 	m_osc1->m_waveAlgoModel.loadSettings( _this, "wavealgo" + is );
-	m_osc1->m_modulationAlgoModel.loadSettings( _this, "modalgo" + QString::number( i+1 ) );
+	m_osc1->m_modulationAlgoModel.loadSettings( _this, "modalgo" + is );
+	if (BezierOsc::WaveAlgo::BezierUser == static_cast<BezierOsc::WaveAlgo>(m_osc1->m_waveAlgoModel.value())) {
+		m_osc1->m_waveFile = _this.attribute("waveFile" + is);
+		int rv = m_osc1->m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(m_osc1->m_waveFile) );
+		if (rv == 0) {
+			m_osc1->m_waveName = m_osc1->m_bezierDefinition->getName();
+			qDebug() << "loaded: " << m_osc1->m_waveName;
+		}
+	}
 
 	i = 1;
 	is = QString::number( i );
@@ -326,6 +342,14 @@ void BezierSynth::loadSettings( const QDomElement & _this )
 	m_osc2->m_mutateModel.loadSettings( _this, "mutate" + is );
 	m_osc2->m_attackModel.loadSettings( _this, "attack" + is );
 	m_osc2->m_waveAlgoModel.loadSettings( _this, "wavealgo" + is );
+	if (BezierOsc::WaveAlgo::BezierUser == static_cast<BezierOsc::WaveAlgo>(m_osc2->m_waveAlgoModel.value())) {
+		m_osc2->m_waveFile = _this.attribute("waveFile" + is);
+		int rv = m_osc2->m_bezierDefinition->loadFromSVG( PathUtil::toShortestRelative(m_osc2->m_waveFile) );
+		if (rv == 0) {
+			m_osc2->m_waveName = m_osc2->m_bezierDefinition->getName();
+			qDebug() << "loaded: " << m_osc2->m_waveName;
+		}
+	}
 
 	i = 2;
 	is = QString::number( i );
@@ -598,8 +622,8 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 	attack1->setHintText( tr( "Attack %1:" ).arg( i+1 ), "" );
 
 	m_osc1WaveName.setParent(this);
-	m_osc1WaveName.move(knob_x + 145, knob_y);
-	m_osc1WaveName.setGeometry(knob_x + 145, knob_y, 50, 23);
+	m_osc1WaveName.move(knob_x + 175, knob_y + 5);
+	m_osc1WaveName.setGeometry(knob_x + 175, knob_y + 5, 60, 23);
 
 	int btn_y = 0;
 	int btn_x = 65;
@@ -685,8 +709,8 @@ BezierSynthView::BezierSynthView( Instrument * instrument, QWidget * parent ) :
 	btn_y = 63;
 
 	m_osc2WaveName.setParent(this);
-	m_osc2WaveName.move(knob_x + 145, knob_y);
-	m_osc2WaveName.setGeometry(knob_x + 145, knob_y, 50, 23);
+	m_osc2WaveName.move(knob_x + 175, knob_y + 5);
+	m_osc2WaveName.setGeometry(knob_x + 175, knob_y + 5, 60, 23);
 
 	x = 0;
 	auto sin_wave_btn2 = new PixmapButton(this, nullptr);
@@ -810,6 +834,7 @@ void BezierSynthView::modelChanged()
 	m_osc1Knobs.m_mutateKnob->setModel( &t->m_osc1->m_mutateModel );
 	m_osc1Knobs.m_attackKnob->setModel( &t->m_osc1->m_attackModel );
 	m_osc1Knobs.m_waveAlgoBtnGrp->setModel( &t->m_osc1->m_waveAlgoModel );
+	m_osc1WaveName.setText(t->m_osc1->m_waveName);
 
 	connect( m_osc1Knobs.m_userWaveButton, SIGNAL( doubleClicked() ), t->m_osc1, SLOT( oscUserDefWaveDblClick() ) );
 	connect( m_osc1Knobs.m_userWaveSwitcher, SIGNAL( onNavLeft() ),   t->m_osc1, SLOT( oscUserDefWavePrev() ));
@@ -822,6 +847,7 @@ void BezierSynthView::modelChanged()
 	m_osc2Knobs.m_mutateKnob->setModel( &t->m_osc2->m_mutateModel );
 	m_osc2Knobs.m_attackKnob->setModel( &t->m_osc2->m_attackModel );
 	m_osc2Knobs.m_waveAlgoBtnGrp->setModel( &t->m_osc2->m_waveAlgoModel );
+	m_osc2WaveName.setText(t->m_osc2->m_waveName);
 
 	connect( m_osc2Knobs.m_userWaveButton, SIGNAL( doubleClicked() ), t->m_osc2, SLOT( oscUserDefWaveDblClick() ) );
 	connect( m_osc2Knobs.m_userWaveSwitcher, SIGNAL( onNavLeft() ),   t->m_osc2, SLOT( oscUserDefWavePrev() ));

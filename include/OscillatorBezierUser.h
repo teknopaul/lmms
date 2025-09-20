@@ -8,7 +8,7 @@ namespace lmms
 
 class OscillatorBezierUser;
 
-const int MAX_MODULATIONS = 6;
+const int MAX_MODULATIONS = 12;
 
 struct ModulationDef {
 	float range;
