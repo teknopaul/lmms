@@ -1,3 +1,20 @@
+
+This is a fork of LMMS with fair few extra features for writing electronic music.
+Most importantly groove quantising and sample precision note play: so you can play, record and write something funky.
+Without this feature, every note is quantised to midi and looses it feeling.
+
+I have written a few versions of this feature for different LMMS versions, because I cant live without it.  Writing house or garage or any thing funky or with soul is horrible/impossible without groove quantising.  The version in this fork is quite stable.  Been running it for years.
+
+You can achieve a similar effect by placing notes manually in piano roll with the grid set to 1/64, but its a slow process and some things are just not possible without sample precision note on.  A twisty knob to turn for "how funky do you want this" is a key tool in my toolbox.
+
+Sample precision note on, make it possible to fixing them nasty issues with sample alignments, inside LMMS instead of have to export samples to a wave editor.
+
+
+[Fork contents](./FORK_README.md)
+
+results of this effort are available for download at [http://teknopaul.com/](http://teknopaul.com/)
+
+
 # ![LMMS Logo](https://raw.githubusercontent.com/LMMS/artwork/master/Icon%20%26%20Mimetypes/lmms-64x64.svg) LMMS
 
 [![Build status](https://github.com/LMMS/lmms/actions/workflows/build.yml/badge.svg)](https://github.com/LMMS/lmms/actions/workflows/build.yml)
