@@ -1,3 +1,8 @@
+
+[FORK CONTENTS](https://github.com/teknopaul/lmms/blob/allmystuff/FORK_README.md)
+
+
+
 # ![LMMS Logo](https://raw.githubusercontent.com/LMMS/artwork/master/Icon%20%26%20Mimetypes/lmms-64x64.svg) LMMS
 
 [![Build status](https://github.com/LMMS/lmms/actions/workflows/build.yml/badge.svg)](https://github.com/LMMS/lmms/actions/workflows/build.yml)
