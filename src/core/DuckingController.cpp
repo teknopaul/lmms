@@ -131,6 +131,7 @@ void DuckingController::updateValueBuffer()
 	}
 
 	// Seems to be support for varying amount over the duration of this sample fill (unnesessary for ducking?)
+	// is m_amountModel either single value or buffer, or is m_amountModel.value(); always sane
 	float amount = m_amountModel.value();
 	ValueBuffer *amountBuffer = m_amountModel.valueBuffer();
 	int amountInc = amountBuffer ? 1 : 0;

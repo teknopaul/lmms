@@ -14,16 +14,16 @@ Open the piano roll
 Turn off Quantizing  
 ![lmms-quantize-off](doc-images/lmms-quantize-off.png)
 
-wire up a midi keyboard hit record, and play on the keyboard.  This fork alo has auto-wiring of a default midi-keyboard, if its detected.
+wire up a midi keyboard hit record, and play on the keyboard.  This fork also has auto-wiring of a default midi-keyboard, if its detected. i.e. when you open piano roll it automatically connects midi input from your keyboard to the instrument.
 
-N.B. Your PC keyboard and midi stack will add latency, no attempt is made to compensate for latency, my setup gives millisecond precision like this. YMMV.
+N.B. Your PC keyboard and midi stack will add some latency, no attempt is made to compensate for latency, my setup gives millisecond precision like this. YMMV.
 
 Notes are recorded with their midi position and the offset from that position, you can move notes around, and they keep their offsets but this makes very little sense.  If you move notes around you probably want to remove the offset for the note you are moving Quantize >> Remove groove.  
-You can make very subtle movements in the position of notes in Piano roll after recording with Quantize >> Nudge forward and Quantize >> Nudge back
+You can make very subtle movements in the position of notes in Piano roll after recording with Quantize >> Nudge forward and Quantize >> Nudge back.
 
 ![lmms-quantize-menu](doc-images/lmms-quantize-menu.png)
 
-N.B. changing BPM a lot after recording, will probably not behave as expected.
+N.B. changing BPM a lot after recording with groove, or applying groove, will probably not behave as expected, since offsets are not adjusted when you change BPM.
 
 
 ## Groove quantizing
@@ -55,6 +55,8 @@ As with recordings made without quantizing , groove quantization behave weirdly 
 
 Swing algorithms in this fork only support 4/4 time signature.
 
+Its impossible to write groovy/funky music like UK garage in LMMS without this level of timing control, and with groove quantizing its a synch.
+
 
 ## Humanize
 
@@ -81,16 +83,16 @@ N.B. if you select 3 notes, i.e. to create triplets, or 4, these will be precise
     * Alt + W set notes as regular
     * Alt + S selects all sub notes
     * Alt + N selctes all normal notes
-* AudioFileProcessor - has next/prev for quickly trying out different drum samples.
+* AudioFileProcessor - has next/prev for quickly trying out different drum samples in the context of the track you are writing.
 * Triple Oscilator - has next/prev for source wavs
     * also supports a single bezier wave oscilator.
-* Voxpop - sampler instrument designed for playing voice samples
+* Voxpop - sampler instrument designed specifically for playing voice samples
     * playback from different places in the sample
     * pitch and/or time stretch
     * playback points (cue sheet) edited in Audacity (save labels as a .txt file)
 * Xone - Allen & Heath mixer style LPF effect
 * Ability to save and load presents for all LMMS effects.
-* Export improvements
+* Export improvements - collectivly these mean I can type Ctrl+E and render and publish a tune directly to the Internet with no need for post processing.
     * Ctrl + E to export without popups (using configured defaults)
     * Ctrl + B to bounce selected clips to loop file
     * Saving meta data to MP3 / Ogg / Wav files, e.g. title, author, genre
@@ -100,14 +102,18 @@ N.B. if you select 3 notes, i.e. to create triplets, or 4, these will be precise
 * TCO changes
     * double a clips length
     * index selected clips e.g.  bd1 bd2 bd3 bd4
-    * fade in & fade out notes in a clip, without an automation track!
+    * fade in & fade out all notes in a clip, without an automation track!
+    * fade in & fade out selected notes in piano roll
     * create flams and 2 types of sequenced echos
-    * fade in and fade out also available for selected notes inthe piano roll
 * Ducking controller
-	* A smooth advanced sidechain, using crazy bezier math
+	* A smooth advanced sidechain, using crazy bezier math, essential for pumping beats without an automation track
+	* Fader riding (essentially slow slight ducking) for HH lines over 1, 2 or 4 bars, without an automation track
 * Physical Midi Controller
-    * Use a phsical midi controller to navigate in LMMS
-* Tap reverb plaugin, has text telling you what reverb you are using.
+    * Use a physical midi controller to navigate in LMMS 
+* Tap reverb plugin, has text telling you what reverb you are using
+* Bezier Synth
+	* A new type of synth using different math to create sound waves
+	* Enables sound mutation of the wave form as its played
 
 ## Directory selector
 
@@ -119,8 +125,8 @@ N.B. if you select 3 notes, i.e. to create triplets, or 4, these will be precise
 
 ![voxpop](doc-images/voxpop.png)
 
-Makes playing a single sample with words or phrases that you want to sync to the music, a lot easier
-than inporting one sample per word or line, or presyninc whole wav tracks.
+Makes playing a single sample with words or phrases that you want to sync to the music, a lot easier than importing one sample per word or line, or presyncing whole wav tracks.
+Open a vocal sample in Audacity which has multiple words, phrases or an entire song. Mark all the points within the sample you want to play from, import the sample and .txt labels to Voxpop and then in piono roll you can play each point as if it were a single AudioFileProcessor track. e.g. you can import a single sample "I want words on the beat" and play it as  I .. want .. words .. on .. the .. beat, where each word is triggered individually.  Supports pitch, reverse and stutter effects, for each work / trigger.
 
 ## BezierSynth
 
@@ -133,6 +139,8 @@ Each wave has a modulation algo, so you can twiddle a knob and mutate the sound 
 
 ![svg-editor](doc-images/inkscape-sound-editor.png)
 
+The above image is a screen shot of inkscape of an importable .wave.svg file that can be mutated from a waveform of the black line to a wavefore of the red line as the note plays.  In this case the mutation is from sin to saw, from nasty to nice.  With up to 6 bezier cures per cycle of a sound wave, and two such oscillators per instance, this synth gives incomparable control of waveforms.  AFAIK there is no synth similar on the market.
+
 ## Bezier ducking
 
 Same bezier math used for a ducking controller, gives a tighter, more clubby/punchy duck than using sin waves, or side chaining of kicks.
@@ -141,11 +149,12 @@ Same effect an be achieveed with automation tracks but its fiddly, lots of copy 
 
 ![bezier-ducking](doc-images/bezier-ducking.png)
 
+The same conroller now has a ducking alog specifically for riding hh without automation tracks and lots of copy paste.
+
 ## Xone filter
 
-Crossover filter plus wild (resonance), automatable, and tweaked to sound like the Xone filter that if you are a DJ you will be used to having 
-on DJ mixers.
-Writing electronic musinc without this is painful, I use it a lot. All instruments support this out of the box in LMMS, with a bit of fiddling
+Crossover filter plus wild (resonance), automatable, and tweaked to sound like the Xone filter that if you are a DJ you will be used to having on DJ mixers.
+Writing electronic music without this is painful, I use it a lot. All instruments support this out of the box in LMMS, with a bit of fiddling
 but this plugin enables using it on grouped mixer channers, or even the whole mix, and before or after effects.  Particularly its useful
 to put an expander after the Xone FX so as freq rises volume doens't tail off.
 
@@ -168,16 +177,14 @@ I use a physical midi controller to navitage LMMS instead of trying to remember 
 
 ## Midi keyboard
 
-I have a phsycal midi keyboard that auto wires to the piano roll when even it opens.  No need to fiddle with the assingments.
+I have a phsycal midi keyboard that auto wires to the piano roll when even it opens.  No need to fiddle with the midi assignments.
 I also I have permanent mapping from the mixer rack to a physical midi mixer.
 
 
 ## Sub notes
 
-Ability to write two types of note in the piano roll, main notes and sub notes. N.B these are often called ghost notes but 
-LMMS uses the term for something else. Useful for writing pre-echos that you can then fiddle with as a group.  Especially useful 
-for writing layered notes where one note is placed exactly on top of the other, and it then becomes fiddly to select.
-Enables easily visualising which notes are principal to a melody and which are for skip or emphasis or trill or echo.
+Ability to write two types of note in the piano roll, main notes and sub notes. N.B these are often called ghost notes but LMMS uses the term for something else. Useful for writing pre-echos that you can then fiddle with as a group.  Especially useful for writing layered notes where one note is placed exactly on top of the other, and it then becomes fiddly to select.
+Enables easily visualising which notes are principal to a melody and which are for skip or emphasis or trill, flam or echo.
 Editing in the piano rolls in significantly easier with the ability to instantly select sub notes (Alt+S) and tweak volume of all notes together.
 
 
@@ -185,7 +192,7 @@ Editing in the piano rolls in significantly easier with the ability to instantly
 
 ## Ideal eq curve is draw on to the spectrum analiser
  
-This making it easy to see visually when some frequencies are missing, while mixing.  Its a fully opinionated curve obviously. based on averaging some eq curves of mastered tracks released on Beatport.  As good a reference as any for electronic music.
+This making it easy to see visually when some frequencies are missing, while mixing.  Its a fully opinionated curve obviously. It is based on averaging some eq curves of mastered tracks released on Beatport.  As good a reference as any for electronic music.
 
 
 ![sub-notes](doc-images/ideal-eq-curve.png)
