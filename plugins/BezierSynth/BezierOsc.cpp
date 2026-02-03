@@ -56,6 +56,7 @@ BezierOsc::BezierOsc(
 	m_detuning_div_samplerate(detuning_div_samplerate),
 	m_volume(volume),
 	m_mutateModel(mutateModel),
+	m_lastMut(0.0f),
 	m_attack(attack),
 	m_subOsc(sub_osc),
 	m_phaseOffset(0),
@@ -67,26 +68,14 @@ BezierOsc::BezierOsc(
 {
 	if (m_waveAlgo == WaveAlgo::BezierSin) {
 		m_bezier = new OscillatorBezierSin(mutateModel->value());
-		auto ok = connect(m_mutateModel, &FloatModel::dataChanged, this, &BezierOsc::mutateChanged);
-		if (!ok) qWarning("connect bug");
 	}
 	else if (m_waveAlgo == WaveAlgo::BezierZ) {
 		m_bezier = new OscillatorBezierZ(mutateModel->value());
-		auto ok = connect(m_mutateModel, &FloatModel::dataChanged, this, &BezierOsc::mutateChanged);
-		if (!ok) qWarning("connect bug");
 	}
 	else if (m_waveAlgo == WaveAlgo::BezierUser) {
 		m_bezier = new OscillatorBezierUser(bezierDef, mutateModel->value());
-		auto ok = connect(m_mutateModel, &FloatModel::dataChanged, this, &BezierOsc::mutateChanged);
-		if (!ok) qWarning("connect bug");
 	}
-}
-
-void BezierOsc::mutateChanged()
-{
-	if (m_bezier != nullptr) {
-		m_bezier->modulate(m_mutateModel->value());
-	}
+	if (m_mutateModel != nullptr) m_lastMut = m_mutateModel->value();
 }
 
 /**
@@ -128,6 +117,14 @@ void BezierOsc::update(sampleFrame* ab, const fpp_t frames, bool clean)
 		BufferManager::clear(ab, frames);
 		return;
 	}
+
+	// this sets the mut value change happens at a Z crossing.
+	if (m_mutateModel != nullptr && m_lastMut != m_mutateModel->value()) {
+		if (m_bezier != nullptr) {
+			m_bezier->modulate(m_mutateModel->value());
+		}
+	}
+
 	if (m_subOsc != nullptr)
 	{
 		switch (m_modulationAlgo)

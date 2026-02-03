@@ -124,10 +124,11 @@ sample_t OscillatorBezierBase::bezierSample(const float sample)
 		}
 	}
 	// when we change segments
+	// BUG wont apply on single segment waves, we dont have any, but they are possible
 	if (m_last_i != segment_index) {
 		m_last_t = 0.0f;
 		if (segment_index == 0) {
-			// at a Z crossing
+			// should be at a Z crossing for sounds
 			applyModulations();
 		}
 	}

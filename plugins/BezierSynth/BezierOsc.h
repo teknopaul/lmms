@@ -105,9 +105,6 @@ public:
 		return m_bezier->oscSample( sample );
 	}
 
-public slots:
-	void mutateChanged();
-
 private:
 	// N.B. not a model Core/Oscillator can change model mid-note, we dont support that
 	const WaveAlgo m_waveAlgo;
@@ -116,6 +113,7 @@ private:
 	const float m_detuning_div_samplerate;
 	const float m_volume;
 	FloatModel * m_mutateModel;
+	float m_lastMut;
 	// duration in seconds of attack
 	const float m_attack;
 	BezierOsc * m_subOsc;

@@ -188,7 +188,7 @@ static inline bool saneCheck(ModulationDef * modDef, int idx)
 /**
  * parse the instructions for the mutation / modulation
  * range=-0.1    +- is the direction in X forward or back
- * point=0.1.x   this creates a pointer to m_Segments[0][1].x
+ * point=0.1.x   this creates a pointer to m_segments[0][1].x
  * range=+0.1
  * point=1.2.x
  * ...

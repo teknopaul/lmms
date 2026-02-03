@@ -149,36 +149,37 @@ Same effect an be achieveed with automation tracks but its fiddly, lots of copy 
 
 ![bezier-ducking](doc-images/bezier-ducking.png)
 
-The same conroller now has a ducking alog specifically for riding hh without automation tracks and lots of copy paste.
+The same conroller now has a ducking algo specifically for riding hh without automation tracks and lots of copy paste.
 
 ## Xone filter
 
-Crossover filter plus wild (resonance), automatable, and tweaked to sound like the Xone filter that if you are a DJ you will be used to having on DJ mixers.
-Writing electronic music without this is painful, I use it a lot. All instruments support this out of the box in LMMS, with a bit of fiddling
-but this plugin enables using it on grouped mixer channers, or even the whole mix, and before or after effects.  Particularly its useful
+Crossover filter plus wild (resonance), automatable, and tweaked to sound like the Xone filter that, if you are a DJ, you will be used to having on DJ mixers.
+Writing electronic music without this is painful, I use it a lot. All instruments support a resonant filter out of the box in LMMS, with a bit of fiddling
+but this plugin enables using it on grouped mixer channers, or even the whole mix, and before or after effects.  Particularly it is useful
 to put an expander after the Xone FX so as freq rises volume doens't tail off.
+Since writing it, I almost always add it to the high hat channel and ride it as part of final mixing. It sounds, and feels, like a DJ toy, it is not in the least subtle, and having the effect separated from bass and synth tracks makes a big difference. A similar ability to assign the Xone filter to a frequency band would be a good addition to a DJ mixer Allen & Heath, hint, hint.
 
 ![xone](doc-images/xone.png)
 
 ## Mp3 images
 
-Save idv3 tract title artist and image, direct from the LMMS project export.  No need to use a tag editor.
-I use this always because I often tweak tunes and then rsync to the Internet, and don't want to go through a process to master and export and compress and add images each time I twiddle the mix of a high hat.
+Save idv3 track title, artist and image, direct from the LMMS project export.  No need to use a tag editor.
+I use this always because I often tweak tunes and then rsync to the Internet, and don't want to go through a process to master and export and compress and add images each time I twiddle the mix of a high hat. N.B due to the libraries used, the maximum size of a track image for album art in an MP3 is 128K, and the GUI makes no attempt to warn you if you add a larger image.
 
 ![mp3-image](doc-images/mp3-save.png)
 
 
 ## Studio Controller
 
-I use a physical midi controller to navitage LMMS instead of trying to remember all the key strokes.
+I use a physical midi controller to navigage LMMS instead of trying to remember all the key strokes.  All midi controller knobs and sliders are limited to a precision of 0 to 127 so its use is limited inthat regard but it can speed up your workflow which never hurts.
 
 ![mp3-image](doc-images/studio-controller.png)
 
 
 ## Midi keyboard
 
-I have a phsycal midi keyboard that auto wires to the piano roll when even it opens.  No need to fiddle with the midi assignments.
-I also I have permanent mapping from the mixer rack to a physical midi mixer.
+I have a phsycal midi keyboard that auto-wires to the piano roll when even it opens.  No need to fiddle with the midi assignments.
+I also I have permanent mapping from the mixer rack to a physical midi mixer.  Most importantly, this means that if you work with a midi keyboard in front and foremost on your physical desktop, it is always assigned to what you are doing automatically when you open a TCO. i.e. show the piano roll window for a particular instrument and your keys work.  These midi asisgnements are temporary, if you open a track with different midi hardware, or the keyboard unplugged, it does not get confused and zero everything.
 
 
 ## Sub notes
